@@ -146,7 +146,8 @@ public class Parse {
                 List.of(NonTerm.S, NonTerm.L),
                 List.of()));
 
-        NonTerm.E.setRules(List.of(List.of(Token.TRUE),
+        NonTerm.E.setRules(List.of(
+                List.of(Token.TRUE),
                 List.of(Token.FALSE),
                 List.of(Token.EXCLAM, NonTerm.E)));
 
