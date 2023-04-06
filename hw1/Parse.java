@@ -1,4 +1,4 @@
-import java.io.BufferedInputStream;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,7 +33,7 @@ enum Token implements Matchable {
 }
 
 enum NonTerm implements Matchable {
-    S(), L(), E();
+    S, L, E;
 
     private List<List<Matchable>> rules;
 
@@ -53,23 +53,18 @@ enum NonTerm implements Matchable {
     public Optional<List<Token>> match(List<Token> tokens) {
         return this.rules.stream()
                 .map(rule -> matchRule(Optional.of(tokens), rule.iterator()))
-                .filter(optRes -> optRes.isPresent())
+                .filter(Optional::isPresent)
                 .findFirst()
                 .flatMap(opt -> opt);
     }
 }
 
 public class Parse {
-    static int nextChar = -2;
-
-    static final BufferedInputStream reader = new BufferedInputStream(System.in);
+    static final BufferedInputStream in = new BufferedInputStream(System.in);
 
     static void consume() {
         try {
-            if (nextChar == -2)
-                System.in.read();
-            else
-                nextChar = -2;
+            in.read();
         } catch (Exception e) {
             e.printStackTrace();
             error("IO error");
@@ -78,9 +73,10 @@ public class Parse {
 
     static int peek() {
         try {
-            if (nextChar == -2)
-                nextChar = System.in.read();
-            return nextChar;
+            in.mark(1);
+            final var c = in.read();
+            in.reset();
+            return c;
         } catch (Exception e) {
             e.printStackTrace();
             error("IO error");
@@ -89,7 +85,6 @@ public class Parse {
     }
 
     static boolean isSep(int c) {
-        // return c == -1 || Character.isWhitespace((char) c);
         return c == -1 || !Character.isLetter((char) c);
     }
 
@@ -100,12 +95,12 @@ public class Parse {
     }
 
     static Token matchToken(int numMatched, List<Token> possible) {
-        if (possible.size() == 0)
+        if (possible.isEmpty())
             error("invalid token");
 
-        final int nextChar = peek();
+        final var nextChar = peek();
 
-        final Optional<Token> match = possible.stream()
+        final var match = possible.stream()
                 .filter(t -> t.str.length() == numMatched
                         && (isSep(t.str.charAt(numMatched - 1))
                                 || isSep(nextChar)))
@@ -130,7 +125,7 @@ public class Parse {
     }
 
     static List<Token> tokenize(List<Token> tokens) {
-        final Token t = matchToken(0, Token.all);
+        final var t = matchToken(0, Token.all);
 
         if (t == Token.EOF) {
             return tokens;
@@ -141,8 +136,6 @@ public class Parse {
     }
 
     public static void main(String[] args) {
-        final List<Token> tokens = tokenize(new ArrayList<>());
-
         NonTerm.S.setRules(List.of(
                 List.of(Token.LBRACE, NonTerm.L, Token.RBRACE),
                 List.of(Token.PRINT, Token.LPAREN, NonTerm.E, Token.RPAREN, Token.SEMCLN),
@@ -157,11 +150,13 @@ public class Parse {
                 List.of(Token.FALSE),
                 List.of(Token.EXCLAM, NonTerm.E)));
 
+        final var tokens = tokenize(new ArrayList<>());
+
         // System.out.println(tokens);
 
-        final Optional<List<Token>> res = NonTerm.S.match(tokens);
+        final var res = NonTerm.S.match(tokens);
 
-        if (res.isPresent() && res.get().size() == 0)
+        if (res.isPresent() && res.get().isEmpty())
             System.out.println("Program parsed successfully");
         else
             error("couldn't match S or remainder exists");
