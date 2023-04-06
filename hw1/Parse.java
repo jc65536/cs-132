@@ -25,10 +25,10 @@ enum Token implements Matchable {
     }
 
     public Optional<List<Token>> match(List<Token> tokens) {
-        if (tokens.get(0) != this)
+        if (!tokens.isEmpty() && tokens.get(0) == this)
+            return Optional.of(tokens.subList(1, tokens.size()));
+        else
             return Optional.empty();
-
-        return Optional.of(tokens.subList(1, tokens.size()));
     }
 }
 
@@ -54,8 +54,8 @@ enum NonTerm implements Matchable {
         return this.rules.stream()
                 .map(rule -> matchRule(Optional.of(tokens), rule.iterator()))
                 .filter(Optional::isPresent)
-                .findFirst()
-                .flatMap(opt -> opt);
+                .map(Optional::get)
+                .findFirst();
     }
 }
 
