@@ -10,9 +10,19 @@ interface Matchable {
 enum Token implements Matchable {
     LBRACE("{"), RBRACE("}"),
     LPAREN("("), RPAREN(")"),
-    IF("if"), ELSE("else"), WHILE("while"),
+    LBRACK("["), RBRACK("]"),
+    INT("int"), BOOL("boolean"), STRING("String"),
+    CLASS("class"), EXTENDS("extends"), PUBLIC("public"),
+    STATIC("static"), VOID("void"), MAIN("main"),
+    IF("if"), ELSE("else"), WHILE("while"), RETURN("return"),
+    LENGTH("length"), THIS("this"), NEW("new"),
     TRUE("true"), FALSE("false"), PRINT("System.out.println"),
-    SEMCLN(";"), EXCLAM("!"),
+    AND("&&"), LT("<"), PLUS("+"), MINUS("-"), MULT("*"),
+    SEMCLN(";"), EXCLAM("!"), COMMA(","), DOT("."), ASSIGN("="),
+
+    INT_LIT((c, i) -> Character.isDigit(c)),
+
+    ID_LIT((c, i) -> Character.isLetter(c) || c == '_' || (i > 0 && Character.isDigit(c))),
 
     WHTSPC((c, i) -> Character.isWhitespace(c)),
 
@@ -58,34 +68,7 @@ enum Token implements Matchable {
     }
 }
 
-enum NonTerm implements Matchable {
-    S, L, E;
-
-    private List<List<Matchable>> rules;
-
-    public void setRules(List<List<Matchable>> rules) {
-        this.rules = rules;
-    }
-
-    private Optional<List<Token>> matchRule(Optional<List<Token>> prev,
-            Iterator<Matchable> rule) {
-
-        if (!rule.hasNext() || prev.isEmpty())
-            return prev;
-
-        return matchRule(rule.next().match(prev.get()), rule);
-    }
-
-    public Optional<List<Token>> match(List<Token> tokens) {
-        return this.rules.stream()
-                .map(rule -> matchRule(Optional.of(tokens), rule.iterator()))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .findFirst();
-    }
-}
-
-public class Parse {
+public class Tokenizer {
     static final BufferedInputStream in = new BufferedInputStream(System.in);
 
     static void consume() {
@@ -111,8 +94,7 @@ public class Parse {
     }
 
     static void error(String s) {
-        System.out.println("Parse error");
-        // System.out.println("Parse error: " + s);
+        System.out.println("Parse error: " + s);
         System.exit(1);
     }
 
@@ -157,30 +139,8 @@ public class Parse {
     }
 
     public static void main(String[] args) {
-        NonTerm.S.setRules(List.of(
-                List.of(Token.LBRACE, NonTerm.L, Token.RBRACE),
-                List.of(Token.PRINT, Token.LPAREN, NonTerm.E, Token.RPAREN, Token.SEMCLN),
-                List.of(Token.IF, Token.LPAREN, NonTerm.E, Token.RPAREN, NonTerm.S, Token.ELSE, NonTerm.S),
-                List.of(Token.WHILE, Token.LPAREN, NonTerm.E, Token.RPAREN, NonTerm.S)));
-
-        NonTerm.L.setRules(List.of(
-                List.of(NonTerm.S, NonTerm.L),
-                List.of()));
-
-        NonTerm.E.setRules(List.of(
-                List.of(Token.TRUE),
-                List.of(Token.FALSE),
-                List.of(Token.EXCLAM, NonTerm.E)));
-
         final var tokens = tokenize(new ArrayList<>());
 
-        // System.out.println(tokens);
-
-        final var res = NonTerm.S.match(tokens);
-
-        if (res.isPresent() && res.get().isEmpty())
-            System.out.println("Program parsed successfully");
-        else
-            error("couldn't match S or remainder exists");
+        System.out.println(tokens);
     }
 }

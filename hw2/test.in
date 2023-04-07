@@ -1,0 +1,5 @@
+public class Test {
+    if(!!true) {
+        System.out.println(else);
+    }[}]
+}   System 0123
