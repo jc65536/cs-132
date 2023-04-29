@@ -1,85 +1,118 @@
+
+import java.util.*;
 import java.util.function.*;
 
+import cs132.IR.syntaxtree.Node;
+import cs132.minijava.syntaxtree.MethodDeclaration;
+
 interface Type {
+    boolean subtypes(Type other);
 }
 
 enum Prim implements Type {
-    INT, BOOL, ARR
+    INT, BOOL, ARR;
+
+    @Override
+    public boolean subtypes(Type other) {
+        return this == other;
+    }
 }
 
-class Class implements Type {
+class Class extends Lazy<ClassBody> implements Type {
     final String name;
-    final Lazy<List<SymPair>> fields;
-    final Lazy<List<Method>> methods;
-    final Lazy<Class> superClass;
 
-    Class(String name,
-            Lazy<List<SymPair>> fields,
-            Lazy<List<Method>> methods,
-            Lazy<Class> superClass) {
+    Class(String name, Supplier<ClassBody> body) {
+        super(body);
+        this.name = name;
+    }
+
+    public boolean subtypes(Type other) {
+        return other instanceof Class
+                && (this == other || this.get().superClass.map(sc -> sc.subtypes(other)).orElse(false));
+    }
+
+    SymPair fieldLookup(String sym) {
+        return get().fields.find(s -> s.sym.equals(sym)).or(() -> get().superClass.map(sc -> sc.fieldLookup(sym)))
+                .orElseGet(() -> Util.error("Unknown field " + sym));
+    }
+
+    Method methodLookup(String name, List<Type> paramTypes) {
+        return get().methods.find(m -> m.name.equals(name) && m.argsCompatible(paramTypes))
+                .orElseGet(() -> Util.error("Unknown method " + name));
+    }
+}
+
+class ClassBody {
+    final List<SymPair> fields;
+    final List<Method> methods;
+    final Optional<Class> superClass;
+
+    ClassBody(List<SymPair> fields,
+            List<Method> methods,
+            Optional<Class> superClass) {
         this.fields = fields;
         this.methods = methods;
-        this.name = name;
         this.superClass = superClass;
-    }
-
-    void eval() {
-        fields.get();
-        methods.get();
-        superClass.get();
-    }
-
-    boolean subtypes(Class other) {
-        return this == other || this.superClass.get().subtypes(other);
     }
 }
 
 class SymPair {
-    public final String sym;
-    public final Type type;
+    final String sym;
+    final Type type;
 
-    public SymPair(String sym, Type type) {
+    SymPair(String sym, Type type) {
         this.sym = sym;
         this.type = type;
     }
 }
 
 class Method {
-    public final String name;
-    public final List<SymPair> params;
-    public final Type retType;
+    final String name;
+    final List<SymPair> params;
+    final Type retType;
+    final MethodDeclaration body;
 
-    public Method(String name, List<SymPair> params, Type retType) {
+    Method(String name, List<SymPair> params, Type retType, MethodDeclaration body) {
         this.name = name;
         this.params = params;
         this.retType = retType;
+        this.body = body;
+    }
+
+    boolean argsCompatible(List<Type> argTypes) {
+        return argTypes.equals(params, (u, v) -> u.subtypes(v.type));
+    }
+
+    boolean typeEquals(Method other) {
+        return retType == other.retType && params.equals(other.params, (u, v) -> u.type == v.type);
     }
 }
 
-class TypeEnv {
-    public final List<SymPair> symList;
-    public final List<Class> classList;
-    public final Type currClass;
+public class TypeEnv {
+    final List<SymPair> symList;
+    final List<Class> classList;
+    final Optional<Class> currClass;
 
-    public TypeEnv(List<SymPair> symList, List<Class> classList, Type currClass) {
+    TypeEnv(List<SymPair> symList, List<Class> classList, Optional<Class> currClass) {
         this.symList = symList;
         this.classList = classList;
         this.currClass = currClass;
     }
 
-    public TypeEnv cons(SymPair pair) {
-        return new TypeEnv(new List<>(pair, symList), classList, currClass);
+    TypeEnv enterClass(Class c) {
+        return new TypeEnv(List.nul(), classList, Optional.of(c));
     }
 
-    public TypeEnv cons(Class clas) {
-        return new TypeEnv(symList, new List<>(clas, classList), currClass);
+    TypeEnv enterMethod(Method m) {
+        return new TypeEnv(m.params, classList, currClass);
     }
 
-    public TypeEnv setCurrClass(Type currClass) {
-        return new TypeEnv(symList, classList, currClass);
+    Class classLookup(String name) {
+        return classList.find(c -> c.name.equals(name)).orElseGet(() -> Util.error("Unknown class " + name));
     }
 
-    Class getClass(String name) {
-        return classList.find(c -> c.name.equals(name)).get();
+    SymPair symLookup(String sym) {
+        return symList.find(s -> s.sym.equals(sym)).or(() -> currClass.map(c -> c.fieldLookup(sym)))
+                .orElseGet(() -> Util.error("Unknown symbol " + sym));
     }
 }
