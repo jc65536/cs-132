@@ -6,16 +6,12 @@ import cs132.minijava.visitor.*;
 class ExprVisitor extends GJDepthFirst<Type, TypeEnv> {
     @Override
     public Type visit(Expression n, TypeEnv argu) {
-        final var exprNode = n.f0.choice;
-        return exprNode.accept(this, argu);
+        return n.f0.choice.accept(this, argu);
     }
 
     @Override
     public Type visit(AndExpression n, TypeEnv argu) {
-        final var lhsNode = n.f0;
-        final var rhsNode = n.f2;
-
-        return checkBinOp(lhsNode, rhsNode, Prim.BOOL, Prim.BOOL, argu);
+        return checkBinOp(n.f0, n.f2, Prim.BOOL, Prim.BOOL, argu);
     }
 
     @Override
@@ -43,20 +39,20 @@ class ExprVisitor extends GJDepthFirst<Type, TypeEnv> {
         final var arrType = n.f0.accept(this, argu);
         final var idxType = n.f2.accept(this, argu);
 
-        if (!(arrType == Prim.ARR && idxType == Prim.INT))
-            Util.error("Array lookup error");
-
-        return Prim.INT;
+        if (arrType == Prim.ARR && idxType == Prim.INT)
+            return Prim.INT;
+        else
+            return Util.error("Array lookup error");
     }
 
     @Override
     public Type visit(ArrayLength n, TypeEnv argu) {
         final var arrType = n.f0.accept(this, argu);
 
-        if (arrType != Prim.ARR)
-            Util.error("Array length error");
-
-        return Prim.INT;
+        if (arrType == Prim.ARR)
+            return Prim.INT;
+        else
+            return Util.error("Array length error");
     }
 
     @Override
@@ -64,13 +60,14 @@ class ExprVisitor extends GJDepthFirst<Type, TypeEnv> {
         final var methodName = n.f2.f0.tokenImage;
         final var objType = n.f0.accept(this, argu);
 
-        if (!(objType instanceof Class))
-            Util.error("Method call on primitive");
+        if (objType instanceof Class) {
+            final var objClass = (Class) objType;
+            final var argTypes = n.f4.accept(new ListVisitor<>(this), argu);
 
-        final var objClass = (Class) objType;
-        final var argTypes = n.f4.accept(new ListVisitor<>(this), argu);
-
-        return objClass.methodLookup(methodName, argTypes).retType;
+            return objClass.methodLookup(methodName, argTypes).retType;
+        } else {
+            return Util.error("Method call on primitive");
+        }
     }
 
     @Override
@@ -109,10 +106,10 @@ class ExprVisitor extends GJDepthFirst<Type, TypeEnv> {
     public Type visit(ArrayAllocationExpression n, TypeEnv argu) {
         final var lenExpr = n.f3;
 
-        if (lenExpr.accept(this, argu) != Prim.INT)
-            Util.error("Array allocation error");
-
-        return Prim.ARR;
+        if (lenExpr.accept(this, argu) == Prim.INT)
+            return Prim.ARR;
+        else
+            return Util.error("Array allocation error");
     }
 
     @Override
@@ -136,10 +133,10 @@ class ExprVisitor extends GJDepthFirst<Type, TypeEnv> {
         final var lhsType = lhsNode.accept(this, argu);
         final var rhsType = rhsNode.accept(this, argu);
 
-        if (!(lhsType == opType && rhsType == opType))
-            Util.error("Binop error");
-
-        return exprType;
+        if (lhsType == opType && rhsType == opType)
+            return exprType;
+        else
+            return Util.error("Binop error");
     }
 }
 
@@ -154,9 +151,9 @@ public class TypecheckVisitor extends GJDepthFirst<Boolean, TypeEnv> {
             final var pair = node.accept(new SymPairVisitor(), argu);
 
             if (pair.sym.equals(argsSym) || symList.exists(s -> s.sym.equals(pair.sym)))
-                Util.error("Duplicate local name");
-
-            return symList.cons(pair);
+                return Util.error("Duplicate local name");
+            else
+                return symList.cons(pair);
         }, (u, v) -> v), argu.classList, Optional.empty());
 
         return stmtNodes.stream().allMatch(node -> node.accept(this, typeEnv));

@@ -1,24 +1,33 @@
+import java.util.Optional;
 import java.util.function.*;
 
 public class Lazy<T> implements Supplier<T> {
-    private T v;
-    private Supplier<T> f;
+    T v;
+    Supplier<T> s;
 
-    Lazy(Supplier<T> f) {
-        this.f = f;
+    Lazy(Supplier<T> s) {
+        this.s = s;
     }
 
     Lazy(Function<Lazy<T>, T> f) {
-        this.f = () -> f.apply(this);
+        this.s = () -> f.apply(this);
     }
 
     @Override
     public T get() {
-        if (f != null) {
-            v = f.get();
-            f = null;
+        if (s != null) {
+            v = s.get();
+            s = null;
         }
 
         return v;
+    }
+
+    <U> Lazy<U> map(Function<T, U> f) {
+        return new Lazy<>(() -> f.apply(s.get()));
+    }
+
+    <U> Lazy<U> flatMap(Function<T, Lazy<U>> f) {
+        return new Lazy<>(() -> f.apply(get()).get());
     }
 }

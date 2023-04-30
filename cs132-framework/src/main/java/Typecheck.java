@@ -1,9 +1,4 @@
-
-
 import cs132.minijava.MiniJavaParser;
-import cs132.minijava.syntaxtree.Node;
-
-import java.util.*;
 
 public class Typecheck {
     public static void main(String[] args) throws Exception {
@@ -11,11 +6,14 @@ public class Typecheck {
 
         final var typeEnv = root.accept(new TypeDeclVisitor());
 
-        final var mainClass = root.f0;
-        mainClass.accept(new TypecheckVisitor(), typeEnv);
+        final var typeChecks = typeEnv.classList
+                .flatMap(c -> c.get().methods.map(m -> m.body))
+                .map(nodes -> nodes.cons(root.f0).forall(node -> node.accept(new TypecheckVisitor(), null)))
+                .get();
 
-        // typeEnv.classList.fold(null, (_n, c) -> c.get().methods.foreach(m -> {
-        //     m.body.accept(new TypecheckVisitor(), typeEnv);
-        // }));
+        if (typeChecks)
+            System.out.println("Program type checked successfully");
+        else
+            Util.error("Typecheck failed");
     }
 }

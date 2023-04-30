@@ -1,5 +1,4 @@
 import java.util.*;
-import java.util.function.Supplier;
 
 import cs132.minijava.syntaxtree.*;
 import cs132.minijava.visitor.*;
@@ -24,9 +23,10 @@ class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
         final var superName = n.f3.f0.tokenImage;
         final var fieldNodes = n.f5.nodes;
         final var methodNodes = n.f6.nodes;
-        final var superClass = argu.get().classLookup(superName);
-        return new Class(className,
-                () -> mkClassBody(fieldNodes, methodNodes, Optional.of(superClass), argu.get()));
+        return new Class(className, () -> {
+            final var superClass = argu.get().classLookup(superName);
+            return mkClassBody(fieldNodes, methodNodes, Optional.of(superClass), argu.get());
+        });
     }
 
     static ClassBody mkClassBody(Vector<Node> fieldNodes, Vector<Node> methodNodes, Optional<Class> superClass,
@@ -37,9 +37,9 @@ class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
                     final var field = node.accept(new SymPairVisitor(), argu);
 
                     if (fields.exists(f -> f.sym.equals(field.sym)))
-                        Util.error("Duplicate field name");
-
-                    return fields.cons(field);
+                        return Util.error("Duplicate field name");
+                    else
+                        return fields.cons(field);
                 },
                 (u, v) -> v);
 

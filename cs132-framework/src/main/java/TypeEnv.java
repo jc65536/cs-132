@@ -2,8 +2,7 @@
 import java.util.*;
 import java.util.function.*;
 
-import cs132.IR.syntaxtree.Node;
-import cs132.minijava.syntaxtree.MethodDeclaration;
+import cs132.minijava.syntaxtree.*;
 
 interface Type {
     boolean subtypes(Type other);
@@ -37,7 +36,7 @@ class Class extends Lazy<ClassBody> implements Type {
     }
 
     Method methodLookup(String name, List<Type> paramTypes) {
-        return get().methods.find(m -> m.name.equals(name) && m.argsCompatible(paramTypes))
+        return get().methods.find(m -> m.name.equals(name) && m.argsCompat(paramTypes))
                 .orElseGet(() -> Util.error("Unknown method " + name));
     }
 }
@@ -70,7 +69,7 @@ class Method {
     final String name;
     final List<SymPair> params;
     final Type retType;
-    final MethodDeclaration body;
+    final Node body;
 
     Method(String name, List<SymPair> params, Type retType, MethodDeclaration body) {
         this.name = name;
@@ -79,7 +78,7 @@ class Method {
         this.body = body;
     }
 
-    boolean argsCompatible(List<Type> argTypes) {
+    boolean argsCompat(List<Type> argTypes) {
         return argTypes.equals(params, (u, v) -> u.subtypes(v.type));
     }
 
