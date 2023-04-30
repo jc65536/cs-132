@@ -43,20 +43,23 @@ public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
 
     static boolean noOverloading(Optional<Class> superClass, Method method) {
         return superClass
-                .map(c -> !c.body().methods.exists(m -> m.name().equals(method.name()) && !m.typeEquals(method))
-                        && noOverloading(c.body().superClass, method))
+                .map(sc -> sc.body().methods
+                        .forAll(m -> !m.name().equals(method.name()) || m.typeEquals(method))
+                        && noOverloading(sc.body().superClass, method))
                 .orElse(true);
     }
 
-    static ClassBody mkClassBody(NodeListOptional fnodes, NodeListOptional mnodes, Optional<Class> sc, TypeEnv argu) {
+    static ClassBody mkClassBody(NodeListOptional fieldNodes, NodeListOptional methodNodes, Optional<Class> sc,
+            TypeEnv argu) {
+
         final var fieldVisitor = new ListVisitor<>(new SymPairVisitor(), Named::distinct, "Duplicate fields");
-        final var fields = fnodes.accept(fieldVisitor, argu);
+        final var fields = fieldNodes.accept(fieldVisitor, argu);
 
         final var methodVisitor = new ListVisitor<>(new MethodVisitor(),
                 (methods, method) -> Named.distinct(methods, method) && noOverloading(sc, method),
                 "Duplicate methods");
 
-        final var methods = mnodes.accept(methodVisitor, argu);
+        final var methods = methodNodes.accept(methodVisitor, argu);
 
         return new ClassBody(fields, methods, sc);
     }
