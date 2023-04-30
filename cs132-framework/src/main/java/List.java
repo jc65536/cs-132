@@ -1,25 +1,61 @@
 import java.util.*;
 import java.util.function.*;
 
-abstract class List<T> {
-    abstract Optional<T> find(Predicate<T> p);
+interface ListInt<T> {
+    Optional<T> find(Predicate<T> p);
 
-    abstract <U> U fold(U acc, BiFunction<U, T, U> f);
+    <U> U fold(U acc, BiFunction<U, T, U> f);
 
-    abstract Lazy<List<T>> join(Lazy<List<T>> other);
+    List<T> join(List<T> other);
 
-    abstract <U> Lazy<List<U>> map(Function<T, U> f);
+    <U> List<U> map(Function<T, U> f);
 
-    abstract <U> Lazy<List<U>> flatMap(Function<T, Lazy<List<U>>> f);
+    <U> List<U> flatMap(Function<T, List<U>> f);
 
-    abstract <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f);
+    <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f);
+}
+
+public class List<T> extends Lazy<_List<T>> implements ListInt<T> {
+    List(Supplier<_List<T>> s) {
+        super(s);
+    }
+
+    @Override
+    public Optional<T> find(Predicate<T> p) {
+        return get().find(p);
+    }
+
+    @Override
+    public <U> U fold(U acc, BiFunction<U, T, U> f) {
+        return get().fold(acc, f);
+    }
+
+    @Override
+    public List<T> join(List<T> other) {
+        return new List<>(bind(l -> l.join(other)));
+    }
+
+    @Override
+    public <U> List<U> map(Function<T, U> f) {
+        return new List<>(bind(l -> l.map(f)));
+    }
+
+    @Override
+    public <U> List<U> flatMap(Function<T, List<U>> f) {
+        return new List<>(bind(l -> l.flatMap(f)));
+    }
+
+    @Override
+    public <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f) {
+        return get().equals(other, f);
+    }
 
     static <T> List<T> nul() {
-        return new Null<>();
+        return new List<>(Null::new);
     }
 
     List<T> cons(T val) {
-        return new Pair<>(val, () -> this);
+        return new List<>(() -> new Pair<>(val, this));
     }
 
     static <T> List<T> of(T val) {
@@ -35,30 +71,33 @@ abstract class List<T> {
     }
 }
 
-class Null<T> extends List<T> {
+abstract class _List<T> implements ListInt<T> {
+}
+
+class Null<T> extends _List<T> {
     @Override
-    Optional<T> find(Predicate<T> p) {
+    public Optional<T> find(Predicate<T> p) {
         return Optional.empty();
     }
 
     @Override
-    <U> U fold(U acc, BiFunction<U, T, U> f) {
+    public <U> U fold(U acc, BiFunction<U, T, U> f) {
         return acc;
     }
 
     @Override
-    Lazy<List<T>> join(Lazy<List<T>> other) {
+    public List<T> join(List<T> other) {
         return other;
     }
 
     @Override
-    <U> Lazy<List<U>> map(Function<T, U> f) {
-        return new Lazy<>(List::nul);
+    public <U> List<U> map(Function<T, U> f) {
+        return List.nul();
     }
 
     @Override
-    <U> Lazy<List<U>> flatMap(Function<T, Lazy<List<U>>> f) {
-        return new Lazy<>(List::nul);
+    public <U> List<U> flatMap(Function<T, List<U>> f) {
+        return List.nul();
     }
 
     @Override
@@ -67,22 +106,22 @@ class Null<T> extends List<T> {
     }
 
     @Override
-    <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f) {
-        return equals(other);
+    public <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f) {
+        return equals(other.get());
     }
 }
 
-class Pair<T> extends List<T> {
+class Pair<T> extends _List<T> {
     final T val;
-    final Lazy<List<T>> next;
+    final List<T> next;
 
-    Pair(T val, Supplier<List<T>> next) {
+    Pair(T val, Supplier<_List<T>> next) {
         this.val = val;
-        this.next = new Lazy<>(next);
+        this.next = new List<>(next);
     }
 
     @Override
-    Optional<T> find(Predicate<T> p) {
+    public Optional<T> find(Predicate<T> p) {
         // System.out.println("find: " + val);
         if (p.test(val))
             return Optional.of(val);
@@ -91,40 +130,42 @@ class Pair<T> extends List<T> {
     }
 
     @Override
-    <U> U fold(U acc, BiFunction<U, T, U> f) {
+    public <U> U fold(U acc, BiFunction<U, T, U> f) {
         return next.get().fold(f.apply(acc, val), f);
     }
 
     @Override
-    Lazy<List<T>> join(Lazy<List<T>> other) {
-        // Syst:m.out.println("join: " + val);
-        return new Lazy<>(() -> new Pair<T>(val, next.flatMap(n -> n.join(other))));
+    public List<T> join(List<T> other) {
+        // System.out.println("join: " + val);
+        return new List<>(() -> new Pair<T>(val, next.join(other)));
     }
 
     @Override
-    <U> Lazy<List<U>> map(Function<T, U> f) {
+    public <U> List<U> map(Function<T, U> f) {
         // System.out.println("map: " + val);
-        return new Lazy<>(() -> new Pair<>(f.apply(val), next.flatMap(n -> n.map(f))));
+        return new List<>(() -> new Pair<>(f.apply(val), next.map(f)));
     }
 
     @Override
-    <U> Lazy<List<U>> flatMap(Function<T, Lazy<List<U>>> f) {
+    public <U> List<U> flatMap(Function<T, List<U>> f) {
         // System.out.println("flatmap: " + val);
-        return new Lazy<>(() -> f.apply(val).get().join(next.flatMap(n -> n.flatMap(f))).get());
+        return new List<>(() -> f.apply(val).get().join(next.flatMap(f)).get());
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Pair<?> && equals((Pair<?>) obj, (u, v) -> u.equals(v));
+        return obj instanceof Pair<?> && equals(new List<>(() -> (Pair<?>) obj), (u, v) -> u.equals(v));
     }
 
     @Override
-    <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f) {
-        if (!(other instanceof Pair<?>))
+    public <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f) {
+        final var _other = other.get();
+
+        if (!(_other instanceof Pair<?>))
             return false;
 
-        final var o = (Pair<U>) other;
+        final var o = (Pair<U>) _other;
 
-        return f.apply(val, o.val) && next.get().equals(o.next.get(), f);
+        return f.apply(val, o.val) && next.equals(o.next, f);
     }
 }

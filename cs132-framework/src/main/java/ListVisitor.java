@@ -30,6 +30,6 @@ public class ListVisitor<R, A> extends GJDepthFirst<List<R>, A> {
 
     List<R> visitList(Node first, Vector<Node> rest, A argu) {
         return rest.stream().reduce(List.of(first.accept(visitor, argu)),
-            (acc, node) -> acc.cons(node.accept(visitor, argu)), (u, v) -> v);
+                (acc, node) -> acc.cons(node.accept(visitor, argu)), (u, v) -> v);
     }
 }

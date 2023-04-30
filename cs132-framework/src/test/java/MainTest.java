@@ -14,7 +14,7 @@ public class MainTest {
         System.out.println("=== r2 ===");
 
         final var l2 = List.of(1).cons(2).cons(3);
-        final var r2 = l1.join(new Lazy<>(() -> l2)).flatMap(l -> l.map(x -> x * 2));
+        final var r2 = l1.join(l2).bind(l -> l.map(x -> x * 2));
 
         r2.get().fold(0, (x, e) -> {
             System.out.println(e);

@@ -23,11 +23,7 @@ public class Lazy<T> implements Supplier<T> {
         return v;
     }
 
-    <U> Lazy<U> map(Function<T, U> f) {
-        return new Lazy<>(() -> f.apply(s.get()));
-    }
-
-    <U> Lazy<U> flatMap(Function<T, Lazy<U>> f) {
+    <U> Lazy<U> bind(Function<T, Lazy<U>> f) {
         return new Lazy<>(() -> f.apply(get()).get());
     }
 }

@@ -123,12 +123,12 @@ public class TypeEnv {
         this.currMethod = currMethod;
     }
 
-    TypeEnv enterClass(Class c) {
-        return new TypeEnv(List.nul(), classList, Optional.of(c), Optional.empty());
+    TypeEnv addLocals(List<SymPair> locals) {
+        return new TypeEnv(symList.join(locals), classList, currClass, currMethod);
     }
 
-    TypeEnv enterMethod(Method m) {
-        return new TypeEnv(m.params, classList, currClass, Optional.of(m));
+    TypeEnv enterClassMethod(Class c, Method m) {
+        return new TypeEnv(m.params, classList, Optional.of(c), Optional.of(m));
     }
 
     Class classLookup(String name) {
