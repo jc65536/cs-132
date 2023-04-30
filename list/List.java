@@ -29,11 +29,15 @@ class Lazy<T> implements Supplier<T> {
 }
 
 interface ListInt<T> {
-    Optional<T> find(Predicate<? super T> p);
+    Optional<T> find(Predicate<T> p);
 
     <U> U fold(U acc, BiFunction<U, T, U> f);
 
     List<T> join(List<T> other);
+
+    <U> List<U> map(Function<T, U> f);
+
+    <U> List<U> flatMap(Function<T, List<U>> f);
 
     <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f);
 }
@@ -44,7 +48,7 @@ public class List<T> extends Lazy<_List<T>> implements ListInt<T> {
     }
 
     @Override
-    public Optional<T> find(Predicate<? super T> p) {
+    public Optional<T> find(Predicate<T> p) {
         return get().find(p);
     }
 
@@ -56,6 +60,16 @@ public class List<T> extends Lazy<_List<T>> implements ListInt<T> {
     @Override
     public List<T> join(List<T> other) {
         return new List<>(bind(l -> l.join(other)));
+    }
+
+    @Override
+    public <U> List<U> map(Function<T, U> f) {
+        return new List<>(bind(l -> l.map(f)));
+    }
+
+    @Override
+    public <U> List<U> flatMap(Function<T, List<U>> f) {
+        return new List<>(bind(l -> l.flatMap(f)));
     }
 
     @Override
@@ -79,7 +93,7 @@ public class List<T> extends Lazy<_List<T>> implements ListInt<T> {
         return !exists(p.negate());
     }
 
-    boolean exists(Predicate<? super T> p) {
+    boolean exists(Predicate<T> p) {
         return find(p).isPresent();
     }
 }
@@ -89,7 +103,7 @@ abstract class _List<T> implements ListInt<T> {
 
 class Null<T> extends _List<T> {
     @Override
-    public Optional<T> find(Predicate<? super T> p) {
+    public Optional<T> find(Predicate<T> p) {
         return Optional.empty();
     }
 
@@ -101,6 +115,16 @@ class Null<T> extends _List<T> {
     @Override
     public List<T> join(List<T> other) {
         return other;
+    }
+
+    @Override
+    public <U> List<U> map(Function<T, U> f) {
+        return List.nul();
+    }
+
+    @Override
+    public <U> List<U> flatMap(Function<T, List<U>> f) {
+        return List.nul();
     }
 
     @Override
@@ -124,7 +148,7 @@ class Pair<T> extends _List<T> {
     }
 
     @Override
-    public Optional<T> find(Predicate<? super T> p) {
+    public Optional<T> find(Predicate<T> p) {
         // System.out.println("find: " + val);
         if (p.test(val))
             return Optional.of(val);
@@ -141,6 +165,18 @@ class Pair<T> extends _List<T> {
     public List<T> join(List<T> other) {
         // System.out.println("join: " + val);
         return next.join(other).cons(val);
+    }
+
+    @Override
+    public <U> List<U> map(Function<T, U> f) {
+        // System.out.println("map: " + val);
+        return next.map(f).cons(f.apply(val));
+    }
+
+    @Override
+    public <U> List<U> flatMap(Function<T, List<U>> f) {
+        // System.out.println("flatmap: " + val);
+        return f.apply(val).join(next.flatMap(f));
     }
 
     @Override

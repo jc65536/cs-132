@@ -25,7 +25,7 @@ enum Prim implements Type {
     }
 }
 
-class Class extends Lazy<ClassBody> implements Type, Named {
+class Class extends Lazy<ClassBody> implements Named, Type {
     private final String name;
 
     Class(String name, Supplier<ClassBody> body) {
@@ -33,11 +33,11 @@ class Class extends Lazy<ClassBody> implements Type, Named {
         this.name = name;
     }
 
+    @Override
     public boolean subtypes(Type other) {
-        return other instanceof Class
-                && (this == other || this.get().superClass
-                        .map(sc -> sc.subtypes(other))
-                        .orElse(false));
+        return this == other || this.get().superClass
+                .map(sc -> sc.subtypes(other))
+                .orElse(false);
     }
 
     SymPair fieldLookup(String sym) {
@@ -56,7 +56,7 @@ class Class extends Lazy<ClassBody> implements Type, Named {
 
     @Override
     public String toString() {
-        return name;
+        return name();
     }
 
     @Override
