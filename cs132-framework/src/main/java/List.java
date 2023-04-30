@@ -149,7 +149,7 @@ class Pair<T> extends _List<T> {
 
     @Override
     public Optional<T> find(Predicate<T> p) {
-        System.out.println("find: " + val);
+        // System.out.println("find: " + val);
         if (p.test(val))
             return Optional.of(val);
         else
@@ -163,19 +163,19 @@ class Pair<T> extends _List<T> {
 
     @Override
     public List<T> join(List<T> other) {
-        System.out.println("join: " + val);
+        // System.out.println("join: " + val);
         return next.join(other).cons(val);
     }
 
     @Override
     public <U> List<U> map(Function<T, U> f) {
-        System.out.println("map: " + val);
+        // System.out.println("map: " + val);
         return next.map(f).cons(f.apply(val));
     }
 
     @Override
     public <U> List<U> flatMap(Function<T, List<U>> f) {
-        System.out.println("flatmap: " + val);
+        // System.out.println("flatmap: " + val);
         return f.apply(val).join(next.flatMap(f));
     }
 
