@@ -126,7 +126,12 @@ class ExprVisitor extends GJDepthFirst<Type, TypeEnv> {
 
     @Override
     public Type visit(NotExpression n, TypeEnv argu) {
-        return n.f1.accept(this, argu);
+        final var expr = n.f1;
+
+        if (expr.accept(this, argu) == Prim.BOOL)
+            return Prim.BOOL;
+        else
+            return Util.error("Not expression error");
     }
 
     @Override
@@ -178,9 +183,9 @@ public class TypecheckVisitor extends GJDepthFirst<Boolean, TypeEnv> {
                 return symList.cons(pair);
         }, (u, v) -> v), argu.classList, argu.currClass, argu.currMethod);
 
-        final var retType = n.f10.accept(new ExprVisitor(), typeEnv);
+        final var retType = typeEnv.currMethod.get().retType;
 
-        return Util.expect(retType == typeEnv.currMethod.get().retType, "Return type error")
+        return Util.expect(exprSubtypes(n.f10, retType, typeEnv), "Return type error")
                 && stmtNodes.stream().allMatch(node -> node.accept(this, typeEnv));
     }
 
@@ -198,36 +203,41 @@ public class TypecheckVisitor extends GJDepthFirst<Boolean, TypeEnv> {
     public Boolean visit(AssignmentStatement n, TypeEnv argu) {
         final var destName = n.f0.f0.tokenImage;
         final var destType = argu.symLookup(destName).type;
-        final var exprType = n.f2.accept(new ExprVisitor(), argu);
 
-        return Util.expect(exprType.subtypes(destType), "Assignment error");
+        return Util.expect(exprSubtypes(n.f2, destType, argu), "Assignment error");
     }
 
     @Override
     public Boolean visit(ArrayAssignmentStatement n, TypeEnv argu) {
         final var arrName = n.f0.f0.tokenImage;
-        final var arrType = argu.symLookup(arrName).type;
-        final var idxType = n.f2.accept(new ExprVisitor(), argu);
-        final var exprType = n.f5.accept(new ExprVisitor(), argu);
 
-        return Util.expect(arrType == Prim.ARR && idxType == Prim.INT && exprType == Prim.INT,
+        return Util.expect(argu.symLookup(arrName).type == Prim.ARR
+                && exprSubtypes(n.f2, Prim.INT, argu)
+                && exprSubtypes(n.f5, Prim.INT, argu),
                 "Array assignment error");
     }
 
     @Override
     public Boolean visit(IfStatement n, TypeEnv argu) {
-        final var condType = n.f2.accept(new ExprVisitor(), argu);
-        return Util.expect(condType == Prim.BOOL && n.f4.accept(this, argu) && n.f6.accept(this, argu), "If error");
+        return Util.expect(exprSubtypes(n.f2, Prim.BOOL, argu)
+                && n.f4.accept(this, argu)
+                && n.f6.accept(this, argu),
+                "If error");
     }
 
     @Override
     public Boolean visit(WhileStatement n, TypeEnv argu) {
-        final var condType = n.f2.accept(new ExprVisitor(), argu);
-        return Util.expect(condType == Prim.BOOL && n.f4.accept(this, argu), "While error");
+        return Util.expect(exprSubtypes(n.f2, Prim.BOOL, argu)
+                && n.f4.accept(this, argu),
+                "While error");
     }
 
     @Override
     public Boolean visit(PrintStatement n, TypeEnv argu) {
-        return Util.expect(n.f2.accept(new ExprVisitor(), argu) == Prim.INT, "Print error");
+        return Util.expect(exprSubtypes(n.f2, Prim.INT, argu), "Print error");
+    }
+
+    boolean exprSubtypes(Expression node, Type expected, TypeEnv argu) {
+        return node.accept(new ExprVisitor(), argu).subtypes(expected);
     }
 }
