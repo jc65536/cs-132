@@ -9,7 +9,8 @@ class MethodVisitor extends GJDepthFirst<Method, TypeEnv> {
         final var name = n.f2.f0.tokenImage;
 
         final var paramVisitor = new ListVisitor<>(new SymPairVisitor(),
-                (params, param) -> !params.exists(p -> p.sym.equals(param.sym)));
+                (params, param) -> !params.exists(p -> p.sym.equals(param.sym)),
+                "Duplicate params");
 
         final var params = n.f4.accept(paramVisitor, argu);
         final var retType = n.f1.accept(new TypeVisitor(), argu);
@@ -40,19 +41,26 @@ public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
         });
     }
 
+    static boolean noOverloading(Optional<Class> superClass, Method method) {
+        return superClass
+                .map(c -> c.get().methods.forAll(m -> !m.name.equals(method.name) || m.typeEquals(method))
+                        && noOverloading(c.get().superClass, method))
+                .orElse(true);
+    }
+
     static ClassBody mkClassBody(NodeListOptional fieldNodes, NodeListOptional methodNodes, Optional<Class> superClass,
             TypeEnv argu) {
 
         final var fieldVisitor = new ListVisitor<>(new SymPairVisitor(),
-                (fields, field) -> !fields.exists(f -> f.sym.equals(field.sym)));
+                (fields, field) -> !fields.exists(f -> f.sym.equals(field.sym)),
+                "Duplicate fields");
 
         final var fields = fieldNodes.accept(fieldVisitor, argu);
 
-        final var superMethods = superClass.map(c -> c.get().methods).orElse(List.nul());
-
         final var methodVisitor = new ListVisitor<>(new MethodVisitor(),
-                (methods, method) -> !(methods.exists(m -> m.name.equals(method.name))
-                        || (superMethods.exists(m -> m.name.equals(method.name) && !m.typeEquals(method)))));
+                (methods, method) -> !methods.exists(m -> m.name.equals(method.name))
+                        && noOverloading(superClass, method),
+                "Duplicate methods");
 
         final var methods = methodNodes.accept(methodVisitor, argu);
 

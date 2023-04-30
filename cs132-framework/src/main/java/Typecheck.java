@@ -14,7 +14,7 @@ class Util {
     static boolean expect(boolean b, String msg) {
         if (!b)
             Util.error(msg);
-        
+
         return b;
     }
 }
@@ -25,7 +25,8 @@ class TypeDeclVisitor extends GJNoArguDepthFirst<TypeEnv> {
         final var mainClassName = n.f0.f1.f0.tokenImage;
 
         final var classVisitor = new ListVisitor<>(new ClassVisitor(),
-                (classes, clas) -> !(clas.name.equals(mainClassName) || classes.exists(c -> c.name.equals(clas.name))));
+                (classes, clas) -> !(clas.name.equals(mainClassName) || classes.exists(c -> c.name.equals(clas.name))),
+                "Duplicate class");
 
         return new Lazy<TypeEnv>(z -> {
             final var classList = n.f1.accept(classVisitor, z);
@@ -44,10 +45,10 @@ public class Typecheck {
 
         final var mainTypechecks = root.f0.accept(new TypecheckVisitor(), typeEnv);
 
-        final var typeChecks = mainTypechecks && typeEnv.classList.forAll(c -> c.get().methods
+        final var typechecks = mainTypechecks && typeEnv.classList.forAll(c -> c.get().methods
                 .forAll(m -> m.body.accept(new TypecheckVisitor(), typeEnv.enterClassMethod(c, m))));
 
-        if (typeChecks)
+        if (typechecks)
             System.out.println("Program type checked successfully");
         else
             Util.error("Typecheck failed");

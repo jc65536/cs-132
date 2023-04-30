@@ -1,5 +1,3 @@
-import java.util.*;
-
 import cs132.minijava.syntaxtree.*;
 import cs132.minijava.visitor.*;
 
@@ -62,7 +60,8 @@ class ExprVisitor extends GJDepthFirst<Type, TypeEnv> {
 
         if (objType instanceof Class) {
             final var objClass = (Class) objType;
-            final var argTypes = n.f4.accept(new ListVisitor<>(this, (l, x) -> true), argu);
+            final var argVisitor = new ListVisitor<>(this, (u, v) -> true, "z");
+            final var argTypes = n.f4.accept(argVisitor, argu);
 
             return objClass.methodLookup(methodName, argTypes).retType;
         } else {
@@ -120,7 +119,6 @@ class ExprVisitor extends GJDepthFirst<Type, TypeEnv> {
     @Override
     public Type visit(AllocationExpression n, TypeEnv argu) {
         final var className = n.f1.f0.tokenImage;
-
         return argu.classLookup(className);
     }
 
@@ -155,10 +153,11 @@ public class TypecheckVisitor extends GJDepthFirst<Boolean, TypeEnv> {
     public Boolean visit(MainClass n, TypeEnv argu) {
         final var argsSym = n.f11.f0.tokenImage;
 
-        final var locals = n.f14.accept(
-                new ListVisitor<>(new SymPairVisitor(),
-                        (symList, pair) -> !(pair.sym.equals(argsSym) || symList.exists(s -> s.sym.equals(pair.sym)))),
-                argu);
+        final var localVisitor = new ListVisitor<>(new SymPairVisitor(),
+                (symList, pair) -> !(pair.sym.equals(argsSym) || symList.exists(s -> s.sym.equals(pair.sym))),
+                "Duplicate locals");
+
+        final var locals = n.f14.accept(localVisitor, argu);
 
         final var typeEnv = argu.addLocals(locals);
         final var stmtNodes = n.f15.nodes;
@@ -168,8 +167,11 @@ public class TypecheckVisitor extends GJDepthFirst<Boolean, TypeEnv> {
 
     @Override
     public Boolean visit(MethodDeclaration n, TypeEnv argu) {
-        final var locals = n.f7.accept(new ListVisitor<>(new SymPairVisitor(),
-                (symList, pair) -> !symList.exists(s -> s.sym.equals(pair.sym))), argu);
+        final var localVisitor = new ListVisitor<>(new SymPairVisitor(),
+                (symList, pair) -> !symList.exists(s -> s.sym.equals(pair.sym)),
+                "Duplicate locals");
+
+        final var locals = n.f7.accept(localVisitor, argu);
 
         final TypeEnv typeEnv = argu.addLocals(locals);
         final var stmtNodes = n.f8.nodes;

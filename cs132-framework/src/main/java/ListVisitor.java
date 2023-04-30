@@ -7,10 +7,12 @@ import cs132.minijava.visitor.*;
 public class ListVisitor<R, A> extends GJDepthFirst<List<R>, A> {
     final GJDepthFirst<R, A> v;
     final BiPredicate<List<R>, R> chk;
+    final String msg;
 
-    public ListVisitor(GJDepthFirst<R, A> v, BiPredicate<List<R>, R> chk) {
+    public ListVisitor(GJDepthFirst<R, A> v, BiPredicate<List<R>, R> chk, String msg) {
         this.v = v;
         this.chk = chk;
+        this.msg = msg;
     }
 
     @Override
@@ -36,13 +38,13 @@ public class ListVisitor<R, A> extends GJDepthFirst<List<R>, A> {
         return visitList(List.nul(), n.nodes, argu);
     }
 
-    List<R> visitList(List<R> init, Vector<Node> list, A argu) {
-        return list.stream().reduce(init, (acc, node) -> {
+    List<R> visitList(List<R> init, Vector<Node> vec, A argu) {
+        return vec.stream().reduce(init, (acc, node) -> {
             final var res = node.accept(v, argu);
             if (chk.test(acc, res))
                 return acc.cons(res);
             else
-                return Util.error("List error");
+                return Util.error(msg);
         }, (u, v) -> v);
     }
 }
