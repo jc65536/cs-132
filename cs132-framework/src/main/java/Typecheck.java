@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.function.*;
 
 import cs132.minijava.syntaxtree.*;
 import cs132.minijava.visitor.*;
@@ -12,10 +13,7 @@ class Util {
     }
 
     static boolean expect(boolean b, String msg) {
-        if (!b)
-            Util.error(msg);
-
-        return b;
+        return b || Util.<Boolean>error(msg);
     }
 }
 
@@ -28,10 +26,11 @@ class TypeDeclVisitor extends GJNoArguDepthFirst<TypeEnv> {
                 (classes, clas) -> !clas.name().equals(mainClassName) && Named.distinct(classes, clas),
                 "Duplicate class");
 
-        return new Lazy<TypeEnv>(z -> {
-            final var classList = n.f1.accept(classVisitor, z);
-            return new TypeEnv(List.nul(), classList, Optional.empty(), Optional.empty());
-        }).get();
+        return new Lazy<TypeEnv>(z -> new TypeEnv(List.nul(),
+                n.f1.accept(classVisitor, z),
+                Optional.empty(),
+                Optional.empty()))
+                .get();
     }
 }
 
@@ -45,8 +44,9 @@ public class Typecheck {
 
         final var mainTypechecks = root.f0.accept(new TypecheckVisitor(), typeEnv);
 
-        final var typechecks = mainTypechecks && typeEnv.classList.forAll(c -> c.get().methods
-                .forAll(m -> m.body.accept(new TypecheckVisitor(), typeEnv.enterClassMethod(c, m))));
+        final var typechecks = mainTypechecks
+                && typeEnv.classList.forAll(c -> c.body().methods
+                        .forAll(m -> m.body.accept(new TypecheckVisitor(), typeEnv.enterClassMethod(c, m))));
 
         if (typechecks)
             System.out.println("Program type checked successfully");

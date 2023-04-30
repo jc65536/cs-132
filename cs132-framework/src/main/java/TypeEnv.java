@@ -25,33 +25,44 @@ enum Prim implements Type {
     }
 }
 
-class Class extends Lazy<ClassBody> implements Named, Type {
+class Class implements Named, Type {
     private final String name;
+    private final Lazy<ClassBody> body;
 
-    Class(String name, Supplier<ClassBody> body) {
-        super(body);
+    Class(String name, Function<Class, ClassBody> body) {
         this.name = name;
+        this.body = new Lazy<>(() -> body.apply(this));
+    }
+
+    ClassBody body() {
+        return body.get();
     }
 
     @Override
     public boolean subtypes(Type other) {
-        return this == other || this.get().superClass
+        return this == other || body().superClass
                 .map(sc -> sc.subtypes(other))
                 .orElse(false);
     }
 
     SymPair fieldLookup(String sym) {
-        return get().fields
+        return body().fields
                 .find(s -> s.name().equals(sym))
-                .or(() -> get().superClass.map(sc -> sc.fieldLookup(sym)))
+                .or(() -> body().superClass.map(sc -> sc.fieldLookup(sym)))
                 .orElseGet(() -> Util.error("Unknown field " + sym));
     }
 
     Method methodLookup(String name, List<Type> paramTypes) {
-        return get().methods
+        return body().methods
                 .find(m -> m.name().equals(name) && m.argsCompat(paramTypes))
-                .or(() -> get().superClass.map(sc -> sc.methodLookup(name, paramTypes)))
+                .or(() -> body().superClass.map(sc -> sc.methodLookup(name, paramTypes)))
                 .orElseGet(() -> Util.error("Unknown method " + name));
+    }
+
+    boolean acyclic(Class c) {
+        return this != c && body().superClass
+                .map(sc -> sc.acyclic(c))
+                .orElse(true);
     }
 
     @Override
@@ -141,20 +152,20 @@ class Method implements Named {
 }
 
 public class TypeEnv {
-    final List<SymPair> symList;
+    final List<SymPair> locals;
     final List<Class> classList;
     final Optional<Class> currClass;
     final Optional<Method> currMethod;
 
-    TypeEnv(List<SymPair> symList, List<Class> classList, Optional<Class> currClass, Optional<Method> currMethod) {
-        this.symList = symList;
+    TypeEnv(List<SymPair> locals, List<Class> classList, Optional<Class> currClass, Optional<Method> currMethod) {
+        this.locals = locals;
         this.classList = classList;
         this.currClass = currClass;
         this.currMethod = currMethod;
     }
 
     TypeEnv addLocals(List<SymPair> locals) {
-        return new TypeEnv(symList.join(locals), classList, currClass, currMethod);
+        return new TypeEnv(this.locals.join(locals), classList, currClass, currMethod);
     }
 
     TypeEnv enterClassMethod(Class c, Method m) {
@@ -168,7 +179,7 @@ public class TypeEnv {
     }
 
     SymPair symLookup(String sym) {
-        return symList
+        return locals
                 .find(s -> s.name().equals(sym))
                 .or(() -> currClass.map(c -> c.fieldLookup(sym)))
                 .orElseGet(() -> Util.error("Unknown symbol " + sym));
@@ -176,6 +187,6 @@ public class TypeEnv {
 
     @Override
     public String toString() {
-        return classList.fold("", (str, c) -> String.format("%s---\n%s\n%s", str, c, c.get()));
+        return classList.fold("", (str, c) -> String.format("%s---\n%s\n%s", str, c, c.body()));
     }
 }

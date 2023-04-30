@@ -104,13 +104,8 @@ class Null<T> extends _List<T> {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        return obj instanceof Null<?>;
-    }
-
-    @Override
     public <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f) {
-        return equals(other.get());
+        return other.get() instanceof Null<?>;
     }
 }
 
@@ -129,23 +124,18 @@ class Pair<T> extends _List<T> {
         if (p.test(val))
             return Optional.of(val);
         else
-            return next.get().find(p);
+            return next.find(p);
     }
 
     @Override
     public <U> U fold(U acc, BiFunction<U, T, U> f) {
-        return next.get().fold(f.apply(acc, val), f);
+        return next.fold(f.apply(acc, val), f);
     }
 
     @Override
     public List<T> join(List<T> other) {
         // System.out.println("join: " + val);
         return next.join(other).cons(val);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof Pair<?> && equals(new List<>(() -> (Pair<?>) obj), (u, v) -> u.equals(v));
     }
 
     @Override

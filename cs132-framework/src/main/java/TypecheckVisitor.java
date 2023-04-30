@@ -154,7 +154,7 @@ public class TypecheckVisitor extends GJDepthFirst<Boolean, TypeEnv> {
         final var argsSym = n.f11.f0.tokenImage;
 
         final var localVisitor = new ListVisitor<>(new SymPairVisitor(),
-                (symList, pair) -> !pair.name().equals(argsSym) && Named.distinct(symList, pair),
+                (locals, pair) -> !pair.name().equals(argsSym) && Named.distinct(locals, pair),
                 "Duplicate locals");
 
         final var locals = n.f14.accept(localVisitor, argu);
@@ -168,7 +168,7 @@ public class TypecheckVisitor extends GJDepthFirst<Boolean, TypeEnv> {
     @Override
     public Boolean visit(MethodDeclaration n, TypeEnv argu) {
         final var localVisitor = new ListVisitor<>(new SymPairVisitor(),
-                Named::distinct,
+                (locals, pair) -> Named.distinct(argu.locals, pair) && Named.distinct(locals, pair),
                 "Duplicate locals");
 
         final var locals = n.f7.accept(localVisitor, argu);
