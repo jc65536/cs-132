@@ -27,16 +27,21 @@ class Class extends Lazy<ClassBody> implements Type {
 
     public boolean subtypes(Type other) {
         return other instanceof Class
-                && (this == other || this.get().superClass.map(sc -> sc.subtypes(other)).orElse(false));
+                && (this == other || this.get().superClass
+                        .map(sc -> sc.subtypes(other))
+                        .orElse(false));
     }
 
     SymPair fieldLookup(String sym) {
-        return get().fields.find(s -> s.sym.equals(sym)).or(() -> get().superClass.map(sc -> sc.fieldLookup(sym)))
+        return get().fields
+                .find(s -> s.sym.equals(sym))
+                .or(() -> get().superClass.map(sc -> sc.fieldLookup(sym)))
                 .orElseGet(() -> Util.error("Unknown field " + sym));
     }
 
     Method methodLookup(String name, List<Type> paramTypes) {
-        return get().methods.find(m -> m.name.equals(name) && m.argsCompat(paramTypes))
+        return get().methods
+                .find(m -> m.name.equals(name) && m.argsCompat(paramTypes))
                 .orElseGet(() -> Util.error("Unknown method " + name));
     }
 
@@ -51,9 +56,7 @@ class ClassBody {
     final List<Method> methods;
     final Optional<Class> superClass;
 
-    ClassBody(List<SymPair> fields,
-            List<Method> methods,
-            Optional<Class> superClass) {
+    ClassBody(List<SymPair> fields, List<Method> methods, Optional<Class> superClass) {
         this.fields = fields;
         this.methods = methods;
         this.superClass = superClass;
@@ -61,7 +64,8 @@ class ClassBody {
 
     @Override
     public String toString() {
-        return String.format("%s%s%s", superClass.map(sc -> sc.toString() + "\n").orElse(""),
+        return String.format("%s%s%s",
+                superClass.map(sc -> sc.toString() + "\n").orElse(""),
                 fields.fold("", (str, f) -> String.format("%s%s\n", str, f)),
                 methods.fold("", (str, m) -> String.format("%s%s\n", str, m)));
     }
@@ -105,7 +109,9 @@ class Method {
 
     @Override
     public String toString() {
-        return String.format("%s: %s -> %s", name, params.fold("", (str, p) -> String.format("%s, %s", str, p)),
+        return String.format("%s: %s -> %s",
+                name,
+                params.fold("", (str, p) -> String.format("%s, %s", str, p)),
                 retType);
     }
 }
@@ -132,11 +138,15 @@ public class TypeEnv {
     }
 
     Class classLookup(String name) {
-        return classList.find(c -> c.name.equals(name)).orElseGet(() -> Util.error("Unknown class " + name));
+        return classList
+                .find(c -> c.name.equals(name))
+                .orElseGet(() -> Util.error("Unknown class " + name));
     }
 
     SymPair symLookup(String sym) {
-        return symList.find(s -> s.sym.equals(sym)).or(() -> currClass.map(c -> c.fieldLookup(sym)))
+        return symList
+                .find(s -> s.sym.equals(sym))
+                .or(() -> currClass.map(c -> c.fieldLookup(sym)))
                 .orElseGet(() -> Util.error("Unknown symbol " + sym));
     }
 

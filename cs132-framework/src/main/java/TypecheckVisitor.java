@@ -154,35 +154,25 @@ public class TypecheckVisitor extends GJDepthFirst<Boolean, TypeEnv> {
     @Override
     public Boolean visit(MainClass n, TypeEnv argu) {
         final var argsSym = n.f11.f0.tokenImage;
-        final var localNodes = n.f14.nodes;
+
+        final var locals = n.f14.accept(
+                new ListVisitor<>(new SymPairVisitor(),
+                        (symList, pair) -> !(pair.sym.equals(argsSym) || symList.exists(s -> s.sym.equals(pair.sym)))),
+                argu);
+
+        final var typeEnv = argu.addLocals(locals);
         final var stmtNodes = n.f15.nodes;
-
-        final TypeEnv typeEnv = new TypeEnv(localNodes.stream().reduce(List.nul(), (symList, node) -> {
-            final var pair = node.accept(new SymPairVisitor(), argu);
-
-            if (pair.sym.equals(argsSym) || symList.exists(s -> s.sym.equals(pair.sym)))
-                return Util.error("Duplicate local name");
-            else
-                return symList.cons(pair);
-        }, (u, v) -> v), argu.classList, Optional.empty(), Optional.empty());
 
         return stmtNodes.stream().allMatch(node -> node.accept(this, typeEnv));
     }
 
     @Override
     public Boolean visit(MethodDeclaration n, TypeEnv argu) {
-        final var localNodes = n.f7.nodes;
+        final var locals = n.f7.accept(new ListVisitor<>(new SymPairVisitor(),
+                (symList, pair) -> !symList.exists(s -> s.sym.equals(pair.sym))), argu);
+
+        final TypeEnv typeEnv = argu.addLocals(locals);
         final var stmtNodes = n.f8.nodes;
-
-        final TypeEnv typeEnv = new TypeEnv(localNodes.stream().reduce(argu.symList, (symList, node) -> {
-            final var pair = node.accept(new SymPairVisitor(), argu);
-
-            if (symList.exists(s -> s.sym.equals(pair.sym)))
-                return Util.error("Duplicate local name");
-            else
-                return symList.cons(pair);
-        }, (u, v) -> v), argu.classList, argu.currClass, argu.currMethod);
-
         final var retType = typeEnv.currMethod.get().retType;
 
         return Util.expect(exprSubtypes(n.f10, retType, typeEnv), "Return type error")
