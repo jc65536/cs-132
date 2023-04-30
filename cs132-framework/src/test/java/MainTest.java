@@ -14,16 +14,17 @@ public class MainTest {
         System.out.println("=== r2 ===");
 
         final var l2 = List.of(1).cons(2).cons(3);
-        final var r2 = l1.join(l2).bind(l -> l.map(x -> x * 2));
+        final var r2 = l1.join(l2).map(x -> x * 2);
 
-        r2.get().fold(0, (x, e) -> {
-            System.out.println(e);
+        r2.fold(0, (u, x) -> {
+            System.out.println(x);
             return 0;
         });
 
         System.out.println("=== r3 ===");
 
-        final var r3 = l2.flatMap(x -> List.of(1).cons(2).cons(3).map(y -> y * x)).get().find(x -> x < 6).get();
+        final var l3 = l2.flatMap(x -> List.of(1).cons(2).cons(3).map(y -> y * x));
+        final var r3 = l3.find(x -> x < 3);
 
         System.out.println("Result: " + r3);
     }
