@@ -62,7 +62,7 @@ class ExprVisitor extends GJDepthFirst<Type, TypeEnv> {
 
         if (objType instanceof Class) {
             final var objClass = (Class) objType;
-            final var argTypes = n.f4.accept(new ListVisitor<>(this), argu);
+            final var argTypes = n.f4.accept(new ListVisitor<>(this, (l, x) -> true), argu);
 
             return objClass.methodLookup(methodName, argTypes).retType;
         } else {

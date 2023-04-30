@@ -9,9 +9,11 @@ class TypeDeclVisitor extends GJNoArguDepthFirst<TypeEnv> {
     public TypeEnv visit(Goal n) {
         final var mainClassName = n.f0.f1.f0.tokenImage;
 
+        final var classVisitor = new ListVisitor<>(new ClassVisitor(),
+                (classes, clas) -> !(clas.name.equals(mainClassName) || classes.exists(c -> c.name.equals(clas.name))));
+
         return new Lazy<TypeEnv>(z -> {
-            final var classList = n.f1.accept(new ListVisitor<>(new ClassVisitor(), (classes,
-                    clas) -> !(clas.name.equals(mainClassName) || classes.exists(c -> c.name.equals(clas.name)))), z);
+            final var classList = n.f1.accept(classVisitor, z);
             return new TypeEnv(List.nul(), classList, Optional.empty(), Optional.empty());
         }).get();
     }

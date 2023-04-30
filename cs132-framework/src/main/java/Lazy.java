@@ -1,4 +1,3 @@
-import java.util.Optional;
 import java.util.function.*;
 
 public class Lazy<T> implements Supplier<T> {

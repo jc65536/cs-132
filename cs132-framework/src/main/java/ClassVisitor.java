@@ -7,13 +7,18 @@ class MethodVisitor extends GJDepthFirst<Method, TypeEnv> {
     @Override
     public Method visit(MethodDeclaration n, TypeEnv argu) {
         final var name = n.f2.f0.tokenImage;
-        final var params = n.f4.accept(new ListVisitor<>(new SymPairVisitor()), argu);
+
+        final var paramVisitor = new ListVisitor<>(new SymPairVisitor(),
+                (params, param) -> !params.exists(p -> p.sym.equals(param.sym)));
+
+        final var params = n.f4.accept(paramVisitor, argu);
         final var retType = n.f1.accept(new TypeVisitor(), argu);
+
         return new Method(name, params, retType, n);
     }
 }
 
-class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
+public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
     @Override
     public Class visit(TypeDeclaration n, Lazy<TypeEnv> argu) {
         return n.f0.accept(this, argu);
@@ -38,17 +43,19 @@ class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
     static ClassBody mkClassBody(NodeListOptional fieldNodes, NodeListOptional methodNodes, Optional<Class> superClass,
             TypeEnv argu) {
 
-        final var ownFields = fieldNodes.accept(new ListVisitor<>(new SymPairVisitor(),
-                (fields, field) -> !fields.exists(f -> f.sym.equals(field.sym))), argu);
+        final var fieldVisitor = new ListVisitor<>(new SymPairVisitor(),
+                (fields, field) -> !fields.exists(f -> f.sym.equals(field.sym)));
+
+        final var fields = fieldNodes.accept(fieldVisitor, argu);
 
         final var superMethods = superClass.map(c -> c.get().methods).orElse(List.nul());
 
-        final var ownMethods = methodNodes.accept(
-                new ListVisitor<>(new MethodVisitor(),
-                        (methods, method) -> !(methods.exists(m -> m.name.equals(method.name))
-                                || (superMethods.exists(m -> m.name.equals(method.name) && !m.typeEquals(method))))),
-                argu);
+        final var methodVisitor = new ListVisitor<>(new MethodVisitor(),
+                (methods, method) -> !(methods.exists(m -> m.name.equals(method.name))
+                        || (superMethods.exists(m -> m.name.equals(method.name) && !m.typeEquals(method)))));
 
-        return new ClassBody(ownFields, ownMethods, superClass);
+        final var methods = methodNodes.accept(methodVisitor, argu);
+
+        return new ClassBody(fields, methods, superClass);
     }
 }

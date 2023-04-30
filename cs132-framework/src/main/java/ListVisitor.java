@@ -13,10 +13,6 @@ public class ListVisitor<R, A> extends GJDepthFirst<List<R>, A> {
         this.chk = chk;
     }
 
-    public ListVisitor(GJDepthFirst<R, A> v) {
-        this(v, (l, x) -> true);
-    }
-
     @Override
     public List<R> visit(NodeOptional n, A argu) {
         if (n.present())
