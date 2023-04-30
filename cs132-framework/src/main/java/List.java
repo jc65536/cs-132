@@ -26,7 +26,7 @@ abstract class List<T> {
         return List.<T>nul().cons(val);
     }
 
-    boolean forall(Predicate<T> p) {
+    boolean forAll(Predicate<T> p) {
         return !exists(p.negate());
     }
 

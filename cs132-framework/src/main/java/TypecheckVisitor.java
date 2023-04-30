@@ -71,6 +71,11 @@ class ExprVisitor extends GJDepthFirst<Type, TypeEnv> {
     }
 
     @Override
+    public Type visit(ExpressionRest n, TypeEnv argu) {
+        return n.f1.accept(this, argu);
+    }
+
+    @Override
     public Type visit(PrimaryExpression n, TypeEnv argu) {
         final var exprNode = n.f0.choice;
         return exprNode.accept(this, argu);
@@ -154,14 +159,28 @@ public class TypecheckVisitor extends GJDepthFirst<Boolean, TypeEnv> {
                 return Util.error("Duplicate local name");
             else
                 return symList.cons(pair);
-        }, (u, v) -> v), argu.classList, Optional.empty());
+        }, (u, v) -> v), argu.classList, Optional.empty(), Optional.empty());
 
         return stmtNodes.stream().allMatch(node -> node.accept(this, typeEnv));
     }
 
     @Override
     public Boolean visit(MethodDeclaration n, TypeEnv argu) {
-        return null;
+        final var localNodes = n.f7.nodes;
+        final var stmtNodes = n.f8.nodes;
+
+        final TypeEnv typeEnv = new TypeEnv(localNodes.stream().reduce(argu.symList, (symList, node) -> {
+            final var pair = node.accept(new SymPairVisitor(), argu);
+
+            if (symList.exists(s -> s.sym.equals(pair.sym)))
+                return Util.error("Duplicate local name");
+            else
+                return symList.cons(pair);
+        }, (u, v) -> v), argu.classList, argu.currClass, argu.currMethod);
+
+        final var retType = n.f10.accept(new ExprVisitor(), typeEnv);
+
+        return retType == typeEnv.currMethod.get() && stmtNodes.stream().allMatch(node -> node.accept(this, typeEnv));
     }
 
     @Override

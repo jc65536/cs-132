@@ -6,10 +6,12 @@ public class Typecheck {
 
         final var typeEnv = root.accept(new TypeDeclVisitor());
 
-        final var typeChecks = typeEnv.classList
-                .flatMap(c -> c.get().methods.map(m -> m.body))
-                .map(nodes -> nodes.cons(root.f0).forall(node -> node.accept(new TypecheckVisitor(), null)))
-                .get();
+        System.out.println(typeEnv);
+
+        final var mainClassTypeChecks = root.f0.accept(new TypecheckVisitor(), typeEnv);
+
+        final var typeChecks = mainClassTypeChecks && typeEnv.classList.forAll(c -> c.get().methods
+                .forAll(m -> m.body.accept(new TypecheckVisitor(), typeEnv.enterClass(c).enterMethod(m))));
 
         if (typeChecks)
             System.out.println("Program type checked successfully");

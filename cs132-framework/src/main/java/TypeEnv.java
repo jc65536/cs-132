@@ -39,6 +39,11 @@ class Class extends Lazy<ClassBody> implements Type {
         return get().methods.find(m -> m.name.equals(name) && m.argsCompat(paramTypes))
                 .orElseGet(() -> Util.error("Unknown method " + name));
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }
 
 class ClassBody {
@@ -53,6 +58,13 @@ class ClassBody {
         this.methods = methods;
         this.superClass = superClass;
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s%s%s", superClass.map(sc -> sc.toString() + "\n").orElse(""),
+                fields.fold("", (str, f) -> String.format("%s%s\n", str, f)),
+                methods.fold("", (str, m) -> String.format("%s%s\n", str, m)));
+    }
 }
 
 class SymPair {
@@ -62,6 +74,11 @@ class SymPair {
     SymPair(String sym, Type type) {
         this.sym = sym;
         this.type = type;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s: %s", sym, type);
     }
 }
 
@@ -85,25 +102,33 @@ class Method {
     boolean typeEquals(Method other) {
         return retType == other.retType && params.equals(other.params, (u, v) -> u.type == v.type);
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s: %s -> %s", name, params.fold("", (str, p) -> String.format("%s, %s", str, p)),
+                retType);
+    }
 }
 
 public class TypeEnv {
     final List<SymPair> symList;
     final List<Class> classList;
     final Optional<Class> currClass;
+    final Optional<Method> currMethod;
 
-    TypeEnv(List<SymPair> symList, List<Class> classList, Optional<Class> currClass) {
+    TypeEnv(List<SymPair> symList, List<Class> classList, Optional<Class> currClass, Optional<Method> currMethod) {
         this.symList = symList;
         this.classList = classList;
         this.currClass = currClass;
+        this.currMethod = currMethod;
     }
 
     TypeEnv enterClass(Class c) {
-        return new TypeEnv(List.nul(), classList, Optional.of(c));
+        return new TypeEnv(List.nul(), classList, Optional.of(c), Optional.empty());
     }
 
     TypeEnv enterMethod(Method m) {
-        return new TypeEnv(m.params, classList, currClass);
+        return new TypeEnv(m.params, classList, currClass, Optional.of(m));
     }
 
     Class classLookup(String name) {
@@ -113,5 +138,10 @@ public class TypeEnv {
     SymPair symLookup(String sym) {
         return symList.find(s -> s.sym.equals(sym)).or(() -> currClass.map(c -> c.fieldLookup(sym)))
                 .orElseGet(() -> Util.error("Unknown symbol " + sym));
+    }
+
+    @Override
+    public String toString() {
+        return classList.fold("", (str, c) -> String.format("%s---\n%s\n%s", str, c, c.get()));
     }
 }

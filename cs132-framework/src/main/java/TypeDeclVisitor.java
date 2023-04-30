@@ -17,6 +17,6 @@ public class TypeDeclVisitor extends GJNoArguDepthFirst<TypeEnv> {
                         Util.error("Duplicate class name");
 
                     return classes.cons(clas);
-                }, (u, v) -> v), Optional.empty())).get();
+                }, (u, v) -> v), Optional.empty(), Optional.empty())).get();
     }
 }

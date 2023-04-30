@@ -15,4 +15,9 @@ public class SymPairVisitor extends GJDepthFirst<SymPair, TypeEnv> {
         final var type = n.f0.accept(new TypeVisitor(), argu);
         return new SymPair(sym, type);
     }
+
+    @Override
+    public SymPair visit(FormalParameterRest n, TypeEnv argu) {
+        return n.f1.accept(this, argu);
+    }
 }
