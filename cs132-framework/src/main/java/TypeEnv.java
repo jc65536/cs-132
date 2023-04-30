@@ -8,6 +8,14 @@ interface Type {
     boolean subtypes(Type other);
 }
 
+interface Named {
+    String name();
+
+    static boolean distinct(List<? extends Named> list, Named named) {
+        return !list.exists(n -> n.name().equals(named.name()));
+    }
+}
+
 enum Prim implements Type {
     INT, BOOL, ARR;
 
@@ -17,8 +25,8 @@ enum Prim implements Type {
     }
 }
 
-class Class extends Lazy<ClassBody> implements Type {
-    final String name;
+class Class extends Lazy<ClassBody> implements Type, Named {
+    private final String name;
 
     Class(String name, Supplier<ClassBody> body) {
         super(body);
@@ -34,19 +42,25 @@ class Class extends Lazy<ClassBody> implements Type {
 
     SymPair fieldLookup(String sym) {
         return get().fields
-                .find(s -> s.sym.equals(sym))
+                .find(s -> s.name().equals(sym))
                 .or(() -> get().superClass.map(sc -> sc.fieldLookup(sym)))
                 .orElseGet(() -> Util.error("Unknown field " + sym));
     }
 
     Method methodLookup(String name, List<Type> paramTypes) {
         return get().methods
-                .find(m -> m.name.equals(name) && m.argsCompat(paramTypes))
+                .find(m -> m.name().equals(name) && m.argsCompat(paramTypes))
+                .or(() -> get().superClass.map(sc -> sc.methodLookup(name, paramTypes)))
                 .orElseGet(() -> Util.error("Unknown method " + name));
     }
 
     @Override
     public String toString() {
+        return name;
+    }
+
+    @Override
+    public String name() {
         return name;
     }
 }
@@ -71,8 +85,8 @@ class ClassBody {
     }
 }
 
-class SymPair {
-    final String sym;
+class SymPair implements Named {
+    private final String sym;
     final Type type;
 
     SymPair(String sym, Type type) {
@@ -84,10 +98,15 @@ class SymPair {
     public String toString() {
         return String.format("%s: %s", sym, type);
     }
+
+    @Override
+    public String name() {
+        return sym;
+    }
 }
 
-class Method {
-    final String name;
+class Method implements Named {
+    private final String name;
     final List<SymPair> params;
     final Type retType;
     final Node body;
@@ -114,6 +133,11 @@ class Method {
                 params.fold("", (str, p) -> String.format("%s, %s", str, p)),
                 retType);
     }
+
+    @Override
+    public String name() {
+        return name;
+    }
 }
 
 public class TypeEnv {
@@ -139,13 +163,13 @@ public class TypeEnv {
 
     Class classLookup(String name) {
         return classList
-                .find(c -> c.name.equals(name))
+                .find(c -> c.name().equals(name))
                 .orElseGet(() -> Util.error("Unknown class " + name));
     }
 
     SymPair symLookup(String sym) {
         return symList
-                .find(s -> s.sym.equals(sym))
+                .find(s -> s.name().equals(sym))
                 .or(() -> currClass.map(c -> c.fieldLookup(sym)))
                 .orElseGet(() -> Util.error("Unknown symbol " + sym));
     }

@@ -25,7 +25,7 @@ class TypeDeclVisitor extends GJNoArguDepthFirst<TypeEnv> {
         final var mainClassName = n.f0.f1.f0.tokenImage;
 
         final var classVisitor = new ListVisitor<>(new ClassVisitor(),
-                (classes, clas) -> !(clas.name.equals(mainClassName) || classes.exists(c -> c.name.equals(clas.name))),
+                (classes, clas) -> !clas.name().equals(mainClassName) && Named.distinct(classes, clas),
                 "Duplicate class");
 
         return new Lazy<TypeEnv>(z -> {

@@ -9,7 +9,7 @@ class MethodVisitor extends GJDepthFirst<Method, TypeEnv> {
         final var name = n.f2.f0.tokenImage;
 
         final var paramVisitor = new ListVisitor<>(new SymPairVisitor(),
-                (params, param) -> !params.exists(p -> p.sym.equals(param.sym)),
+                Named::distinct,
                 "Duplicate params");
 
         final var params = n.f4.accept(paramVisitor, argu);
@@ -43,7 +43,7 @@ public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
 
     static boolean noOverloading(Optional<Class> superClass, Method method) {
         return superClass
-                .map(c -> c.get().methods.forAll(m -> !m.name.equals(method.name) || m.typeEquals(method))
+                .map(c -> c.get().methods.forAll(m -> !m.name().equals(method.name()) || m.typeEquals(method))
                         && noOverloading(c.get().superClass, method))
                 .orElse(true);
     }
@@ -52,14 +52,13 @@ public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
             TypeEnv argu) {
 
         final var fieldVisitor = new ListVisitor<>(new SymPairVisitor(),
-                (fields, field) -> !fields.exists(f -> f.sym.equals(field.sym)),
+                Named::distinct,
                 "Duplicate fields");
 
         final var fields = fieldNodes.accept(fieldVisitor, argu);
 
         final var methodVisitor = new ListVisitor<>(new MethodVisitor(),
-                (methods, method) -> !methods.exists(m -> m.name.equals(method.name))
-                        && noOverloading(superClass, method),
+                (methods, method) -> Named.distinct(methods, method) && noOverloading(superClass, method),
                 "Duplicate methods");
 
         final var methods = methodNodes.accept(methodVisitor, argu);
