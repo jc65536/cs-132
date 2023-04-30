@@ -6,7 +6,7 @@ public class Typecheck {
 
         final var typeEnv = root.accept(new TypeDeclVisitor());
 
-        System.out.println(typeEnv);
+        // System.out.println(typeEnv);
 
         final var mainClassTypeChecks = root.f0.accept(new TypecheckVisitor(), typeEnv);
 

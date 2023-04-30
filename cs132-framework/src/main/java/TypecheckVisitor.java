@@ -180,7 +180,8 @@ public class TypecheckVisitor extends GJDepthFirst<Boolean, TypeEnv> {
 
         final var retType = n.f10.accept(new ExprVisitor(), typeEnv);
 
-        return retType == typeEnv.currMethod.get() && stmtNodes.stream().allMatch(node -> node.accept(this, typeEnv));
+        return Util.expect(retType == typeEnv.currMethod.get().retType, "Return type error")
+                && stmtNodes.stream().allMatch(node -> node.accept(this, typeEnv));
     }
 
     @Override
@@ -199,7 +200,7 @@ public class TypecheckVisitor extends GJDepthFirst<Boolean, TypeEnv> {
         final var destType = argu.symLookup(destName).type;
         final var exprType = n.f2.accept(new ExprVisitor(), argu);
 
-        return exprType.subtypes(destType);
+        return Util.expect(exprType.subtypes(destType), "Assignment error");
     }
 
     @Override
@@ -209,23 +210,24 @@ public class TypecheckVisitor extends GJDepthFirst<Boolean, TypeEnv> {
         final var idxType = n.f2.accept(new ExprVisitor(), argu);
         final var exprType = n.f5.accept(new ExprVisitor(), argu);
 
-        return arrType == Prim.ARR && idxType == Prim.INT && exprType == Prim.INT;
+        return Util.expect(arrType == Prim.ARR && idxType == Prim.INT && exprType == Prim.INT,
+                "Array assignment error");
     }
 
     @Override
     public Boolean visit(IfStatement n, TypeEnv argu) {
         final var condType = n.f2.accept(new ExprVisitor(), argu);
-        return condType == Prim.BOOL && n.f4.accept(this, argu) && n.f6.accept(this, argu);
+        return Util.expect(condType == Prim.BOOL && n.f4.accept(this, argu) && n.f6.accept(this, argu), "If error");
     }
 
     @Override
     public Boolean visit(WhileStatement n, TypeEnv argu) {
         final var condType = n.f2.accept(new ExprVisitor(), argu);
-        return condType == Prim.BOOL && n.f4.accept(this, argu);
+        return Util.expect(condType == Prim.BOOL && n.f4.accept(this, argu), "While error");
     }
 
     @Override
     public Boolean visit(PrintStatement n, TypeEnv argu) {
-        return n.f2.accept(new ExprVisitor(), argu) == Prim.INT;
+        return Util.expect(n.f2.accept(new ExprVisitor(), argu) == Prim.INT, "Print error");
     }
 }
