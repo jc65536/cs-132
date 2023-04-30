@@ -120,7 +120,6 @@ class Pair<T> extends _List<T> {
 
     @Override
     public Optional<T> find(Predicate<? super T> p) {
-        // System.out.println("find: " + val);
         if (p.test(val))
             return Optional.of(val);
         else
@@ -134,7 +133,6 @@ class Pair<T> extends _List<T> {
 
     @Override
     public List<T> join(List<T> other) {
-        // System.out.println("join: " + val);
         return next.join(other).cons(val);
     }
 

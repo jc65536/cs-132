@@ -54,7 +54,7 @@ class Class implements Named, Type {
 
     Method methodLookup(String name, List<Type> paramTypes) {
         return body().methods
-                .find(m -> m.name().equals(name) && m.argsCompat(paramTypes))
+                .find(m -> m.sigMatches(name, paramTypes))
                 .or(() -> body().superClass.map(sc -> sc.methodLookup(name, paramTypes)))
                 .orElseGet(() -> Util.error("Unknown method " + name));
     }
@@ -129,8 +129,8 @@ class Method implements Named {
         this.body = body;
     }
 
-    boolean argsCompat(List<Type> argTypes) {
-        return argTypes.equals(params, (u, v) -> u.subtypes(v.type));
+    boolean sigMatches(String name, List<Type> argTypes) {
+        return name().equals(name) && argTypes.equals(params, (u, v) -> u.subtypes(v.type));
     }
 
     boolean typeEquals(Method other) {
@@ -153,27 +153,27 @@ class Method implements Named {
 
 public class TypeEnv {
     final List<SymPair> locals;
-    final List<Class> classList;
+    final List<Class> classes;
     final Optional<Class> currClass;
     final Optional<Method> currMethod;
 
-    TypeEnv(List<SymPair> locals, List<Class> classList, Optional<Class> currClass, Optional<Method> currMethod) {
+    TypeEnv(List<SymPair> locals, List<Class> classes, Optional<Class> currClass, Optional<Method> currMethod) {
         this.locals = locals;
-        this.classList = classList;
+        this.classes = classes;
         this.currClass = currClass;
         this.currMethod = currMethod;
     }
 
     TypeEnv addLocals(List<SymPair> locals) {
-        return new TypeEnv(this.locals.join(locals), classList, currClass, currMethod);
+        return new TypeEnv(this.locals.join(locals), classes, currClass, currMethod);
     }
 
     TypeEnv enterClassMethod(Class c, Method m) {
-        return new TypeEnv(m.params, classList, Optional.of(c), Optional.of(m));
+        return new TypeEnv(m.params, classes, Optional.of(c), Optional.of(m));
     }
 
     Class classLookup(String name) {
-        return classList
+        return classes
                 .find(c -> c.name().equals(name))
                 .orElseGet(() -> Util.error("Unknown class " + name));
     }
@@ -187,6 +187,6 @@ public class TypeEnv {
 
     @Override
     public String toString() {
-        return classList.fold("", (str, c) -> String.format("%s---\n%s\n%s", str, c, c.body()));
+        return classes.fold("", (str, c) -> String.format("%s---\n%s\n%s", str, c, c.body()));
     }
 }

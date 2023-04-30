@@ -45,7 +45,7 @@ public class Typecheck {
         final var mainTypechecks = root.f0.accept(new TypecheckVisitor(), typeEnv);
 
         final var typechecks = mainTypechecks
-                && typeEnv.classList.forAll(c -> c.body().methods
+                && typeEnv.classes.forAll(c -> c.body().methods
                         .forAll(m -> m.body.accept(new TypecheckVisitor(), typeEnv.enterClassMethod(c, m))));
 
         if (typechecks)

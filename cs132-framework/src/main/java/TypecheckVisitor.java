@@ -195,14 +195,12 @@ public class TypecheckVisitor extends GJDepthFirst<Boolean, TypeEnv> {
     public Boolean visit(AssignmentStatement n, TypeEnv argu) {
         final var destName = n.f0.f0.tokenImage;
         final var destType = argu.symLookup(destName).type;
-
         return Util.expect(exprSubtypes(n.f2, destType, argu), "Assignment error");
     }
 
     @Override
     public Boolean visit(ArrayAssignmentStatement n, TypeEnv argu) {
         final var arrName = n.f0.f0.tokenImage;
-
         return Util.expect(argu.symLookup(arrName).type == Prim.ARR
                 && exprSubtypes(n.f2, Prim.INT, argu)
                 && exprSubtypes(n.f5, Prim.INT, argu),
