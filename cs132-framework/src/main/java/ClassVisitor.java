@@ -24,8 +24,8 @@ public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
     public Class visit(ClassDeclaration n, Lazy<TypeEnv> argu) {
         final var className = n.f1.f0.tokenImage;
         return new Class(className,
-                (c) -> mkClassBody(n.f3, n.f4, Optional.empty(), argu.get()),
-                Optional.empty());
+                Optional.empty(),
+                (c) -> mkClassBody(c, n.f3, n.f4, argu.get()));
     }
 
     @Override
@@ -33,30 +33,30 @@ public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
         final var className = n.f1.f0.tokenImage;
         final var superName = n.f3.f0.tokenImage;
 
-        return new Class(className, (c) -> {
-            if (c.acyclic(c))
-                return mkClassBody(n.f5, n.f6, c.superClass(), argu.get());
-            else
-                return Util.error("Cyclic class extension");
-        }, Optional.of(() -> argu.get().classLookup(superName)));
+        return new Class(className,
+                Optional.of((c) -> {
+                    final var superClass = argu.get().classLookup(superName);
+                    if (superClass.acyclic(c))
+                        return superClass;
+                    else
+                        return Util.error("Cyclic class extension");
+                }),
+                (c) -> mkClassBody(c, n.f5, n.f6, argu.get()));
     }
 
-    static boolean noOverloading(Optional<Class> superClass, Method method) {
-        return superClass
-                .map(sc -> sc.body().methods
-                        .forAll(m -> !m.name().equals(method.name()) || m.typeEquals(method))
-                        && noOverloading(sc.superClass(), method))
+    static boolean noOverloading(Class c, Method method) {
+        return c.superClass()
+                .map(sc -> sc.body().methods.forAll(m -> !m.name().equals(method.name()) || m.typeEquals(method))
+                        && noOverloading(sc, method))
                 .orElse(true);
     }
 
-    static ClassBody mkClassBody(NodeListOptional fieldNodes, NodeListOptional methodNodes, Optional<Class> sc,
-            TypeEnv argu) {
-
+    static ClassBody mkClassBody(Class c, NodeListOptional fieldNodes, NodeListOptional methodNodes, TypeEnv argu) {
         final var fieldVisitor = new ListVisitor<>(new SymPairVisitor(), Named::distinct, "Duplicate fields");
         final var fields = fieldNodes.accept(fieldVisitor, argu);
 
         final var methodVisitor = new ListVisitor<>(new MethodVisitor(),
-                (methods, method) -> Named.distinct(methods, method) && noOverloading(sc, method),
+                (methods, method) -> Named.distinct(methods, method) && noOverloading(c, method),
                 "Duplicate methods");
 
         final var methods = methodNodes.accept(methodVisitor, argu);

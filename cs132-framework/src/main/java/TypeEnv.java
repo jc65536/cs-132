@@ -26,13 +26,13 @@ enum Prim implements Type {
 
 class Class implements Named, Type {
     private final String name;
-    private final Lazy<ClassBody> body;
     private final Optional<Lazy<Class>> superClass;
+    private final Lazy<ClassBody> body;
 
-    Class(String name, Function<Class, ClassBody> body, Optional<Supplier<Class>> superClass) {
+    Class(String name, Optional<Function<Class, Class>> superClass, Function<Class, ClassBody> body) {
         this.name = name;
+        this.superClass = superClass.map(sc -> new Lazy<>(() -> sc.apply(this)));
         this.body = new Lazy<>(() -> body.apply(this));
-        this.superClass = superClass.map(Lazy::new);
     }
 
     ClassBody body() {
@@ -63,7 +63,7 @@ class Class implements Named, Type {
     }
 
     boolean acyclic(Class c) {
-        return superClass().map(sc -> sc != c && sc.acyclic(c)).orElse(true);
+        return this != c && superClass().map(sc -> sc.acyclic(c)).orElse(true);
     }
 
     @Override
