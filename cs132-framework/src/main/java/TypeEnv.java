@@ -1,4 +1,3 @@
-
 import java.util.*;
 import java.util.function.*;
 
@@ -120,7 +119,7 @@ class Method implements Named {
     private final String name;
     final List<SymPair> params;
     final Type retType;
-    final Node body;
+    final MethodDeclaration body;
 
     Method(String name, List<SymPair> params, Type retType, MethodDeclaration body) {
         this.name = name;
@@ -155,21 +154,19 @@ public class TypeEnv {
     final List<SymPair> locals;
     final List<Class> classes;
     final Optional<Class> currClass;
-    final Optional<Method> currMethod;
 
-    TypeEnv(List<SymPair> locals, List<Class> classes, Optional<Class> currClass, Optional<Method> currMethod) {
+    TypeEnv(List<SymPair> locals, List<Class> classes, Optional<Class> currClass) {
         this.locals = locals;
         this.classes = classes;
         this.currClass = currClass;
-        this.currMethod = currMethod;
     }
 
     TypeEnv addLocals(List<SymPair> locals) {
-        return new TypeEnv(this.locals.join(locals), classes, currClass, currMethod);
+        return new TypeEnv(this.locals.join(locals), classes, currClass);
     }
 
     TypeEnv enterClassMethod(Class c, Method m) {
-        return new TypeEnv(m.params, classes, Optional.of(c), Optional.of(m));
+        return new TypeEnv(m.params, classes, Optional.of(c));
     }
 
     Class classLookup(String name) {
