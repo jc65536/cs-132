@@ -34,10 +34,7 @@ public class ExprVisitor extends GJDepthFirst<Type, TypeEnv> {
 
     @Override
     public Type visit(ArrayLookup n, TypeEnv argu) {
-        final var arrType = n.f0.accept(this, argu);
-        final var idxType = n.f2.accept(this, argu);
-
-        if (arrType == Prim.ARR && idxType == Prim.INT)
+        if (n.f0.accept(this, argu) == Prim.ARR && n.f2.accept(this, argu) == Prim.INT)
             return Prim.INT;
         else
             return Util.error("Array lookup error");
@@ -45,9 +42,7 @@ public class ExprVisitor extends GJDepthFirst<Type, TypeEnv> {
 
     @Override
     public Type visit(ArrayLength n, TypeEnv argu) {
-        final var arrType = n.f0.accept(this, argu);
-
-        if (arrType == Prim.ARR)
+        if (n.f0.accept(this, argu) == Prim.ARR)
             return Prim.INT;
         else
             return Util.error("Array length error");
@@ -76,8 +71,7 @@ public class ExprVisitor extends GJDepthFirst<Type, TypeEnv> {
 
     @Override
     public Type visit(PrimaryExpression n, TypeEnv argu) {
-        final var exprNode = n.f0.choice;
-        return exprNode.accept(this, argu);
+        return n.f0.choice.accept(this, argu);
     }
 
     @Override
@@ -97,8 +91,7 @@ public class ExprVisitor extends GJDepthFirst<Type, TypeEnv> {
 
     @Override
     public Type visit(Identifier n, TypeEnv argu) {
-        final var sym = n.f0.tokenImage;
-        return argu.symLookup(sym).type;
+        return argu.symLookup(n.f0.tokenImage).type;
     }
 
     @Override
@@ -108,9 +101,7 @@ public class ExprVisitor extends GJDepthFirst<Type, TypeEnv> {
 
     @Override
     public Type visit(ArrayAllocationExpression n, TypeEnv argu) {
-        final var lenExpr = n.f3;
-
-        if (lenExpr.accept(this, argu) == Prim.INT)
+        if (n.f3.accept(this, argu) == Prim.INT)
             return Prim.ARR;
         else
             return Util.error("Array allocation error");
@@ -118,15 +109,12 @@ public class ExprVisitor extends GJDepthFirst<Type, TypeEnv> {
 
     @Override
     public Type visit(AllocationExpression n, TypeEnv argu) {
-        final var className = n.f1.f0.tokenImage;
-        return argu.classLookup(className);
+        return argu.classLookup(n.f1.f0.tokenImage);
     }
 
     @Override
     public Type visit(NotExpression n, TypeEnv argu) {
-        final var expr = n.f1;
-
-        if (expr.accept(this, argu) == Prim.BOOL)
+        if (n.f1.accept(this, argu) == Prim.BOOL)
             return Prim.BOOL;
         else
             return Util.error("Not expression error");
@@ -138,10 +126,7 @@ public class ExprVisitor extends GJDepthFirst<Type, TypeEnv> {
     }
 
     Type checkBinOp(Node lhsNode, Node rhsNode, Type opType, Type exprType, TypeEnv argu) {
-        final var lhsType = lhsNode.accept(this, argu);
-        final var rhsType = rhsNode.accept(this, argu);
-
-        if (lhsType == opType && rhsType == opType)
+        if (lhsNode.accept(this, argu) == opType && rhsNode.accept(this, argu) == opType)
             return exprType;
         else
             return Util.error("Binop error");
