@@ -51,12 +51,12 @@ public class Typecheck {
         // System.out.println(typeEnv);
 
         final var typechecks = typecheck(root.f0, typeEnv)
-                && typeEnv.classes.forAll(c -> c.body().methods
+                && typeEnv.classes.forAll(c -> c.acyclic(c) && c.body().methods
                         .forAll(m -> typecheck(m, typeEnv.enterClassMethod(c, m))));
 
         if (typechecks)
             System.out.println("Program type checked successfully");
         else
-            Util.error("Typecheck failed");
+            Util.error("Type error");
     }
 }

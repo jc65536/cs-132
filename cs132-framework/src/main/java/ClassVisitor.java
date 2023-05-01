@@ -34,13 +34,7 @@ public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
         final var superName = n.f3.f0.tokenImage;
 
         return new Class(className,
-                Optional.of((c) -> {
-                    final var superClass = argu.get().classLookup(superName);
-                    if (superClass.acyclic(c))
-                        return superClass;
-                    else
-                        return Util.error("Cyclic class extension");
-                }),
+                Optional.of(() -> argu.get().classLookup(superName)),
                 (c) -> mkClassBody(c, n.f5, n.f6, argu.get()));
     }
 

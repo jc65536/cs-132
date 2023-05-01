@@ -29,9 +29,9 @@ class Class implements Named, Type {
     private final Optional<Lazy<Class>> superClass;
     private final Lazy<ClassBody> body;
 
-    Class(String name, Optional<Function<Class, Class>> superClass, Function<Class, ClassBody> body) {
+    Class(String name, Optional<Supplier<Class>> superClass, Function<Class, ClassBody> body) {
         this.name = name;
-        this.superClass = superClass.map(sc -> new Lazy<>(() -> sc.apply(this)));
+        this.superClass = superClass.map(Lazy::new);
         this.body = new Lazy<>(() -> body.apply(this));
     }
 
@@ -63,7 +63,7 @@ class Class implements Named, Type {
     }
 
     boolean acyclic(Class c) {
-        return this != c && superClass().map(sc -> sc.acyclic(c)).orElse(true);
+        return superClass().map(sc -> sc != c && sc.acyclic(c)).orElse(true);
     }
 
     @Override
