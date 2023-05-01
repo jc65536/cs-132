@@ -23,29 +23,29 @@ public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
     @Override
     public Class visit(ClassDeclaration n, Lazy<TypeEnv> argu) {
         final var className = n.f1.f0.tokenImage;
-        return new Class(className, (c) -> mkClassBody(n.f3, n.f4, Optional.empty(), argu.get()));
+        return new Class(className,
+                (c) -> mkClassBody(n.f3, n.f4, Optional.empty(), argu.get()),
+                Optional.empty());
     }
 
     @Override
     public Class visit(ClassExtendsDeclaration n, Lazy<TypeEnv> argu) {
         final var className = n.f1.f0.tokenImage;
         final var superName = n.f3.f0.tokenImage;
-        return new Class(className, (c) -> {
-            final var typeEnv = argu.get();
-            final var superClass = typeEnv.classLookup(superName);
 
-            if (superClass.acyclic(c))
-                return mkClassBody(n.f5, n.f6, Optional.of(superClass), typeEnv);
+        return new Class(className, (c) -> {
+            if (c.acyclic(c))
+                return mkClassBody(n.f5, n.f6, c.superClass(), argu.get());
             else
                 return Util.error("Cyclic class extension");
-        });
+        }, Optional.of(() -> argu.get().classLookup(superName)));
     }
 
     static boolean noOverloading(Optional<Class> superClass, Method method) {
         return superClass
                 .map(sc -> sc.body().methods
                         .forAll(m -> !m.name().equals(method.name()) || m.typeEquals(method))
-                        && noOverloading(sc.body().superClass, method))
+                        && noOverloading(sc.superClass(), method))
                 .orElse(true);
     }
 
@@ -61,6 +61,6 @@ public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
 
         final var methods = methodNodes.accept(methodVisitor, argu);
 
-        return new ClassBody(fields, methods, sc);
+        return new ClassBody(fields, methods);
     }
 }

@@ -1,5 +1,26 @@
+import java.util.function.*;
+
 import org.junit.Test;
 import static org.junit.Assert.*;
+
+class Pair {
+    final int x;
+    final Lazy<Pair> n;
+
+    Pair(int x, Function<Pair, Pair> n) {
+        this.x = x;
+        this.n = new Lazy<>(() -> n.apply(this));
+    }
+
+    @Override
+    public String toString() {
+        final var k = n.get();
+        if (k == this)
+            return x + " -> <cycle>";
+        else
+            return x + " -> " + k.toString();
+    }
+}
 
 public class MainTest {
     @Test
@@ -27,5 +48,11 @@ public class MainTest {
         // final var r3 = l3.find(x -> x < 3);
 
         // System.out.println("Result: " + r3);
+    }
+
+    @Test
+    public void testCycle() {
+        final var a = new Pair(0, (p) -> p);
+        System.out.println(a);
     }
 }

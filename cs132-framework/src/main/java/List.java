@@ -2,7 +2,6 @@ import java.util.*;
 import java.util.function.*;
 
 class Lazy<T> implements Supplier<T> {
-    T v;
     Supplier<T> s;
 
     Lazy(Supplier<T> s) {
@@ -15,11 +14,8 @@ class Lazy<T> implements Supplier<T> {
 
     @Override
     public T get() {
-        if (s != null) {
-            v = s.get();
-            s = null;
-        }
-
+        final var v = s.get();
+        s = () -> v;
         return v;
     }
 

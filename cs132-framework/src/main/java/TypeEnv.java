@@ -27,46 +27,48 @@ enum Prim implements Type {
 class Class implements Named, Type {
     private final String name;
     private final Lazy<ClassBody> body;
+    private final Optional<Lazy<Class>> superClass;
 
-    Class(String name, Function<Class, ClassBody> body) {
+    Class(String name, Function<Class, ClassBody> body, Optional<Supplier<Class>> superClass) {
         this.name = name;
         this.body = new Lazy<>(() -> body.apply(this));
+        this.superClass = superClass.map(Lazy::new);
     }
 
     ClassBody body() {
         return body.get();
     }
 
+    Optional<Class> superClass() {
+        return superClass.map(sc -> sc.get());
+    }
+
     @Override
     public boolean subtypes(Type other) {
-        return this == other || body().superClass
-                .map(sc -> sc.subtypes(other))
-                .orElse(false);
+        return this == other || superClass().map(sc -> sc.subtypes(other)).orElse(false);
     }
 
     SymPair fieldLookup(String sym) {
         return body().fields
                 .find(s -> s.name().equals(sym))
-                .or(() -> body().superClass.map(sc -> sc.fieldLookup(sym)))
+                .or(() -> superClass().map(sc -> sc.fieldLookup(sym)))
                 .orElseGet(() -> Util.error("Unknown field " + sym));
     }
 
     Method methodLookup(String name, List<Type> paramTypes) {
         return body().methods
                 .find(m -> m.sigMatches(name, paramTypes))
-                .or(() -> body().superClass.map(sc -> sc.methodLookup(name, paramTypes)))
+                .or(() -> superClass().map(sc -> sc.methodLookup(name, paramTypes)))
                 .orElseGet(() -> Util.error("Unknown method " + name));
     }
 
     boolean acyclic(Class c) {
-        return this != c && body().superClass
-                .map(sc -> sc.acyclic(c))
-                .orElse(true);
+        return superClass().map(sc -> sc != c && sc.acyclic(c)).orElse(true);
     }
 
     @Override
     public String toString() {
-        return name();
+        return String.format("%s%s", name(), superClass().map(sc -> ": " + sc.toString()).orElse(""));
     }
 
     @Override
@@ -78,18 +80,15 @@ class Class implements Named, Type {
 class ClassBody {
     final List<SymPair> fields;
     final List<Method> methods;
-    final Optional<Class> superClass;
 
-    ClassBody(List<SymPair> fields, List<Method> methods, Optional<Class> superClass) {
+    ClassBody(List<SymPair> fields, List<Method> methods) {
         this.fields = fields;
         this.methods = methods;
-        this.superClass = superClass;
     }
 
     @Override
     public String toString() {
-        return String.format("%s%s%s",
-                superClass.map(sc -> sc.toString() + "\n").orElse(""),
+        return String.format("%s%s",
                 fields.fold("", (str, f) -> String.format("%s%s\n", str, f)),
                 methods.fold("", (str, m) -> String.format("%s%s\n", str, m)));
     }
