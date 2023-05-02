@@ -34,6 +34,10 @@ interface ListInt<T> {
     <U> List<U> map(Function<T, U> f);
 
     <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f);
+
+    <U> Optional<List<U>> failMap(Function<T, Optional<? extends U>> f);
+
+    Optional<List<T>> forceDistinct(BiPredicate<List<T>, T> p);
 }
 
 public class List<T> extends Lazy<_List<T>> implements ListInt<T> {
@@ -85,6 +89,16 @@ public class List<T> extends Lazy<_List<T>> implements ListInt<T> {
     public <U> List<U> map(Function<T, U> f) {
         return new List<>(bind(l -> l.map(f)));
     }
+
+    @Override
+    public <U> Optional<List<U>> failMap(Function<T, Optional<? extends U>> f) {
+        return get().failMap(f);
+    }
+
+    @Override
+    public Optional<List<T>> forceDistinct(BiPredicate<List<T>, T> p) {
+        return get().forceDistinct(p);
+    }
 }
 
 abstract class _List<T> implements ListInt<T> {
@@ -114,6 +128,16 @@ class Null<T> extends _List<T> {
     @Override
     public <U> List<U> map(Function<T, U> f) {
         return List.nul();
+    }
+
+    @Override
+    public <U> Optional<List<U>> failMap(Function<T, Optional<? extends U>> f) {
+        return Optional.of(List.nul());
+    }
+
+    @Override
+    public Optional<List<T>> forceDistinct(BiPredicate<List<T>, T> p) {
+        return Optional.of(List.nul());
     }
 }
 
@@ -159,5 +183,17 @@ class Pair<T> extends _List<T> {
     @Override
     public <U> List<U> map(Function<T, U> f) {
         return next.map(f).cons(f.apply(val));
+    }
+
+    @Override
+    public <U> Optional<List<U>> failMap(Function<T, Optional<? extends U>> f) {
+        return f.apply(val).flatMap(u -> next.failMap(f).map(list -> list.cons(u)));
+    }
+
+    @Override
+    public Optional<List<T>> forceDistinct(BiPredicate<List<T>, T> p) {
+        return next.forceDistinct(p)
+                .filter(list -> p.test(list, val))
+                .map(list -> list.cons(val));
     }
 }

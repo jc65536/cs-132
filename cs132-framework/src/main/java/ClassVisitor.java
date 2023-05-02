@@ -8,10 +8,8 @@ class MethodVisitor extends GJDepthFirst<Method, TypeEnv> {
     public Method visit(MethodDeclaration n, TypeEnv argu) {
         final var name = n.f2.f0.tokenImage;
 
-        final var paramVisitor = new ListVisitor<SymPair, SymPair, TypeEnv>(new SymPairVisitor(),
-                (params, param) -> Util.distinct(params, param));
-
-        return n.f4.accept(paramVisitor, argu)
+        return n.f4.accept(new ListVisitor<>(new SymPairVisitor()), argu)
+                .forceDistinct(Named::distinct)
                 .or(() -> Util.error("Duplicate params"))
                 .map(params -> {
                     final var retType = n.f1.accept(new TypeVisitor(), argu);
@@ -53,19 +51,13 @@ public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
     }
 
     static ClassBody mkClassBody(Class c, NodeListOptional fieldNodes, NodeListOptional methodNodes, TypeEnv argu) {
-        final var fieldVisitor = new ListVisitor<SymPair, SymPair, TypeEnv>(new SymPairVisitor(),
-                (fields, field) -> Util.distinct(fields, field));
-
-        return fieldNodes.accept(fieldVisitor, argu)
+        return fieldNodes.accept(new ListVisitor<>(new SymPairVisitor()), argu)
+                .forceDistinct(Named::distinct)
                 .or(() -> Util.error("Duplicate fields"))
-                .flatMap(fields -> {
-                    final var methodVisitor = new ListVisitor<Method, Method, TypeEnv>(new MethodVisitor(),
-                            (methods, method) -> Util.distinct(methods, method).filter(u -> noOverloading(c, method)));
-
-                    return methodNodes.accept(methodVisitor, argu)
-                            .or(() -> Util.error("Duplicate methods"))
-                            .map(methods -> new ClassBody(fields, methods));
-                })
+                .flatMap(fields -> methodNodes.accept(new ListVisitor<>(new MethodVisitor()), argu)
+                        .forceDistinct((methods, method) -> Named.distinct(methods, method) && noOverloading(c, method))
+                        .or(() -> Util.error("Duplicate methods"))
+                        .map(methods -> new ClassBody(fields, methods)))
                 .get();
 
     }

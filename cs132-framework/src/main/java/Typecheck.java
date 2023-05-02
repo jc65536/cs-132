@@ -5,12 +5,10 @@ import cs132.minijava.syntaxtree.*;
 
 public class Typecheck {
     static boolean typecheck(MainClass n, TypeEnv argu) {
-        final var argsSym = n.f11.f0.tokenImage;
+        final var argsName = n.f11.f0.tokenImage;
 
-        final var localVisitor = new ListVisitor<SymPair, SymPair, TypeEnv>(new SymPairVisitor(),
-                (locals, pair) -> Util.distinct(locals, pair).filter(u -> !pair.name().equals(argsSym)));
-
-        return n.f14.accept(localVisitor, argu)
+        return n.f14.accept(new ListVisitor<>(new SymPairVisitor()), argu)
+                .forceDistinct((locals, pair) -> !pair.name().equals(argsName) && Named.distinct(locals, pair))
                 .or(() -> Util.error("Duplicate locals"))
                 .map(locals -> argu.addLocals(locals))
                 .filter(typeEnv -> n.f15.nodes.stream().allMatch(node -> node.accept(new StmtVisitor(), typeEnv)))
@@ -18,10 +16,8 @@ public class Typecheck {
     }
 
     static boolean typecheck(Method m, TypeEnv argu) {
-        final var localVisitor = new ListVisitor<SymPair, SymPair, TypeEnv>(new SymPairVisitor(),
-                (locals, pair) -> Util.distinct(locals, pair).flatMap(u -> Util.distinct(argu.locals, pair)));
-
-        return m.body.f7.accept(localVisitor, argu)
+        return m.body.f7.accept(new ListVisitor<>(new SymPairVisitor()), argu)
+                .forceDistinct((locals, pair) -> Named.distinct(argu.locals, pair) && Named.distinct(locals, pair))
                 .or(() -> Util.error("Duplicate locals"))
                 .map(locals -> argu.addLocals(locals))
                 .filter(typeEnv -> Util.checkExpr(m.body.f10, m.retType, typeEnv))
@@ -34,18 +30,23 @@ public class Typecheck {
 
         final var mainClassName = root.f0.f1.f0.tokenImage;
 
-        final var classVisitor = new ListVisitor<Class, Class, Lazy<TypeEnv>>(new ClassVisitor(),
-                (classes, clas) -> Util.distinct(classes, clas).filter(u -> !clas.name().equals(mainClassName)));
-
-        final var typeEnv = new Lazy<TypeEnv>(z -> root.f1.accept(classVisitor, z)
+        final var typeEnv = new Lazy<TypeEnv>(z -> root.f1.accept(new ListVisitor<>(new ClassVisitor()), z)
+                .forceDistinct((classes, c) -> !c.name().equals(mainClassName) && Named.distinct(classes, c))
                 .or(() -> Util.error("Duplicate classes"))
                 .map(classes -> new TypeEnv(List.nul(), classes, Optional.empty()))
                 .get()).get();
 
-        // System.out.println(typeEnv);
+        final var acyclic = typeEnv.classes.forAll(c -> c.acyclic(List.nul()));
 
-        final var typechecks = typecheck(root.f0, typeEnv)
-                && typeEnv.classes.forAll(c -> c.acyclic(c) && c.body().methods
+        if (!acyclic)
+            Util.error("Cyclic class extension");
+
+        if (Util.DEBUG)
+            System.out.println(typeEnv);
+
+        final var typechecks = acyclic
+                && typecheck(root.f0, typeEnv)
+                && typeEnv.classes.forAll(c -> c.body().methods
                         .forAll(m -> typecheck(m, typeEnv.enterClassMethod(c, m))));
 
         if (typechecks)

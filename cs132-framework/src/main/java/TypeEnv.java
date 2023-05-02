@@ -9,6 +9,10 @@ interface Type {
 
 interface Named {
     String name();
+
+    static boolean distinct(List<? extends Named> list, Named n) {
+        return !list.exists(m -> m.name().equals(n.name()));
+    }
 }
 
 enum Prim implements Type {
@@ -58,8 +62,8 @@ class Class implements Named, Type {
                 .or(() -> Util.error("Unknown method " + name));
     }
 
-    boolean acyclic(Class c) {
-        return superClass().map(sc -> sc != c && sc.acyclic(c)).orElse(true);
+    boolean acyclic(List<Class> h) {
+        return !h.exists(this::equals) && superClass().map(sc -> sc.acyclic(h.cons(this))).orElse(true);
     }
 
     @Override
@@ -133,9 +137,9 @@ class Method implements Named {
 
     @Override
     public String toString() {
-        return String.format("%s: %s -> %s",
+        return String.format("%s: %s%s",
                 name,
-                params.fold("", (str, p) -> String.format("%s, %s", str, p)),
+                params.fold("", (str, p) -> String.format("%s%s -> ", str, p)),
                 retType);
     }
 

@@ -4,47 +4,46 @@ import java.util.function.*;
 import cs132.minijava.syntaxtree.*;
 import cs132.minijava.visitor.*;
 
-public class ListVisitor<R, M, A> extends GJDepthFirst<Optional<List<R>>, A> {
-    final GJDepthFirst<M, A> v;
-    final BiFunction<List<R>, M, Optional<? extends R>> chk;
+public class ListVisitor<R, A> extends GJDepthFirst<List<R>, A> {
+    final GJDepthFirst<R, A> v;
 
-    ListVisitor(GJDepthFirst<M, A> v, BiFunction<List<R>, M, Optional<? extends R>> chk) {
+    ListVisitor(GJDepthFirst<R, A> v) {
         this.v = v;
-        this.chk = chk;
     }
 
     @Override
-    public Optional<List<R>> visit(NodeOptional n, A argu) {
+    public List<R> visit(NodeOptional n, A argu) {
         if (n.present())
             return n.node.accept(this, argu);
         else
-            return Optional.of(List.nul());
+            return List.nul();
     }
 
     @Override
-    public Optional<List<R>> visit(ExpressionList n, A argu) {
-        return visitList(Optional.of(n.f0), n.f1.nodes, argu);
+    public List<R> visit(ExpressionList n, A argu) {
+        return new List<>(() -> new Pair<>(n.f0.accept(v, argu), n.f1.accept(this, argu)));
     }
 
     @Override
-    public Optional<List<R>> visit(FormalParameterList n, A argu) {
-        return visitList(Optional.of(n.f0), n.f1.nodes, argu);
+    public List<R> visit(FormalParameterList n, A argu) {
+        return new List<>(() -> new Pair<>(n.f0.accept(v, argu), n.f1.accept(this, argu)));
     }
 
     @Override
-    public Optional<List<R>> visit(NodeListOptional n, A argu) {
-        return visitList(Optional.empty(), n.nodes, argu);
+    public List<R> visit(NodeListOptional n, A argu) {
+        return visitList(n.nodes, argu);
     }
 
-    Optional<List<R>> visitList(Optional<Node> initNode, Vector<Node> vec, A argu) {
-        final var init = initNode
-                .flatMap(n -> chk.apply(List.nul(), n.accept(v, argu)))
-                .map(List::<R>of)
-                .or(() -> Optional.of(List.nul()));
-
-        return vec.stream().reduce(init, (accOpt, node) -> accOpt
-                .flatMap(acc -> chk.apply(acc, node.accept(v, argu))
-                        .map(r -> acc.cons(r))),
-                (u, v) -> v);
+    List<R> visitList(Vector<Node> nodes, A argu) {
+        final var it = nodes.iterator();
+        final var s = new Lazy<Supplier<_List<R>>>(z -> () -> {
+            if (it.hasNext()) {
+                final var r = it.next().accept(v, argu);
+                return new Pair<>(r, z.get());
+            } else {
+                return new Null<>();
+            }
+        }).get();
+        return new List<>(s);
     }
 }

@@ -6,9 +6,8 @@ class Main {
 
 class A extends B {
 	public int run() {
-		int x;
-		x = 1;
-		return x;
+		C x;
+		return x.f();
 	}
 }
 
@@ -18,7 +17,7 @@ class B {
     }
 }
 
-class C extends D {}
+class C extends C {}
 
 class D extends E {}
 

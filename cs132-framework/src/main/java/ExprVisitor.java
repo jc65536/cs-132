@@ -60,10 +60,8 @@ public class ExprVisitor extends GJDepthFirst<Optional<? extends Type>, TypeEnv>
                     final var objClass = (Class) objType;
                     final var methodName = n.f2.f0.tokenImage;
 
-                    final var argVisitor = new ListVisitor<Type, Optional<? extends Type>, TypeEnv>(this,
-                            (list, arg) -> arg);
-
-                    return n.f4.accept(argVisitor, argu)
+                    return n.f4.accept(new ListVisitor<>(this), argu)
+                            .failMap(typeOpt -> typeOpt)
                             .or(() -> Util.error("Arg list error"))
                             .flatMap(argTypes -> objClass.methodLookup(methodName, argTypes))
                             .map(m -> m.retType);

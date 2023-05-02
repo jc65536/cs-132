@@ -20,9 +20,4 @@ public class Util {
                 .map(type -> type.subtypes(expected))
                 .orElse(false);
     }
-
-    static <T extends Named> Optional<T> distinct(List<T> list, T named) {
-        return Optional.of(named)
-                .filter(u -> !list.exists(n -> n.name().equals(named.name())));
-    }
 }
