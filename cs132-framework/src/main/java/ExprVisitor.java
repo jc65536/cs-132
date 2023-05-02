@@ -1,134 +1,142 @@
+import java.util.*;
+
 import cs132.minijava.syntaxtree.*;
 import cs132.minijava.visitor.*;
 
-public class ExprVisitor extends GJDepthFirst<Type, TypeEnv> {
+public class ExprVisitor extends GJDepthFirst<Optional<? extends Type>, TypeEnv> {
     @Override
-    public Type visit(Expression n, TypeEnv argu) {
+    public Optional<? extends Type> visit(Expression n, TypeEnv argu) {
         return n.f0.choice.accept(this, argu);
     }
 
     @Override
-    public Type visit(AndExpression n, TypeEnv argu) {
+    public Optional<? extends Type> visit(AndExpression n, TypeEnv argu) {
         return checkBinOp(n.f0, n.f2, Prim.BOOL, Prim.BOOL, argu);
     }
 
     @Override
-    public Type visit(CompareExpression n, TypeEnv argu) {
+    public Optional<? extends Type> visit(CompareExpression n, TypeEnv argu) {
         return checkBinOp(n.f0, n.f2, Prim.INT, Prim.BOOL, argu);
     }
 
     @Override
-    public Type visit(PlusExpression n, TypeEnv argu) {
+    public Optional<? extends Type> visit(PlusExpression n, TypeEnv argu) {
         return checkBinOp(n.f0, n.f2, Prim.INT, Prim.INT, argu);
     }
 
     @Override
-    public Type visit(MinusExpression n, TypeEnv argu) {
+    public Optional<? extends Type> visit(MinusExpression n, TypeEnv argu) {
         return checkBinOp(n.f0, n.f2, Prim.INT, Prim.INT, argu);
     }
 
     @Override
-    public Type visit(TimesExpression n, TypeEnv argu) {
+    public Optional<? extends Type> visit(TimesExpression n, TypeEnv argu) {
         return checkBinOp(n.f0, n.f2, Prim.INT, Prim.INT, argu);
     }
 
     @Override
-    public Type visit(ArrayLookup n, TypeEnv argu) {
-        if (n.f0.accept(this, argu) == Prim.ARR && n.f2.accept(this, argu) == Prim.INT)
-            return Prim.INT;
-        else
-            return Util.error("Array lookup error");
+    public Optional<? extends Type> visit(ArrayLookup n, TypeEnv argu) {
+        return n.f0.accept(this, argu)
+                .filter(Prim.ARR::equals)
+                .<Type>flatMap(u -> n.f2.accept(this, argu))
+                .filter(Prim.INT::equals)
+                .or(() -> Util.error("Array lookup error"));
     }
 
     @Override
-    public Type visit(ArrayLength n, TypeEnv argu) {
-        if (n.f0.accept(this, argu) == Prim.ARR)
-            return Prim.INT;
-        else
-            return Util.error("Array length error");
+    public Optional<? extends Type> visit(ArrayLength n, TypeEnv argu) {
+        return n.f0.accept(this, argu)
+                .filter(Prim.ARR::equals)
+                .map(u -> Prim.INT)
+                .or(() -> Util.error("Array len error"));
     }
 
     @Override
-    public Type visit(MessageSend n, TypeEnv argu) {
-        final var methodName = n.f2.f0.tokenImage;
-        final var objType = n.f0.accept(this, argu);
+    public Optional<? extends Type> visit(MessageSend n, TypeEnv argu) {
+        return n.f0.accept(this, argu)
+                .filter(objType -> objType instanceof Class)
+                .map(objType -> {
+                    final var methodName = n.f2.f0.tokenImage;
+                    final var objClass = (Class) objType;
 
-        if (objType instanceof Class) {
-            final var objClass = (Class) objType;
-            final var argVisitor = new ListVisitor<>(this, (u, v) -> true, "z");
-            final var argTypes = n.f4.accept(argVisitor, argu);
+                    final var argVisitor = new ListVisitor<Type, Optional<? extends Type>, TypeEnv>(this,
+                            (list, arg) -> arg);
 
-            return objClass.methodLookup(methodName, argTypes).retType;
-        } else {
-            return Util.error("Method call on primitive");
-        }
+                    final var argTypes = n.f4.accept(argVisitor, argu)
+                            .or(() -> Util.error("Arg list error"))
+                            .get();
+
+                    return objClass.methodLookup(methodName, argTypes).retType;
+                })
+                .or(() -> Util.error("Method call on primitive"));
     }
 
     @Override
-    public Type visit(ExpressionRest n, TypeEnv argu) {
+    public Optional<? extends Type> visit(ExpressionRest n, TypeEnv argu) {
         return n.f1.accept(this, argu);
     }
 
     @Override
-    public Type visit(PrimaryExpression n, TypeEnv argu) {
+    public Optional<? extends Type> visit(PrimaryExpression n, TypeEnv argu) {
         return n.f0.choice.accept(this, argu);
     }
 
     @Override
-    public Type visit(IntegerLiteral n, TypeEnv argu) {
-        return Prim.INT;
+    public Optional<? extends Type> visit(IntegerLiteral n, TypeEnv argu) {
+        return Optional.of(Prim.INT);
     }
 
     @Override
-    public Type visit(TrueLiteral n, TypeEnv argu) {
-        return Prim.BOOL;
+    public Optional<? extends Type> visit(TrueLiteral n, TypeEnv argu) {
+        return Optional.of(Prim.BOOL);
     }
 
     @Override
-    public Type visit(FalseLiteral n, TypeEnv argu) {
-        return Prim.BOOL;
+    public Optional<? extends Type> visit(FalseLiteral n, TypeEnv argu) {
+        return Optional.of(Prim.BOOL);
     }
 
     @Override
-    public Type visit(Identifier n, TypeEnv argu) {
-        return argu.symLookup(n.f0.tokenImage).type;
+    public Optional<? extends Type> visit(Identifier n, TypeEnv argu) {
+        return Optional.of(argu.symLookup(n.f0.tokenImage).type);
     }
 
     @Override
-    public Type visit(ThisExpression n, TypeEnv argu) {
-        return argu.currClass.orElseGet(() -> Util.error("this error"));
+    public Optional<? extends Type> visit(ThisExpression n, TypeEnv argu) {
+        return argu.currClass;
     }
 
     @Override
-    public Type visit(ArrayAllocationExpression n, TypeEnv argu) {
-        if (n.f3.accept(this, argu) == Prim.INT)
-            return Prim.ARR;
-        else
-            return Util.error("Array allocation error");
+    public Optional<? extends Type> visit(ArrayAllocationExpression n, TypeEnv argu) {
+        return n.f3.accept(this, argu)
+                .filter(Prim.INT::equals)
+                .map(u -> Prim.ARR)
+                .or(() -> Util.error("Array alloc error"));
     }
 
     @Override
-    public Type visit(AllocationExpression n, TypeEnv argu) {
-        return argu.classLookup(n.f1.f0.tokenImage);
+    public Optional<? extends Type> visit(AllocationExpression n, TypeEnv argu) {
+        return Optional.of(argu.classLookup(n.f1.f0.tokenImage));
     }
 
     @Override
-    public Type visit(NotExpression n, TypeEnv argu) {
-        if (n.f1.accept(this, argu) == Prim.BOOL)
-            return Prim.BOOL;
-        else
-            return Util.error("Not expression error");
+    public Optional<? extends Type> visit(NotExpression n, TypeEnv argu) {
+        return n.f1.accept(this, argu)
+                .filter(Prim.BOOL::equals)
+                .or(() -> Util.error("Not expr error"));
     }
 
     @Override
-    public Type visit(BracketExpression n, TypeEnv argu) {
+    public Optional<? extends Type> visit(BracketExpression n, TypeEnv argu) {
         return n.f1.accept(this, argu);
     }
 
-    Type checkBinOp(Node lhsNode, Node rhsNode, Type opType, Type exprType, TypeEnv argu) {
-        if (lhsNode.accept(this, argu) == opType && rhsNode.accept(this, argu) == opType)
-            return exprType;
-        else
-            return Util.error("Binop error");
+    Optional<? extends Type> checkBinOp(Node lhsNode, Node rhsNode, Type opType, Type exprType, TypeEnv argu) {
+        return lhsNode.accept(this, argu)
+                .filter(opType::equals)
+                .flatMap(u -> rhsNode.accept(this, argu))
+                .filter(opType::equals)
+                .map(u -> exprType)
+                .or(() -> Util.error("Binop error"));
     }
 }

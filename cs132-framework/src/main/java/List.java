@@ -31,6 +31,8 @@ interface ListInt<T> {
 
     List<T> join(List<T> other);
 
+    <U> List<U> map(Function<T, U> f);
+
     <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f);
 }
 
@@ -78,6 +80,11 @@ public class List<T> extends Lazy<_List<T>> implements ListInt<T> {
     boolean exists(Predicate<? super T> p) {
         return find(p).isPresent();
     }
+
+    @Override
+    public <U> List<U> map(Function<T, U> f) {
+        return new List<>(bind(l -> l.map(f)));
+    }
 }
 
 abstract class _List<T> implements ListInt<T> {
@@ -102,6 +109,11 @@ class Null<T> extends _List<T> {
     @Override
     public <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f) {
         return other.get() instanceof Null<?>;
+    }
+
+    @Override
+    public <U> List<U> map(Function<T, U> f) {
+        return List.nul();
     }
 }
 
@@ -142,5 +154,10 @@ class Pair<T> extends _List<T> {
         final var o = (Pair<U>) _other;
 
         return f.apply(val, o.val) && next.equals(o.next, f);
+    }
+
+    @Override
+    public <U> List<U> map(Function<T, U> f) {
+        return next.map(f).cons(f.apply(val));
     }
 }

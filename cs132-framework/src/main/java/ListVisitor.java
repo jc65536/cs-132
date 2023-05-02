@@ -4,47 +4,47 @@ import java.util.function.*;
 import cs132.minijava.syntaxtree.*;
 import cs132.minijava.visitor.*;
 
-public class ListVisitor<R, A> extends GJDepthFirst<List<R>, A> {
-    final GJDepthFirst<R, A> v;
-    final BiPredicate<List<R>, R> chk;
-    final String msg;
+public class ListVisitor<R, M, A> extends GJDepthFirst<Optional<List<R>>, A> {
+    final GJDepthFirst<M, A> v;
+    final BiFunction<List<R>, M, Optional<? extends R>> chk;
 
-    public ListVisitor(GJDepthFirst<R, A> v, BiPredicate<List<R>, R> chk, String msg) {
+    ListVisitor(GJDepthFirst<M, A> v, BiFunction<List<R>, M, Optional<? extends R>> chk) {
         this.v = v;
         this.chk = chk;
-        this.msg = msg;
     }
 
     @Override
-    public List<R> visit(NodeOptional n, A argu) {
+    public Optional<List<R>> visit(NodeOptional n, A argu) {
         if (n.present())
             return n.node.accept(this, argu);
         else
-            return List.nul();
+            return Optional.of(List.nul());
     }
 
     @Override
-    public List<R> visit(ExpressionList n, A argu) {
-        return visitList(List.of(n.f0.accept(v, argu)), n.f1.nodes, argu);
+    public Optional<List<R>> visit(ExpressionList n, A argu) {
+        return visitList(Optional.of(n.f0), n.f1.nodes, argu);
     }
 
     @Override
-    public List<R> visit(FormalParameterList n, A argu) {
-        return visitList(List.of(n.f0.accept(v, argu)), n.f1.nodes, argu);
+    public Optional<List<R>> visit(FormalParameterList n, A argu) {
+        return visitList(Optional.of(n.f0), n.f1.nodes, argu);
     }
 
     @Override
-    public List<R> visit(NodeListOptional n, A argu) {
-        return visitList(List.nul(), n.nodes, argu);
+    public Optional<List<R>> visit(NodeListOptional n, A argu) {
+        return visitList(Optional.empty(), n.nodes, argu);
     }
 
-    List<R> visitList(List<R> init, Vector<Node> vec, A argu) {
-        return vec.stream().reduce(init, (acc, node) -> {
-            final var res = node.accept(v, argu);
-            if (chk.test(acc, res))
-                return acc.cons(res);
-            else
-                return Util.error(msg);
-        }, (u, v) -> v);
+    Optional<List<R>> visitList(Optional<Node> initNode, Vector<Node> vec, A argu) {
+        final var init = initNode
+                .flatMap(n -> chk.apply(List.nul(), n.accept(v, argu)))
+                .map(List::<R>of)
+                .or(() -> Optional.of(List.nul()));
+
+        return vec.stream().reduce(init, (accOpt, node) -> accOpt
+                .flatMap(acc -> chk.apply(acc, node.accept(v, argu))
+                        .map(r -> acc.cons(r))),
+                (u, v) -> v);
     }
 }

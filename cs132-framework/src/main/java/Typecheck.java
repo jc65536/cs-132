@@ -7,11 +7,13 @@ public class Typecheck {
     static boolean typecheck(MainClass n, TypeEnv argu) {
         final var argsSym = n.f11.f0.tokenImage;
 
-        final var localVisitor = new ListVisitor<>(new SymPairVisitor(),
-                (locals, pair) -> !pair.name().equals(argsSym) && Named.distinct(locals, pair),
-                "Duplicate locals");
+        final var localVisitor = new ListVisitor<SymPair, SymPair, TypeEnv>(new SymPairVisitor(),
+                (locals, pair) -> Util.condOpt(pair,
+                        !pair.name().equals(argsSym) && Named.distinct(locals, pair)));
 
-        final var locals = n.f14.accept(localVisitor, argu);
+        final var locals = n.f14.accept(localVisitor, argu)
+                .or(() -> Util.error("Duplicate locals"))
+                .get();
 
         final var typeEnv = argu.addLocals(locals);
         final var stmtNodes = n.f15.nodes;
@@ -20,11 +22,13 @@ public class Typecheck {
     }
 
     static boolean typecheck(Method m, TypeEnv argu) {
-        final var localVisitor = new ListVisitor<>(new SymPairVisitor(),
-                (locals, pair) -> Named.distinct(argu.locals, pair) && Named.distinct(locals, pair),
-                "Duplicate locals");
+        final var localVisitor = new ListVisitor<SymPair, SymPair, TypeEnv>(new SymPairVisitor(),
+                (locals, pair) -> Util.condOpt(pair,
+                        Named.distinct(argu.locals, pair) && Named.distinct(locals, pair)));
 
-        final var locals = m.body.f7.accept(localVisitor, argu);
+        final var locals = m.body.f7.accept(localVisitor, argu)
+                .or(() -> Util.error("Duplicate locals"))
+                .get();
 
         final TypeEnv typeEnv = argu.addLocals(locals);
         final var stmtNodes = m.body.f8.nodes;
@@ -39,14 +43,16 @@ public class Typecheck {
 
         final var mainClassName = root.f0.f1.f0.tokenImage;
 
-        final var classVisitor = new ListVisitor<>(new ClassVisitor(),
-                (classes, clas) -> !clas.name().equals(mainClassName) && Named.distinct(classes, clas),
-                "Duplicate class");
+        final var classVisitor = new ListVisitor<Class, Class, Lazy<TypeEnv>>(new ClassVisitor(),
+                (classes, clas) -> Util.condOpt(clas,
+                        !clas.name().equals(mainClassName) && Named.distinct(classes, clas)));
 
-        final var typeEnv = new Lazy<TypeEnv>(z -> new TypeEnv(List.nul(),
-                root.f1.accept(classVisitor, z),
-                Optional.empty()))
-                .get();
+        final var typeEnv = new Lazy<TypeEnv>(z -> {
+            final var classes = root.f1.accept(classVisitor, z)
+                    .or(() -> Util.error("Duplicate classes"))
+                    .get();
+            return new TypeEnv(List.nul(), classes, Optional.empty());
+        }).get();
 
         // System.out.println(typeEnv);
 

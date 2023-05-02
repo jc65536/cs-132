@@ -7,8 +7,14 @@ class MethodVisitor extends GJDepthFirst<Method, TypeEnv> {
     @Override
     public Method visit(MethodDeclaration n, TypeEnv argu) {
         final var name = n.f2.f0.tokenImage;
-        final var paramVisitor = new ListVisitor<>(new SymPairVisitor(), Named::distinct, "Duplicate params");
-        final var params = n.f4.accept(paramVisitor, argu);
+
+        final var paramVisitor = new ListVisitor<SymPair, SymPair, TypeEnv>(new SymPairVisitor(),
+                (params, param) -> Util.condOpt(param, Named.distinct(params, param)));
+
+        final var params = n.f4.accept(paramVisitor, argu)
+                .or(() -> Util.error("Duplicate params"))
+                .get();
+
         final var retType = n.f1.accept(new TypeVisitor(), argu);
         return new Method(name, params, retType, n);
     }
@@ -46,14 +52,19 @@ public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
     }
 
     static ClassBody mkClassBody(Class c, NodeListOptional fieldNodes, NodeListOptional methodNodes, TypeEnv argu) {
-        final var fieldVisitor = new ListVisitor<>(new SymPairVisitor(), Named::distinct, "Duplicate fields");
-        final var fields = fieldNodes.accept(fieldVisitor, argu);
+        final var fieldVisitor = new ListVisitor<SymPair, SymPair, TypeEnv>(new SymPairVisitor(),
+                (fields, field) -> Util.condOpt(field, Named.distinct(fields, field)));
 
-        final var methodVisitor = new ListVisitor<>(new MethodVisitor(),
-                (methods, method) -> Named.distinct(methods, method) && noOverloading(c, method),
-                "Duplicate methods");
+        final var fields = fieldNodes.accept(fieldVisitor, argu)
+                .or(() -> Util.error("Duplicate fields"))
+                .get();
 
-        final var methods = methodNodes.accept(methodVisitor, argu);
+        final var methodVisitor = new ListVisitor<Method, Method, TypeEnv>(new MethodVisitor(),
+                (methods, method) -> Util.condOpt(method, Named.distinct(methods, method) && noOverloading(c, method)));
+
+        final var methods = methodNodes.accept(methodVisitor, argu)
+                .or(() -> Util.error("Duplicate methods"))
+                .get();
 
         return new ClassBody(fields, methods);
     }

@@ -52,14 +52,16 @@ class Class implements Named, Type {
         return body().fields
                 .find(s -> s.name().equals(sym))
                 .or(() -> superClass().map(sc -> sc.fieldLookup(sym)))
-                .orElseGet(() -> Util.error("Unknown field " + sym));
+                .or(() -> Util.error("Unknown field " + sym))
+                .get();
     }
 
-    Method methodLookup(String name, List<Type> paramTypes) {
+    Method methodLookup(String name, List<? extends Type> paramTypes) {
         return body().methods
                 .find(m -> m.sigMatches(name, paramTypes))
                 .or(() -> superClass().map(sc -> sc.methodLookup(name, paramTypes)))
-                .orElseGet(() -> Util.error("Unknown method " + name));
+                .or(() -> Util.error("Unknown method " + name))
+                .get();
     }
 
     boolean acyclic(Class c) {
@@ -127,7 +129,7 @@ class Method implements Named {
         this.body = body;
     }
 
-    boolean sigMatches(String name, List<Type> argTypes) {
+    boolean sigMatches(String name, List<? extends Type> argTypes) {
         return name().equals(name) && argTypes.equals(params, (u, v) -> u.subtypes(v.type));
     }
 
@@ -171,14 +173,16 @@ public class TypeEnv {
     Class classLookup(String name) {
         return classes
                 .find(c -> c.name().equals(name))
-                .orElseGet(() -> Util.error("Unknown class " + name));
+                .or(() -> Util.error("Unknown class " + name))
+                .get();
     }
 
     SymPair symLookup(String sym) {
         return locals
                 .find(s -> s.name().equals(sym))
                 .or(() -> currClass.map(c -> c.fieldLookup(sym)))
-                .orElseGet(() -> Util.error("Unknown symbol " + sym));
+                .or(() -> Util.error("Unknown symbol " + sym))
+                .get();
     }
 
     @Override
