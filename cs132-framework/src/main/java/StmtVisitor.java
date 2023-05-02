@@ -15,8 +15,9 @@ public class StmtVisitor extends GJDepthFirst<Boolean, TypeEnv> {
     @Override
     public Boolean visit(AssignmentStatement n, TypeEnv argu) {
         final var destName = n.f0.f0.tokenImage;
-        final var destType = argu.symLookup(destName).type;
-        return Util.checkExpr(n.f2, destType, argu);
+        return argu.symLookup(destName)
+                .filter(dest -> Util.checkExpr(n.f2, dest.type, argu))
+                .isPresent();
     }
 
     @Override

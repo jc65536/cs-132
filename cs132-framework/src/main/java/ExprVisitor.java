@@ -47,28 +47,27 @@ public class ExprVisitor extends GJDepthFirst<Optional<? extends Type>, TypeEnv>
     public Optional<? extends Type> visit(ArrayLength n, TypeEnv argu) {
         return n.f0.accept(this, argu)
                 .filter(Prim.ARR::equals)
-                .map(u -> Prim.INT)
-                .or(() -> Util.error("Array len error"));
+                .or(() -> Util.error("Array len error"))
+                .map(u -> Prim.INT);
     }
 
     @Override
     public Optional<? extends Type> visit(MessageSend n, TypeEnv argu) {
         return n.f0.accept(this, argu)
                 .filter(objType -> objType instanceof Class)
-                .map(objType -> {
-                    final var methodName = n.f2.f0.tokenImage;
+                .or(() -> Util.error("Method call on primitive"))
+                .flatMap(objType -> {
                     final var objClass = (Class) objType;
+                    final var methodName = n.f2.f0.tokenImage;
 
                     final var argVisitor = new ListVisitor<Type, Optional<? extends Type>, TypeEnv>(this,
                             (list, arg) -> arg);
 
-                    final var argTypes = n.f4.accept(argVisitor, argu)
+                    return n.f4.accept(argVisitor, argu)
                             .or(() -> Util.error("Arg list error"))
-                            .get();
-
-                    return objClass.methodLookup(methodName, argTypes).retType;
-                })
-                .or(() -> Util.error("Method call on primitive"));
+                            .flatMap(argTypes -> objClass.methodLookup(methodName, argTypes))
+                            .map(m -> m.retType);
+                });
     }
 
     @Override
@@ -98,7 +97,7 @@ public class ExprVisitor extends GJDepthFirst<Optional<? extends Type>, TypeEnv>
 
     @Override
     public Optional<? extends Type> visit(Identifier n, TypeEnv argu) {
-        return Optional.of(argu.symLookup(n.f0.tokenImage).type);
+        return argu.symLookup(n.f0.tokenImage).map(pair -> pair.type);
     }
 
     @Override
@@ -110,8 +109,8 @@ public class ExprVisitor extends GJDepthFirst<Optional<? extends Type>, TypeEnv>
     public Optional<? extends Type> visit(ArrayAllocationExpression n, TypeEnv argu) {
         return n.f3.accept(this, argu)
                 .filter(Prim.INT::equals)
-                .map(u -> Prim.ARR)
-                .or(() -> Util.error("Array alloc error"));
+                .or(() -> Util.error("Array alloc error"))
+                .map(u -> Prim.ARR);
     }
 
     @Override
@@ -136,7 +135,7 @@ public class ExprVisitor extends GJDepthFirst<Optional<? extends Type>, TypeEnv>
                 .filter(opType::equals)
                 .flatMap(u -> rhsNode.accept(this, argu))
                 .filter(opType::equals)
-                .map(u -> exprType)
-                .or(() -> Util.error("Binop error"));
+                .or(() -> Util.error("Binop error"))
+                .map(u -> exprType);
     }
 }

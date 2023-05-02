@@ -9,10 +9,6 @@ interface Type {
 
 interface Named {
     String name();
-
-    static boolean distinct(List<? extends Named> list, Named named) {
-        return !list.exists(n -> n.name().equals(named.name()));
-    }
 }
 
 enum Prim implements Type {
@@ -48,20 +44,18 @@ class Class implements Named, Type {
         return this == other || superClass().map(sc -> sc.subtypes(other)).orElse(false);
     }
 
-    SymPair fieldLookup(String sym) {
+    Optional<SymPair> fieldLookup(String sym) {
         return body().fields
                 .find(s -> s.name().equals(sym))
-                .or(() -> superClass().map(sc -> sc.fieldLookup(sym)))
-                .or(() -> Util.error("Unknown field " + sym))
-                .get();
+                .or(() -> superClass().flatMap(sc -> sc.fieldLookup(sym)))
+                .or(() -> Util.error("Unknown field " + sym));
     }
 
-    Method methodLookup(String name, List<? extends Type> paramTypes) {
+    Optional<Method> methodLookup(String name, List<? extends Type> paramTypes) {
         return body().methods
                 .find(m -> m.sigMatches(name, paramTypes))
-                .or(() -> superClass().map(sc -> sc.methodLookup(name, paramTypes)))
-                .or(() -> Util.error("Unknown method " + name))
-                .get();
+                .or(() -> superClass().flatMap(sc -> sc.methodLookup(name, paramTypes)))
+                .or(() -> Util.error("Unknown method " + name));
     }
 
     boolean acyclic(Class c) {
@@ -177,12 +171,11 @@ public class TypeEnv {
                 .get();
     }
 
-    SymPair symLookup(String sym) {
+    Optional<SymPair> symLookup(String sym) {
         return locals
                 .find(s -> s.name().equals(sym))
-                .or(() -> currClass.map(c -> c.fieldLookup(sym)))
-                .or(() -> Util.error("Unknown symbol " + sym))
-                .get();
+                .or(() -> currClass.flatMap(c -> c.fieldLookup(sym)))
+                .or(() -> Util.error("Unknown symbol " + sym));
     }
 
     @Override

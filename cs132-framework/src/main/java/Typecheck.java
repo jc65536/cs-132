@@ -8,34 +8,25 @@ public class Typecheck {
         final var argsSym = n.f11.f0.tokenImage;
 
         final var localVisitor = new ListVisitor<SymPair, SymPair, TypeEnv>(new SymPairVisitor(),
-                (locals, pair) -> Util.condOpt(pair,
-                        !pair.name().equals(argsSym) && Named.distinct(locals, pair)));
+                (locals, pair) -> Util.distinct(locals, pair).filter(u -> !pair.name().equals(argsSym)));
 
-        final var locals = n.f14.accept(localVisitor, argu)
+        return n.f14.accept(localVisitor, argu)
                 .or(() -> Util.error("Duplicate locals"))
-                .get();
-
-        final var typeEnv = argu.addLocals(locals);
-        final var stmtNodes = n.f15.nodes;
-
-        return stmtNodes.stream().allMatch(node -> node.accept(new StmtVisitor(), typeEnv));
+                .map(locals -> argu.addLocals(locals))
+                .filter(typeEnv -> n.f15.nodes.stream().allMatch(node -> node.accept(new StmtVisitor(), typeEnv)))
+                .isPresent();
     }
 
     static boolean typecheck(Method m, TypeEnv argu) {
         final var localVisitor = new ListVisitor<SymPair, SymPair, TypeEnv>(new SymPairVisitor(),
-                (locals, pair) -> Util.condOpt(pair,
-                        Named.distinct(argu.locals, pair) && Named.distinct(locals, pair)));
+                (locals, pair) -> Util.distinct(locals, pair).flatMap(u -> Util.distinct(argu.locals, pair)));
 
-        final var locals = m.body.f7.accept(localVisitor, argu)
+        return m.body.f7.accept(localVisitor, argu)
                 .or(() -> Util.error("Duplicate locals"))
-                .get();
-
-        final TypeEnv typeEnv = argu.addLocals(locals);
-        final var stmtNodes = m.body.f8.nodes;
-        final var retType = m.retType;
-
-        return Util.expect(Util.checkExpr(m.body.f10, retType, typeEnv), "Return type error")
-                && stmtNodes.stream().allMatch(node -> node.accept(new StmtVisitor(), typeEnv));
+                .map(locals -> argu.addLocals(locals))
+                .filter(typeEnv -> Util.checkExpr(m.body.f10, m.retType, typeEnv))
+                .filter(typeEnv -> m.body.f8.nodes.stream().allMatch(node -> node.accept(new StmtVisitor(), typeEnv)))
+                .isPresent();
     }
 
     public static void main(String[] args) throws Exception {
@@ -44,15 +35,12 @@ public class Typecheck {
         final var mainClassName = root.f0.f1.f0.tokenImage;
 
         final var classVisitor = new ListVisitor<Class, Class, Lazy<TypeEnv>>(new ClassVisitor(),
-                (classes, clas) -> Util.condOpt(clas,
-                        !clas.name().equals(mainClassName) && Named.distinct(classes, clas)));
+                (classes, clas) -> Util.distinct(classes, clas).filter(u -> !clas.name().equals(mainClassName)));
 
-        final var typeEnv = new Lazy<TypeEnv>(z -> {
-            final var classes = root.f1.accept(classVisitor, z)
-                    .or(() -> Util.error("Duplicate classes"))
-                    .get();
-            return new TypeEnv(List.nul(), classes, Optional.empty());
-        }).get();
+        final var typeEnv = new Lazy<TypeEnv>(z -> root.f1.accept(classVisitor, z)
+                .or(() -> Util.error("Duplicate classes"))
+                .map(classes -> new TypeEnv(List.nul(), classes, Optional.empty()))
+                .get()).get();
 
         // System.out.println(typeEnv);
 
@@ -63,6 +51,6 @@ public class Typecheck {
         if (typechecks)
             System.out.println("Program type checked successfully");
         else
-            Util.error("Type error");
+            Util.error("Type error?");
     }
 }

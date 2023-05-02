@@ -9,14 +9,15 @@ class MethodVisitor extends GJDepthFirst<Method, TypeEnv> {
         final var name = n.f2.f0.tokenImage;
 
         final var paramVisitor = new ListVisitor<SymPair, SymPair, TypeEnv>(new SymPairVisitor(),
-                (params, param) -> Util.condOpt(param, Named.distinct(params, param)));
+                (params, param) -> Util.distinct(params, param));
 
-        final var params = n.f4.accept(paramVisitor, argu)
+        return n.f4.accept(paramVisitor, argu)
                 .or(() -> Util.error("Duplicate params"))
+                .map(params -> {
+                    final var retType = n.f1.accept(new TypeVisitor(), argu);
+                    return new Method(name, params, retType, n);
+                })
                 .get();
-
-        final var retType = n.f1.accept(new TypeVisitor(), argu);
-        return new Method(name, params, retType, n);
     }
 }
 
@@ -53,19 +54,19 @@ public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
 
     static ClassBody mkClassBody(Class c, NodeListOptional fieldNodes, NodeListOptional methodNodes, TypeEnv argu) {
         final var fieldVisitor = new ListVisitor<SymPair, SymPair, TypeEnv>(new SymPairVisitor(),
-                (fields, field) -> Util.condOpt(field, Named.distinct(fields, field)));
+                (fields, field) -> Util.distinct(fields, field));
 
-        final var fields = fieldNodes.accept(fieldVisitor, argu)
+        return fieldNodes.accept(fieldVisitor, argu)
                 .or(() -> Util.error("Duplicate fields"))
+                .flatMap(fields -> {
+                    final var methodVisitor = new ListVisitor<Method, Method, TypeEnv>(new MethodVisitor(),
+                            (methods, method) -> Util.distinct(methods, method).filter(u -> noOverloading(c, method)));
+
+                    return methodNodes.accept(methodVisitor, argu)
+                            .or(() -> Util.error("Duplicate methods"))
+                            .map(methods -> new ClassBody(fields, methods));
+                })
                 .get();
 
-        final var methodVisitor = new ListVisitor<Method, Method, TypeEnv>(new MethodVisitor(),
-                (methods, method) -> Util.condOpt(method, Named.distinct(methods, method) && noOverloading(c, method)));
-
-        final var methods = methodNodes.accept(methodVisitor, argu)
-                .or(() -> Util.error("Duplicate methods"))
-                .get();
-
-        return new ClassBody(fields, methods);
     }
 }
