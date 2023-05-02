@@ -1,5 +1,4 @@
 import java.util.*;
-import java.util.function.*;
 
 import cs132.minijava.syntaxtree.*;
 import cs132.minijava.visitor.*;
@@ -31,19 +30,13 @@ public class ListVisitor<R, A> extends GJDepthFirst<List<R>, A> {
 
     @Override
     public List<R> visit(NodeListOptional n, A argu) {
-        return visitList(n.nodes, argu);
+        return visitList(n.nodes.iterator(), argu);
     }
 
-    List<R> visitList(Vector<Node> nodes, A argu) {
-        final var it = nodes.iterator();
-        final var s = new Lazy<Supplier<_List<R>>>(z -> () -> {
-            if (it.hasNext()) {
-                final var r = it.next().accept(v, argu);
-                return new Pair<>(r, z.get());
-            } else {
-                return new Null<>();
-            }
-        }).get();
-        return new List<>(s);
+    List<R> visitList(Iterator<Node> it, A argu) {
+        if (it.hasNext())
+            return new List<>(() -> new Pair<>(it.next().accept(v, argu), visitList(it, argu)));
+        else
+            return List.nul();
     }
 }

@@ -38,9 +38,10 @@ public class ExprVisitor extends GJDepthFirst<Optional<? extends Type>, TypeEnv>
     public Optional<? extends Type> visit(ArrayLookup n, TypeEnv argu) {
         return n.f0.accept(this, argu)
                 .filter(Prim.ARR::equals)
+                .or(() -> Util.error("Indexing non-array value"))
                 .<Type>flatMap(u -> n.f2.accept(this, argu))
                 .filter(Prim.INT::equals)
-                .or(() -> Util.error("Array lookup error"));
+                .or(() -> Util.error("Array index not int"));
     }
 
     @Override
@@ -131,9 +132,10 @@ public class ExprVisitor extends GJDepthFirst<Optional<? extends Type>, TypeEnv>
     Optional<? extends Type> checkBinOp(Node lhsNode, Node rhsNode, Type opType, Type exprType, TypeEnv argu) {
         return lhsNode.accept(this, argu)
                 .filter(opType::equals)
+                .or(() -> Util.error("Lhs error"))
                 .flatMap(u -> rhsNode.accept(this, argu))
                 .filter(opType::equals)
-                .or(() -> Util.error("Binop error"))
+                .or(() -> Util.error("Rhs error"))
                 .map(u -> exprType);
     }
 }
