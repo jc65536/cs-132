@@ -6,12 +6,11 @@ import cs132.minijava.visitor.*;
 class MethodVisitor extends GJDepthFirst<Method, TypeEnv> {
     @Override
     public Method visit(MethodDeclaration n, TypeEnv argu) {
-        final var name = n.f2.f0.tokenImage;
-
         return n.f4.accept(new ListVisitor<>(new SymPairVisitor()), argu)
                 .forceDistinct(Named::distinct)
-                .or(() -> Util.error("Duplicate params"))
+                .or(() -> Typecheck.error("Duplicate params"))
                 .map(params -> {
+                    final var name = n.f2.f0.tokenImage;
                     final var retType = n.f1.accept(new TypeVisitor(), argu);
                     return new Method(name, params, retType, n);
                 })
@@ -37,7 +36,6 @@ public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
     public Class visit(ClassExtendsDeclaration n, Lazy<TypeEnv> argu) {
         final var className = n.f1.f0.tokenImage;
         final var superName = n.f3.f0.tokenImage;
-
         return new Class(className,
                 Optional.of(() -> argu.get().classLookup(superName)),
                 (c) -> mkClassBody(c, n.f5, n.f6, argu.get()));
@@ -53,10 +51,10 @@ public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
     static ClassBody mkClassBody(Class c, NodeListOptional fieldNodes, NodeListOptional methodNodes, TypeEnv argu) {
         return fieldNodes.accept(new ListVisitor<>(new SymPairVisitor()), argu)
                 .forceDistinct(Named::distinct)
-                .or(() -> Util.error("Duplicate fields"))
+                .or(() -> Typecheck.error("Duplicate fields"))
                 .flatMap(fields -> methodNodes.accept(new ListVisitor<>(new MethodVisitor()), argu)
-                        .forceDistinct((methods, method) -> Named.distinct(methods, method) && noOverloading(c, method))
-                        .or(() -> Util.error("Duplicate methods"))
+                        .forceDistinct((methods, m) -> Named.distinct(methods, m) && noOverloading(c, m))
+                        .or(() -> Typecheck.error("Duplicate methods"))
                         .map(methods -> new ClassBody(fields, methods)))
                 .get();
 

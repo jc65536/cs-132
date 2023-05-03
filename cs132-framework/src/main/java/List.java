@@ -40,8 +40,8 @@ interface ListInt<T> {
     Optional<List<T>> forceDistinct(BiPredicate<List<T>, T> p);
 }
 
-public class List<T> extends Lazy<_List<T>> implements ListInt<T> {
-    List(Supplier<_List<T>> s) {
+public class List<T> extends Lazy<ListElem<T>> implements ListInt<T> {
+    List(Supplier<ListElem<T>> s) {
         super(s);
     }
 
@@ -73,10 +73,6 @@ public class List<T> extends Lazy<_List<T>> implements ListInt<T> {
         return new List<>(() -> new Pair<>(val, this));
     }
 
-    static <T> List<T> of(T val) {
-        return List.<T>nul().cons(val);
-    }
-
     boolean forAll(Predicate<T> p) {
         return !exists(p.negate());
     }
@@ -101,10 +97,10 @@ public class List<T> extends Lazy<_List<T>> implements ListInt<T> {
     }
 }
 
-abstract class _List<T> implements ListInt<T> {
+interface ListElem<T> extends ListInt<T> {
 }
 
-class Null<T> extends _List<T> {
+class Null<T> implements ListElem<T> {
     @Override
     public Optional<T> find(Predicate<? super T> p) {
         return Optional.empty();
@@ -141,11 +137,11 @@ class Null<T> extends _List<T> {
     }
 }
 
-class Pair<T> extends _List<T> {
+class Pair<T> implements ListElem<T> {
     final T val;
     final List<T> next;
 
-    Pair(T val, Supplier<_List<T>> next) {
+    Pair(T val, Supplier<ListElem<T>> next) {
         this.val = val;
         this.next = new List<>(next);
     }

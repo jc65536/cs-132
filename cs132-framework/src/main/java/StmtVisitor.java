@@ -16,31 +16,31 @@ public class StmtVisitor extends GJDepthFirst<Boolean, TypeEnv> {
     public Boolean visit(AssignmentStatement n, TypeEnv argu) {
         final var destName = n.f0.f0.tokenImage;
         return argu.symLookup(destName)
-                .filter(dest -> Util.checkExpr(n.f2, dest.type, argu))
-                .isPresent();
+                .map(dest -> Typecheck.checkExpr(n.f2, dest.type, argu))
+                .orElse(false);
     }
 
     @Override
     public Boolean visit(ArrayAssignmentStatement n, TypeEnv argu) {
-        return Util.checkExpr(n.f0, Prim.ARR, argu)
-                && Util.checkExpr(n.f2, Prim.INT, argu)
-                && Util.checkExpr(n.f5, Prim.INT, argu);
+        return Typecheck.checkExpr(n.f0, Prim.ARR, argu)
+                && Typecheck.checkExpr(n.f2, Prim.INT, argu)
+                && Typecheck.checkExpr(n.f5, Prim.INT, argu);
     }
 
     @Override
     public Boolean visit(IfStatement n, TypeEnv argu) {
-        return Util.checkExpr(n.f2, Prim.BOOL, argu)
+        return Typecheck.checkExpr(n.f2, Prim.BOOL, argu)
                 && n.f4.accept(this, argu)
                 && n.f6.accept(this, argu);
     }
 
     @Override
     public Boolean visit(WhileStatement n, TypeEnv argu) {
-        return Util.checkExpr(n.f2, Prim.BOOL, argu) && n.f4.accept(this, argu);
+        return Typecheck.checkExpr(n.f2, Prim.BOOL, argu) && n.f4.accept(this, argu);
     }
 
     @Override
     public Boolean visit(PrintStatement n, TypeEnv argu) {
-        return Util.checkExpr(n.f2, Prim.INT, argu);
+        return Typecheck.checkExpr(n.f2, Prim.INT, argu);
     }
 }

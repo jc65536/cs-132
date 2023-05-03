@@ -40,7 +40,7 @@ class Class implements Named, Type {
     }
 
     Optional<Class> superClass() {
-        return superClass.map(sc -> sc.get());
+        return superClass.map(Lazy::get);
     }
 
     @Override
@@ -48,18 +48,18 @@ class Class implements Named, Type {
         return this == other || superClass().map(sc -> sc.subtypes(other)).orElse(false);
     }
 
-    Optional<SymPair> fieldLookup(String sym) {
+    Optional<SymPair> fieldLookup(String name) {
         return body().fields
-                .find(s -> s.name().equals(sym))
-                .or(() -> superClass().flatMap(sc -> sc.fieldLookup(sym)))
-                .or(() -> Util.error("Unknown field " + sym));
+                .find(s -> s.name().equals(name))
+                .or(() -> superClass().flatMap(sc -> sc.fieldLookup(name)))
+                .or(() -> Typecheck.error("Unknown field " + name));
     }
 
-    Optional<Method> methodLookup(String name, List<? extends Type> paramTypes) {
+    Optional<Method> methodLookup(String name) {
         return body().methods
-                .find(m -> m.sigMatches(name, paramTypes))
-                .or(() -> superClass().flatMap(sc -> sc.methodLookup(name, paramTypes)))
-                .or(() -> Util.error("Unknown method " + name));
+                .find(m -> m.name().equals(name))
+                .or(() -> superClass().flatMap(sc -> sc.methodLookup(name)))
+                .or(() -> Typecheck.error("Unknown method " + name));
     }
 
     boolean acyclic(List<Class> h) {
@@ -127,8 +127,8 @@ class Method implements Named {
         this.body = body;
     }
 
-    boolean sigMatches(String name, List<? extends Type> argTypes) {
-        return name().equals(name) && argTypes.equals(params, (u, v) -> u.subtypes(v.type));
+    boolean argsCompat(List<? extends Type> argTypes) {
+        return argTypes.equals(params, (u, v) -> u.subtypes(v.type));
     }
 
     boolean typeEquals(Method other) {
@@ -171,7 +171,7 @@ public class TypeEnv {
     Class classLookup(String name) {
         return classes
                 .find(c -> c.name().equals(name))
-                .or(() -> Util.error("Unknown class " + name))
+                .or(() -> Typecheck.error("Unknown class " + name))
                 .get();
     }
 
@@ -179,7 +179,7 @@ public class TypeEnv {
         return locals
                 .find(s -> s.name().equals(sym))
                 .or(() -> currClass.flatMap(c -> c.fieldLookup(sym)))
-                .or(() -> Util.error("Unknown symbol " + sym));
+                .or(() -> Typecheck.error("Unknown symbol " + sym));
     }
 
     @Override

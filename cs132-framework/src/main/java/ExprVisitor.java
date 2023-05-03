@@ -38,35 +38,33 @@ public class ExprVisitor extends GJDepthFirst<Optional<? extends Type>, TypeEnv>
     public Optional<? extends Type> visit(ArrayLookup n, TypeEnv argu) {
         return n.f0.accept(this, argu)
                 .filter(Prim.ARR::equals)
-                .or(() -> Util.error("Indexing non-array value"))
+                .or(() -> Typecheck.error("Indexing non-array value"))
                 .<Type>flatMap(u -> n.f2.accept(this, argu))
                 .filter(Prim.INT::equals)
-                .or(() -> Util.error("Array index not int"));
+                .or(() -> Typecheck.error("Array index not int"));
     }
 
     @Override
     public Optional<? extends Type> visit(ArrayLength n, TypeEnv argu) {
         return n.f0.accept(this, argu)
                 .filter(Prim.ARR::equals)
-                .or(() -> Util.error("Array len error"))
+                .or(() -> Typecheck.error("Array len error"))
                 .map(u -> Prim.INT);
     }
 
     @Override
     public Optional<? extends Type> visit(MessageSend n, TypeEnv argu) {
+        final var methodName = n.f2.f0.tokenImage;
+        final var argNodes = n.f4;
         return n.f0.accept(this, argu)
                 .filter(objType -> objType instanceof Class)
-                .or(() -> Util.error("Method call on primitive"))
-                .flatMap(objType -> {
-                    final var objClass = (Class) objType;
-                    final var methodName = n.f2.f0.tokenImage;
-
-                    return n.f4.accept(new ListVisitor<>(this), argu)
-                            .failMap(typeOpt -> typeOpt)
-                            .or(() -> Util.error("Arg list error"))
-                            .flatMap(argTypes -> objClass.methodLookup(methodName, argTypes))
-                            .map(m -> m.retType);
-                });
+                .or(() -> Typecheck.error("Method call on primitive"))
+                .flatMap(t -> ((Class) t).methodLookup(methodName))
+                .filter(m -> argNodes.accept(new ListVisitor<>(this), argu)
+                        .failMap(tOpt -> tOpt)
+                        .map(m::argsCompat)
+                        .orElse(false))
+                .map(m -> m.retType);
     }
 
     @Override
@@ -108,7 +106,7 @@ public class ExprVisitor extends GJDepthFirst<Optional<? extends Type>, TypeEnv>
     public Optional<? extends Type> visit(ArrayAllocationExpression n, TypeEnv argu) {
         return n.f3.accept(this, argu)
                 .filter(Prim.INT::equals)
-                .or(() -> Util.error("Array alloc error"))
+                .or(() -> Typecheck.error("Array alloc error"))
                 .map(u -> Prim.ARR);
     }
 
@@ -121,7 +119,7 @@ public class ExprVisitor extends GJDepthFirst<Optional<? extends Type>, TypeEnv>
     public Optional<? extends Type> visit(NotExpression n, TypeEnv argu) {
         return n.f1.accept(this, argu)
                 .filter(Prim.BOOL::equals)
-                .or(() -> Util.error("Not expr error"));
+                .or(() -> Typecheck.error("Not expr error"));
     }
 
     @Override
@@ -132,10 +130,10 @@ public class ExprVisitor extends GJDepthFirst<Optional<? extends Type>, TypeEnv>
     Optional<? extends Type> checkBinOp(Node lhsNode, Node rhsNode, Type opType, Type exprType, TypeEnv argu) {
         return lhsNode.accept(this, argu)
                 .filter(opType::equals)
-                .or(() -> Util.error("Lhs error"))
+                .or(() -> Typecheck.error("Lhs error"))
                 .flatMap(u -> rhsNode.accept(this, argu))
                 .filter(opType::equals)
-                .or(() -> Util.error("Rhs error"))
+                .or(() -> Typecheck.error("Rhs error"))
                 .map(u -> exprType);
     }
 }

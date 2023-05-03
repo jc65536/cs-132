@@ -4,54 +4,74 @@ import cs132.minijava.MiniJavaParser;
 import cs132.minijava.syntaxtree.*;
 
 public class Typecheck {
+    static final boolean DEBUG = false;
+
+    static <T> Optional<T> error(String s) {
+        if (DEBUG)
+            System.out.println(s);
+        else
+            System.out.println("Type error");
+
+        System.exit(1);
+        return Optional.empty();
+    }
+
     static boolean typecheck(MainClass n, TypeEnv argu) {
         final var argsName = n.f11.f0.tokenImage;
-
+        final var stmtNodes = n.f15.nodes;
         return n.f14.accept(new ListVisitor<>(new SymPairVisitor()), argu)
-                .forceDistinct((locals, pair) -> !pair.name().equals(argsName) && Named.distinct(locals, pair))
-                .or(() -> Util.error("Duplicate locals"))
+                .forceDistinct((locals, var) -> !var.name().equals(argsName) && Named.distinct(locals, var))
+                .or(() -> Typecheck.error("Duplicate locals"))
                 .map(locals -> argu.addLocals(locals))
-                .filter(typeEnv -> n.f15.nodes.stream().allMatch(node -> node.accept(new StmtVisitor(), typeEnv)))
-                .isPresent();
+                .map(env -> stmtNodes.stream().allMatch(node -> node.accept(new StmtVisitor(), env)))
+                .orElse(false);
     }
 
     static boolean typecheck(Method m, TypeEnv argu) {
-        return m.body.f7.accept(new ListVisitor<>(new SymPairVisitor()), argu)
-                .forceDistinct((locals, pair) -> Named.distinct(argu.locals, pair) && Named.distinct(locals, pair))
-                .or(() -> Util.error("Duplicate locals"))
+        final var localNodes = m.body.f7;
+        final var retExpr = m.body.f10;
+        final var stmtNodes = m.body.f8.nodes;
+        return localNodes.accept(new ListVisitor<>(new SymPairVisitor()), argu)
+                .forceDistinct((locals, var) -> Named.distinct(argu.locals.join(locals), var))
+                .or(() -> Typecheck.error("Duplicate locals"))
                 .map(locals -> argu.addLocals(locals))
-                .filter(typeEnv -> Util.checkExpr(m.body.f10, m.retType, typeEnv))
-                .filter(typeEnv -> m.body.f8.nodes.stream().allMatch(node -> node.accept(new StmtVisitor(), typeEnv)))
-                .isPresent();
+                .map(env -> Typecheck.checkExpr(retExpr, m.retType, env)
+                        && stmtNodes.stream().allMatch(node -> node.accept(new StmtVisitor(), env)))
+                .orElse(false);
     }
 
     public static void main(String[] args) throws Exception {
-        final var root = new MiniJavaParser(System.in).Goal();
-
+        new MiniJavaParser(System.in);
+        final var root = MiniJavaParser.Goal();
         final var mainClassName = root.f0.f1.f0.tokenImage;
 
-        final var typeEnv = new Lazy<TypeEnv>(z -> root.f1.accept(new ListVisitor<>(new ClassVisitor()), z)
+        final var env = new Lazy<TypeEnv>(z -> root.f1.accept(new ListVisitor<>(new ClassVisitor()), z)
                 .forceDistinct((classes, c) -> !c.name().equals(mainClassName) && Named.distinct(classes, c))
-                .or(() -> Util.error("Duplicate classes"))
+                .or(() -> Typecheck.error("Duplicate classes"))
                 .map(classes -> new TypeEnv(List.nul(), classes, Optional.empty()))
                 .get()).get();
 
-        final var acyclic = typeEnv.classes.forAll(c -> c.acyclic(List.nul()));
+        final var acyclic = env.classes.forAll(c -> c.acyclic(List.nul()));
 
         if (!acyclic)
-            Util.error("Cyclic class extension");
+            Typecheck.error("Cyclic class extension");
 
-        if (Util.DEBUG)
-            System.out.println(typeEnv);
+        if (Typecheck.DEBUG)
+            System.out.println(env);
 
         final var typechecks = acyclic
-                && typecheck(root.f0, typeEnv)
-                && typeEnv.classes.forAll(c -> c.body().methods
-                        .forAll(m -> typecheck(m, typeEnv.enterClassMethod(c, m))));
+                && typecheck(root.f0, env)
+                && env.classes.forAll(c -> c.body().methods.forAll(m -> typecheck(m, env.enterClassMethod(c, m))));
 
         if (typechecks)
             System.out.println("Program type checked successfully");
         else
-            Util.error("Type error?");
+            Typecheck.error("Type error?");
+    }
+
+    static boolean checkExpr(Node node, Type expected, TypeEnv argu) {
+        return node.accept(new ExprVisitor(), argu)
+                .map(type -> type.subtypes(expected))
+                .orElse(false);
     }
 }
