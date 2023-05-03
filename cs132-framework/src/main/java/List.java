@@ -97,10 +97,10 @@ public class List<T> extends Lazy<ListElem<T>> implements ListInt<T> {
     }
 }
 
-interface ListElem<T> extends ListInt<T> {
+abstract class ListElem<T> implements ListInt<T> {
 }
 
-class Null<T> implements ListElem<T> {
+class Null<T> extends ListElem<T> {
     @Override
     public Optional<T> find(Predicate<? super T> p) {
         return Optional.empty();
@@ -137,7 +137,7 @@ class Null<T> implements ListElem<T> {
     }
 }
 
-class Pair<T> implements ListElem<T> {
+class Pair<T> extends ListElem<T> {
     final T val;
     final List<T> next;
 

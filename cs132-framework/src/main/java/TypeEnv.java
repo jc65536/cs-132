@@ -66,6 +66,13 @@ class Class implements Named, Type {
         return !h.exists(this::equals) && superClass().map(sc -> sc.acyclic(h.cons(this))).orElse(true);
     }
 
+    boolean noOverloading(Method method) {
+        return superClass()
+                .map(sc -> sc.body().methods.forAll(m -> !m.name().equals(method.name()) || m.typeEquals(method))
+                        && sc.noOverloading(method))
+                .orElse(true);
+    }
+
     @Override
     public String toString() {
         return String.format("%s%s", name(), superClass().map(sc -> ": " + sc.toString()).orElse(""));
@@ -95,22 +102,22 @@ class ClassBody {
 }
 
 class SymPair implements Named {
-    private final String sym;
+    private final String name;
     final Type type;
 
-    SymPair(String sym, Type type) {
-        this.sym = sym;
+    SymPair(String name, Type type) {
+        this.name = name;
         this.type = type;
     }
 
     @Override
     public String toString() {
-        return String.format("%s: %s", sym, type);
+        return String.format("%s: %s", name, type);
     }
 
     @Override
     public String name() {
-        return sym;
+        return name;
     }
 }
 
@@ -175,11 +182,11 @@ public class TypeEnv {
                 .get();
     }
 
-    Optional<SymPair> symLookup(String sym) {
+    Optional<SymPair> symLookup(String name) {
         return locals
-                .find(s -> s.name().equals(sym))
-                .or(() -> currClass.flatMap(c -> c.fieldLookup(sym)))
-                .or(() -> Typecheck.error("Unknown symbol " + sym));
+                .find(s -> s.name().equals(name))
+                .or(() -> currClass.flatMap(c -> c.fieldLookup(name)))
+                .or(() -> Typecheck.error("Unknown symbol " + name));
     }
 
     @Override
