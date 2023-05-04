@@ -19,7 +19,7 @@ class Lazy<T> implements Supplier<T> {
         return v;
     }
 
-    <U> Lazy<U> bind(Function<T, Lazy<U>> f) {
+    <U> Lazy<U> bind(Function<T, Supplier<U>> f) {
         return new Lazy<>(() -> f.apply(get()).get());
     }
 }
@@ -35,7 +35,7 @@ interface ListInt<T> {
 
     <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f);
 
-    <U> Optional<List<U>> failMap(Function<T, Optional<? extends U>> f);
+    <U> Optional<List<U>> mapFalliable(Function<T, Optional<? extends U>> f);
 
     Optional<List<T>> forceDistinct(BiPredicate<List<T>, T> p);
 }
@@ -87,8 +87,8 @@ public class List<T> extends Lazy<ListElem<T>> implements ListInt<T> {
     }
 
     @Override
-    public <U> Optional<List<U>> failMap(Function<T, Optional<? extends U>> f) {
-        return get().failMap(f);
+    public <U> Optional<List<U>> mapFalliable(Function<T, Optional<? extends U>> f) {
+        return get().mapFalliable(f);
     }
 
     @Override
@@ -127,7 +127,7 @@ class Null<T> extends ListElem<T> {
     }
 
     @Override
-    public <U> Optional<List<U>> failMap(Function<T, Optional<? extends U>> f) {
+    public <U> Optional<List<U>> mapFalliable(Function<T, Optional<? extends U>> f) {
         return Optional.of(List.nul());
     }
 
@@ -148,10 +148,7 @@ class Pair<T> extends ListElem<T> {
 
     @Override
     public Optional<T> find(Predicate<? super T> p) {
-        if (p.test(val))
-            return Optional.of(val);
-        else
-            return next.find(p);
+        return Optional.of(val).filter(p).or(() -> next.find(p));
     }
 
     @Override
@@ -166,14 +163,11 @@ class Pair<T> extends ListElem<T> {
 
     @Override
     public <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f) {
-        final var _other = other.get();
-
-        if (!(_other instanceof Pair<?>))
-            return false;
-
-        final var o = (Pair<U>) _other;
-
-        return f.apply(val, o.val) && next.equals(o.next, f);
+        return Optional.of(other.get())
+                .filter(o -> o instanceof Pair<?>)
+                .map(o -> (Pair<U>) o)
+                .map(p -> f.apply(val, p.val) && next.equals(p.next, f))
+                .orElse(false);
     }
 
     @Override
@@ -182,14 +176,14 @@ class Pair<T> extends ListElem<T> {
     }
 
     @Override
-    public <U> Optional<List<U>> failMap(Function<T, Optional<? extends U>> f) {
-        return f.apply(val).flatMap(u -> next.failMap(f).map(list -> list.cons(u)));
+    public <U> Optional<List<U>> mapFalliable(Function<T, Optional<? extends U>> f) {
+        return f.apply(val).flatMap(u -> next.mapFalliable(f).map(l -> l.cons(u)));
     }
 
     @Override
     public Optional<List<T>> forceDistinct(BiPredicate<List<T>, T> p) {
         return next.forceDistinct(p)
-                .filter(list -> p.test(list, val))
-                .map(list -> list.cons(val));
+                .filter(l -> p.test(l, val))
+                .map(l -> l.cons(val));
     }
 }

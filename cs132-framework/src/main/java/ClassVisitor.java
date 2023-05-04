@@ -29,7 +29,8 @@ public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
         final var className = n.f1.f0.tokenImage;
         return new Class(className,
                 Optional.empty(),
-                (c) -> mkClassBody(c, n.f3, n.f4, argu.get()));
+                () -> mkFields(n.f3, argu.get()),
+                (c) -> mkMethods(c, n.f4, argu.get()));
     }
 
     @Override
@@ -38,18 +39,21 @@ public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
         final var superName = n.f3.f0.tokenImage;
         return new Class(className,
                 Optional.of(() -> argu.get().classLookup(superName)),
-                (c) -> mkClassBody(c, n.f5, n.f6, argu.get()));
+                () -> mkFields(n.f5, argu.get()),
+                (c) -> mkMethods(c, n.f6, argu.get()));
     }
 
-    static ClassBody mkClassBody(Class c, NodeListOptional fieldNodes, NodeListOptional methodNodes, TypeEnv argu) {
+    static List<SymPair> mkFields(NodeListOptional fieldNodes, TypeEnv argu) {
         return fieldNodes.accept(new ListVisitor<>(new SymPairVisitor()), argu)
                 .forceDistinct(Named::distinct)
                 .or(() -> Typecheck.error("Duplicate fields"))
-                .flatMap(fields -> methodNodes.accept(new ListVisitor<>(new MethodVisitor()), argu)
-                        .forceDistinct((methods, m) -> Named.distinct(methods, m) && c.noOverloading(m))
-                        .or(() -> Typecheck.error("Duplicate methods"))
-                        .map(methods -> new ClassBody(fields, methods)))
                 .get();
+    }
 
+    static List<Method> mkMethods(Class c, NodeListOptional methodNodes, TypeEnv argu) {
+        return methodNodes.accept(new ListVisitor<>(new MethodVisitor()), argu)
+                .forceDistinct((ms, m) -> Named.distinct(ms, m) && c.noOverloading(m))
+                .or(() -> Typecheck.error("Duplicate methods"))
+                .get();
     }
 }

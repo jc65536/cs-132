@@ -32,16 +32,16 @@ class TypeVisitor extends GJDepthFirst<Type, TypeEnv> {
 public class SymPairVisitor extends GJDepthFirst<SymPair, TypeEnv> {
     @Override
     public SymPair visit(VarDeclaration n, TypeEnv argu) {
-        final var sym = n.f1.f0.tokenImage;
+        final var name = n.f1.f0.tokenImage;
         final var type = n.f0.accept(new TypeVisitor(), argu);
-        return new SymPair(sym, type);
+        return new SymPair(name, type);
     }
 
     @Override
     public SymPair visit(FormalParameter n, TypeEnv argu) {
-        final var sym = n.f1.f0.tokenImage;
+        final var name = n.f1.f0.tokenImage;
         final var type = n.f0.accept(new TypeVisitor(), argu);
-        return new SymPair(sym, type);
+        return new SymPair(name, type);
     }
 
     @Override

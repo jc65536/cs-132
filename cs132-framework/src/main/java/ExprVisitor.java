@@ -57,11 +57,11 @@ public class ExprVisitor extends GJDepthFirst<Optional<? extends Type>, TypeEnv>
         final var methodName = n.f2.f0.tokenImage;
         final var argNodes = n.f4;
         return n.f0.accept(this, argu)
-                .filter(objType -> objType instanceof Class)
+                .filter(t -> t instanceof Class)
                 .or(() -> Typecheck.error("Method call on primitive"))
                 .flatMap(t -> ((Class) t).methodLookup(methodName))
                 .filter(m -> argNodes.accept(new ListVisitor<>(this), argu)
-                        .failMap(tOpt -> tOpt)
+                        .mapFalliable(x -> x)
                         .map(m::argsCompat)
                         .orElse(false))
                 .map(m -> m.retType);
