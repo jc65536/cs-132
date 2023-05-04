@@ -12,9 +12,10 @@ public class ListVisitor<R, A> extends GJDepthFirst<List<R>, A> {
 
     @Override
     public List<R> visit(NodeOptional n, A argu) {
-        return Optional.of(List.<R>nul())
-                .filter(u -> !n.present())
-                .orElseGet(() -> n.node.accept(this, argu));
+        if (n.present())
+            return n.node.accept(this, argu);
+        else
+            return List.nul();
     }
 
     @Override
@@ -33,9 +34,9 @@ public class ListVisitor<R, A> extends GJDepthFirst<List<R>, A> {
     }
 
     List<R> mkList(Iterator<Node> it, A argu) {
-        return Optional.of(List.<R>nul())
-                .filter(u -> !it.hasNext())
-                .orElseGet(() -> new List<>(() -> new Pair<>(it.next().accept(v, argu),
-                        mkList(it, argu))));
+        if (it.hasNext())
+            return new List<>(() -> new Pair<>(it.next().accept(v, argu), mkList(it, argu)));
+        else
+            return List.nul();
     }
 }
