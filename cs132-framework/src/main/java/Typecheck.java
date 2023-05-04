@@ -16,10 +16,10 @@ public class Typecheck {
         final var argsName = mainNode.f11.f0.tokenImage;
         final var stmtNodes = mainNode.f15.nodes;
         return mainNode.f14.accept(new ListVisitor<>(new SymPairVisitor()), argu)
-                .forceDistinct((vars, var) -> !var.name.equals(argsName) && Named.distinct(vars, var))
+                .mapFalliable(var -> Optional.of(var).filter(u -> !var.name.equals(argsName)))
+                .flatMap(vars -> vars.forceDistinct(Named::distinct))
                 .or(() -> Typecheck.error("Duplicate locals"))
-                .map(vars -> argu.addLocals(vars))
-                .map(env -> stmtNodes.stream().allMatch(n -> n.accept(new StmtVisitor(), env)))
+                .map(vars -> stmtNodes.stream().allMatch(n -> n.accept(new StmtVisitor(), argu.addLocals(vars))))
                 .orElse(false);
     }
 
@@ -28,9 +28,10 @@ public class Typecheck {
         final var retExpr = m.body.f10;
         final var stmtNodes = m.body.f8.nodes;
         return localNodes.accept(new ListVisitor<>(new SymPairVisitor()), argu)
-                .forceDistinct((vars, var) -> Named.distinct(argu.locals.join(vars), var))
+                .mapFalliable(var -> Optional.of(var).filter(u -> Named.distinct(argu.locals, var)))
+                .flatMap(vars -> vars.forceDistinct(Named::distinct))
                 .or(() -> Typecheck.error("Duplicate locals"))
-                .map(vars -> argu.addLocals(vars))
+                .map(argu::addLocals)
                 .map(env -> Typecheck.checkExpr(retExpr, m.retType, env)
                         && stmtNodes.stream().allMatch(n -> n.accept(new StmtVisitor(), env)))
                 .orElse(false);
