@@ -52,7 +52,8 @@ public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
 
     static List<Method> mkMethods(Class c, NodeListOptional methodNodes, TypeEnv argu) {
         return methodNodes.accept(new ListVisitor<>(new MethodVisitor()), argu)
-                .forceDistinct((ms, m) -> Named.distinct(ms, m) && c.noOverloading(m))
+                .mapFalliable(c::noOverloading)
+                .flatMap(methods -> methods.forceDistinct(Named::distinct))
                 .or(() -> Typecheck.error("Duplicate methods"))
                 .get();
     }

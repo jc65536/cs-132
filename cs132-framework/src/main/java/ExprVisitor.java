@@ -60,11 +60,11 @@ public class ExprVisitor extends GJDepthFirst<Optional<? extends Type>, TypeEnv>
                 .filter(t -> t instanceof Class)
                 .or(() -> Typecheck.error("Method call on primitive"))
                 .flatMap(t -> ((Class) t).methodLookup(methodName))
-                .filter(m -> argNodes.accept(new ListVisitor<>(this), argu)
-                        .mapFalliable(x -> x)
-                        .map(m::argsCompat)
-                        .orElse(false))
-                .map(m -> m.retType);
+                .flatMap(m -> argNodes.accept(new ListVisitor<>(this), argu)
+                        .mapFalliable(opt -> opt)
+                        .filter(m::argsCompat)
+                        .or(() -> Typecheck.error("Method args error"))
+                        .map(u -> m.retType));
     }
 
     @Override

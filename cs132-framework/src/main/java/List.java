@@ -177,13 +177,11 @@ class Pair<T> extends ListElem<T> {
 
     @Override
     public <U> Optional<List<U>> mapFalliable(Function<T, Optional<? extends U>> f) {
-        return f.apply(val).flatMap(u -> next.mapFalliable(f).map(l -> l.cons(u)));
+        return f.apply(val).flatMap(v -> next.mapFalliable(f).map(l -> l.cons(v)));
     }
 
     @Override
     public Optional<List<T>> forceDistinct(BiPredicate<List<T>, T> p) {
-        return next.forceDistinct(p)
-                .filter(l -> p.test(l, val))
-                .map(l -> l.cons(val));
+        return next.forceDistinct(p).filter(l -> p.test(l, val)).map(l -> l.cons(val));
     }
 }

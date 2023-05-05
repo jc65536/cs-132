@@ -66,11 +66,10 @@ class Class extends Named implements Type {
         return !h.exists(this::equals) && superClass().map(sc -> sc.acyclic(h.cons(this))).orElse(true);
     }
 
-    boolean noOverloading(Method method) {
-        return superClass()
-                .map(sc -> sc.methods.get().forAll(m -> !m.name.equals(method.name) || m.typeEquals(method))
-                        && sc.noOverloading(method))
-                .orElse(true);
+    Optional<Method> noOverloading(Method method) {
+        return superClass().map(sc -> sc.noOverloading(method)
+                .filter(u -> sc.methods.get().forAll(m -> !m.name.equals(method.name) || m.typeEquals(method))))
+                .orElse(Optional.of(method));
     }
 }
 

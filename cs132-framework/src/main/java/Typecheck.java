@@ -12,28 +12,32 @@ public class Typecheck {
         return Optional.empty();
     }
 
-    static boolean typecheck(MainClass mainNode, TypeEnv argu) {
-        final var argsName = mainNode.f11.f0.tokenImage;
-        final var stmtNodes = mainNode.f15.nodes;
-        return mainNode.f14.accept(new ListVisitor<>(new SymPairVisitor()), argu)
-                .mapFalliable(var -> Optional.of(var).filter(u -> !var.name.equals(argsName)))
+    static <T> Optional<T> condOpt(T val, boolean b) {
+        return Optional.of(val).filter(u -> b);
+    }
+
+    static boolean typecheck(MainClass n, TypeEnv argu) {
+        final var argsName = n.f11.f0.tokenImage;
+        return n.f14.accept(new ListVisitor<>(new SymPairVisitor()), argu)
+                .mapFalliable(var -> condOpt(var, !var.name.equals(argsName)))
                 .flatMap(vars -> vars.forceDistinct(Named::distinct))
                 .or(() -> Typecheck.error("Duplicate locals"))
-                .map(vars -> stmtNodes.stream().allMatch(n -> n.accept(new StmtVisitor(), argu.addLocals(vars))))
+                .map(argu::addLocals)
+                .map(env -> n.f15.accept(new ListVisitor<>(new StmtVisitor()), env).forAll(b -> b))
                 .orElse(false);
     }
 
     static boolean typecheck(Method m, TypeEnv argu) {
         final var localNodes = m.body.f7;
         final var retExpr = m.body.f10;
-        final var stmtNodes = m.body.f8.nodes;
+        final var stmtNodes = m.body.f8;
         return localNodes.accept(new ListVisitor<>(new SymPairVisitor()), argu)
-                .mapFalliable(var -> Optional.of(var).filter(u -> Named.distinct(argu.locals, var)))
+                .mapFalliable(var -> condOpt(var, Named.distinct(argu.locals, var)))
                 .flatMap(vars -> vars.forceDistinct(Named::distinct))
                 .or(() -> Typecheck.error("Duplicate locals"))
                 .map(argu::addLocals)
-                .map(env -> Typecheck.checkExpr(retExpr, m.retType, env)
-                        && stmtNodes.stream().allMatch(n -> n.accept(new StmtVisitor(), env)))
+                .filter(env -> Typecheck.checkExpr(retExpr, m.retType, env))
+                .map(env -> stmtNodes.accept(new ListVisitor<>(new StmtVisitor()), env).forAll(b -> b))
                 .orElse(false);
     }
 
@@ -44,7 +48,8 @@ public class Typecheck {
 
         final var env = new Lazy<TypeEnv>(z -> root.f1
                 .accept(new ListVisitor<>(new ClassVisitor()), z)
-                .forceDistinct((cs, c) -> !c.name.equals(mainName) && Named.distinct(cs, c))
+                .mapFalliable(c -> condOpt(c, !c.name.equals(mainName)))
+                .flatMap(classes -> classes.forceDistinct(Named::distinct))
                 .or(() -> Typecheck.error("Duplicate classes"))
                 .map(cs -> new TypeEnv(List.nul(), cs, Optional.empty()))
                 .get()).get();
@@ -52,7 +57,8 @@ public class Typecheck {
         Optional.of(0)
                 .filter(u -> env.classes.forAll(c -> c.acyclic(List.nul())))
                 .or(() -> Typecheck.error("Cyclic class extension"))
-                .filter(u -> typecheck(root.f0, env) && env.classes.forAll(c -> c.methods.get()
+                .filter(u -> typecheck(root.f0, env))
+                .filter(u -> env.classes.forAll(c -> c.methods.get()
                         .forAll(m -> typecheck(m, env.enterClassMethod(c, m)))))
                 .or(() -> Typecheck.error("Unknown error"))
                 .ifPresent(u -> System.out.println("Program type checked successfully"));
