@@ -27,10 +27,6 @@ class Lazy<T> implements Supplier<T> {
 interface ListInt<T> {
     Optional<T> find(Predicate<? super T> p);
 
-    <U> U fold(U acc, BiFunction<U, T, U> f);
-
-    List<T> join(List<T> other);
-
     <U> List<U> map(Function<T, U> f);
 
     <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f);
@@ -49,16 +45,6 @@ public class List<T> extends Lazy<ListElem<T>> implements ListInt<T> {
     }
 
     @Override
-    public <U> U fold(U acc, BiFunction<U, T, U> f) {
-        return get().fold(acc, f);
-    }
-
-    @Override
-    public List<T> join(List<T> other) {
-        return new List<>(bind(l -> l.join(other)));
-    }
-
-    @Override
     public <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f) {
         return get().equals(other, f);
     }
@@ -72,11 +58,7 @@ public class List<T> extends Lazy<ListElem<T>> implements ListInt<T> {
     }
 
     boolean forAll(Predicate<T> p) {
-        return !exists(p.negate());
-    }
-
-    boolean exists(Predicate<? super T> p) {
-        return find(p).isPresent();
+        return find(p.negate()).isEmpty();
     }
 
     @Override
@@ -97,16 +79,6 @@ class Null<T> extends ListElem<T> {
     @Override
     public Optional<T> find(Predicate<? super T> p) {
         return Optional.empty();
-    }
-
-    @Override
-    public <U> U fold(U acc, BiFunction<U, T, U> f) {
-        return acc;
-    }
-
-    @Override
-    public List<T> join(List<T> other) {
-        return other;
     }
 
     @Override
@@ -137,16 +109,6 @@ class Pair<T> extends ListElem<T> {
     @Override
     public Optional<T> find(Predicate<? super T> p) {
         return Optional.of(val).filter(p).or(() -> next.find(p));
-    }
-
-    @Override
-    public <U> U fold(U acc, BiFunction<U, T, U> f) {
-        return next.fold(f.apply(acc, val), f);
-    }
-
-    @Override
-    public List<T> join(List<T> other) {
-        return next.join(other).cons(val);
     }
 
     @Override

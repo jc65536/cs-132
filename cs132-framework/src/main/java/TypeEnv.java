@@ -17,7 +17,11 @@ abstract class Named {
     }
 
     static <T extends Named> Optional<List<T>> distinct(List<T> acc, Optional<T> nOpt) {
-        return nOpt.filter(n -> !acc.exists(m -> m.name.equals(n.name))).map(acc::cons);
+        return nOpt.filter(n -> acc.forAll(m -> !m.name.equals(n.name))).map(acc::cons);
+    }
+
+    static <T extends Named> Optional<List<T>> distinct(List<T> acc, T n) {
+        return distinct(acc, Optional.of(n));
     }
 }
 
@@ -63,7 +67,7 @@ class Class extends Named implements Type {
     }
 
     boolean acyclic(List<Class> h) {
-        return !h.exists(this::equals) && superClass().map(sc -> sc.acyclic(h.cons(this))).orElse(true);
+        return h.forAll(c -> this != c) && superClass().map(sc -> sc.acyclic(h.cons(this))).orElse(true);
     }
 
     boolean noOverloading(Method method) {
@@ -113,10 +117,6 @@ public class TypeEnv {
         this.locals = locals;
         this.classes = classes;
         this.currClass = currClass;
-    }
-
-    TypeEnv addLocals(List<SymPair> locals) {
-        return new TypeEnv(this.locals.join(locals), classes, currClass);
     }
 
     TypeEnv enterClass(Class c) {

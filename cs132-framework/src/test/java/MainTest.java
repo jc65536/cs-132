@@ -13,13 +13,13 @@ public class MainTest {
 
         System.out.println("=== r2 ===");
 
-        final var l2 = List.<Integer>nul().cons(1).cons(2).cons(3);
-        final var r2 = l1.join(l2).map(x -> x * 2);
+        // final var l2 = List.<Integer>nul().cons(1).cons(2).cons(3);
+        // final var r2 = l1.join(l2).map(x -> x * 2);
 
-        r2.fold(0, (u, x) -> {
-            System.out.println(x);
-            return 0;
-        });
+        // r2.fold(0, (u, x) -> {
+        //     System.out.println(x);
+        //     return 0;
+        // });
 
         // System.out.println("=== r3 ===");
 

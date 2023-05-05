@@ -9,10 +9,10 @@ class MethodVisitor extends GJDepthFirst<Optional<Method>, TypeEnv> {
         return n.f4.accept(new ListVisitor<>(new SymPairVisitor()), argu)
                 .foldFalliable(List.<SymPair>nul(), Named::distinct)
                 .or(() -> Typecheck.error("Duplicate params"))
-                .flatMap(params -> {
+                .map(params -> {
                     final var name = n.f2.f0.tokenImage;
-                    return n.f1.accept(new TypeVisitor(), argu)
-                            .map(retType -> new Method(name, params, retType, n));
+                    final var retType = n.f1.accept(new TypeVisitor(), argu);
+                    return new Method(name, params, retType, n);
                 });
     }
 }

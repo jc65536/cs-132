@@ -9,7 +9,7 @@ public class StmtVisitor extends GJDepthFirst<Boolean, TypeEnv> {
 
     @Override
     public Boolean visit(Block n, TypeEnv argu) {
-        return n.f1.nodes.stream().allMatch(node -> node.accept(this, argu));
+        return n.f1.accept(new ListVisitor<>(this), argu).forAll(b -> b);
     }
 
     @Override
