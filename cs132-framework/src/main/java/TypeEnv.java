@@ -16,8 +16,8 @@ abstract class Named {
         this.name = name;
     }
 
-    static boolean distinct(List<? extends Named> l, Named n) {
-        return !l.exists(m -> m.name.equals(n.name));
+    static <T extends Named> Optional<List<T>> distinct(List<T> acc, Optional<T> nOpt) {
+        return nOpt.filter(n -> !acc.exists(m -> m.name.equals(n.name))).map(acc::cons);
     }
 }
 
@@ -66,10 +66,11 @@ class Class extends Named implements Type {
         return !h.exists(this::equals) && superClass().map(sc -> sc.acyclic(h.cons(this))).orElse(true);
     }
 
-    Optional<Method> noOverloading(Method method) {
-        return superClass().map(sc -> sc.noOverloading(method)
-                .filter(u -> sc.methods.get().forAll(m -> !m.name.equals(method.name) || m.typeEquals(method))))
-                .orElse(Optional.of(method));
+    boolean noOverloading(Method method) {
+        return superClass()
+                .map(sc -> sc.methods.get().forAll(m -> !m.name.equals(method.name) || m.typeEquals(method))
+                        && sc.noOverloading(method))
+                .orElse(true);
     }
 }
 
@@ -118,8 +119,8 @@ public class TypeEnv {
         return new TypeEnv(this.locals.join(locals), classes, currClass);
     }
 
-    TypeEnv enterClassMethod(Class c, Method m) {
-        return new TypeEnv(m.params, classes, Optional.of(c));
+    TypeEnv enterClass(Class c) {
+        return new TypeEnv(locals, classes, Optional.of(c));
     }
 
     Class classLookup(String name) {

@@ -19,8 +19,8 @@ public class Typecheck {
     static boolean typecheck(MainClass n, TypeEnv argu) {
         final var argsName = n.f11.f0.tokenImage;
         return n.f14.accept(new ListVisitor<>(new SymPairVisitor()), argu)
-                .mapFalliable(var -> condOpt(var, !var.name.equals(argsName)))
-                .flatMap(vars -> vars.forceDistinct(Named::distinct))
+                .map(varOpt -> varOpt.filter(var -> !var.name.equals(argsName)))
+                .foldFalliable(List.<SymPair>nul(), Named::distinct)
                 .or(() -> Typecheck.error("Duplicate locals"))
                 .map(argu::addLocals)
                 .map(env -> n.f15.accept(new ListVisitor<>(new StmtVisitor()), env).forAll(b -> b))
@@ -32,8 +32,7 @@ public class Typecheck {
         final var retExpr = m.body.f10;
         final var stmtNodes = m.body.f8;
         return localNodes.accept(new ListVisitor<>(new SymPairVisitor()), argu)
-                .mapFalliable(var -> condOpt(var, Named.distinct(argu.locals, var)))
-                .flatMap(vars -> vars.forceDistinct(Named::distinct))
+                .foldFalliable(m.params, Named::distinct)
                 .or(() -> Typecheck.error("Duplicate locals"))
                 .map(argu::addLocals)
                 .filter(env -> Typecheck.checkExpr(retExpr, m.retType, env))
@@ -48,8 +47,8 @@ public class Typecheck {
 
         final var env = new Lazy<TypeEnv>(z -> root.f1
                 .accept(new ListVisitor<>(new ClassVisitor()), z)
-                .mapFalliable(c -> condOpt(c, !c.name.equals(mainName)))
-                .flatMap(classes -> classes.forceDistinct(Named::distinct))
+                .map(c -> Optional.of(c).filter(u -> !c.name.equals(mainName)))
+                .foldFalliable(List.<Class>nul(), Named::distinct)
                 .or(() -> Typecheck.error("Duplicate classes"))
                 .map(cs -> new TypeEnv(List.nul(), cs, Optional.empty()))
                 .get()).get();
@@ -59,7 +58,7 @@ public class Typecheck {
                 .or(() -> Typecheck.error("Cyclic class extension"))
                 .filter(u -> typecheck(root.f0, env))
                 .filter(u -> env.classes.forAll(c -> c.methods.get()
-                        .forAll(m -> typecheck(m, env.enterClassMethod(c, m)))))
+                        .forAll(m -> typecheck(m, env.enterClass(c)))))
                 .or(() -> Typecheck.error("Unknown error"))
                 .ifPresent(u -> System.out.println("Program type checked successfully"));
     }

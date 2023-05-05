@@ -35,9 +35,7 @@ interface ListInt<T> {
 
     <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f);
 
-    <U> Optional<List<U>> mapFalliable(Function<T, Optional<? extends U>> f);
-
-    Optional<List<T>> forceDistinct(BiPredicate<List<T>, T> p);
+    <U> Optional<U> foldFalliable(U acc, BiFunction<U, T, Optional<U>> f);
 }
 
 public class List<T> extends Lazy<ListElem<T>> implements ListInt<T> {
@@ -87,13 +85,8 @@ public class List<T> extends Lazy<ListElem<T>> implements ListInt<T> {
     }
 
     @Override
-    public <U> Optional<List<U>> mapFalliable(Function<T, Optional<? extends U>> f) {
-        return get().mapFalliable(f);
-    }
-
-    @Override
-    public Optional<List<T>> forceDistinct(BiPredicate<List<T>, T> p) {
-        return get().forceDistinct(p);
+    public <U> Optional<U> foldFalliable(U acc, BiFunction<U, T, Optional<U>> f) {
+        return get().foldFalliable(acc, f);
     }
 }
 
@@ -127,13 +120,8 @@ class Null<T> extends ListElem<T> {
     }
 
     @Override
-    public <U> Optional<List<U>> mapFalliable(Function<T, Optional<? extends U>> f) {
-        return Optional.of(List.nul());
-    }
-
-    @Override
-    public Optional<List<T>> forceDistinct(BiPredicate<List<T>, T> p) {
-        return Optional.of(List.nul());
+    public <U> Optional<U> foldFalliable(U acc, BiFunction<U, T, Optional<U>> f) {
+        return Optional.of(acc);
     }
 }
 
@@ -176,12 +164,7 @@ class Pair<T> extends ListElem<T> {
     }
 
     @Override
-    public <U> Optional<List<U>> mapFalliable(Function<T, Optional<? extends U>> f) {
-        return f.apply(val).flatMap(v -> next.mapFalliable(f).map(l -> l.cons(v)));
-    }
-
-    @Override
-    public Optional<List<T>> forceDistinct(BiPredicate<List<T>, T> p) {
-        return next.forceDistinct(p).filter(l -> p.test(l, val)).map(l -> l.cons(val));
+    public <U> Optional<U> foldFalliable(U acc, BiFunction<U, T, Optional<U>> f) {
+        return f.apply(acc, val).flatMap(v -> next.foldFalliable(v, f));
     }
 }

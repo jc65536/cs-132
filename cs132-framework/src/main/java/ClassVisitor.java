@@ -3,18 +3,17 @@ import java.util.*;
 import cs132.minijava.syntaxtree.*;
 import cs132.minijava.visitor.*;
 
-class MethodVisitor extends GJDepthFirst<Method, TypeEnv> {
+class MethodVisitor extends GJDepthFirst<Optional<Method>, TypeEnv> {
     @Override
-    public Method visit(MethodDeclaration n, TypeEnv argu) {
+    public Optional<Method> visit(MethodDeclaration n, TypeEnv argu) {
         return n.f4.accept(new ListVisitor<>(new SymPairVisitor()), argu)
-                .forceDistinct(Named::distinct)
+                .foldFalliable(List.<SymPair>nul(), Named::distinct)
                 .or(() -> Typecheck.error("Duplicate params"))
-                .map(params -> {
+                .flatMap(params -> {
                     final var name = n.f2.f0.tokenImage;
-                    final var retType = n.f1.accept(new TypeVisitor(), argu);
-                    return new Method(name, params, retType, n);
-                })
-                .get();
+                    return n.f1.accept(new TypeVisitor(), argu)
+                            .map(retType -> new Method(name, params, retType, n));
+                });
     }
 }
 
@@ -45,15 +44,15 @@ public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
 
     static List<SymPair> mkFields(NodeListOptional fieldNodes, TypeEnv argu) {
         return fieldNodes.accept(new ListVisitor<>(new SymPairVisitor()), argu)
-                .forceDistinct(Named::distinct)
+                .foldFalliable(List.<SymPair>nul(), Named::distinct)
                 .or(() -> Typecheck.error("Duplicate fields"))
                 .get();
     }
 
     static List<Method> mkMethods(Class c, NodeListOptional methodNodes, TypeEnv argu) {
         return methodNodes.accept(new ListVisitor<>(new MethodVisitor()), argu)
-                .mapFalliable(c::noOverloading)
-                .flatMap(methods -> methods.forceDistinct(Named::distinct))
+                .map(mOpt -> mOpt.filter(c::noOverloading))
+                .foldFalliable(List.<Method>nul(), Named::distinct)
                 .or(() -> Typecheck.error("Duplicate methods"))
                 .get();
     }
