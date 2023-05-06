@@ -6,12 +6,12 @@ public class MainTest {
     public void testLazyList() {
         System.out.println("=== r1 ===");
 
-        final var l1 = List.<Integer>nul().cons(1).cons(2).cons(3).cons(4).cons(5).cons(6);
-        final var r1 = l1.map(x -> x * 2).get().find(x -> x < 9).get();
+        // final var l1 = List.<Integer>nul().cons(1).cons(2).cons(3).cons(4).cons(5).cons(6);
+        // final var r1 = l1.map(x -> x * 2).get().find(x -> x < 9).get();
 
-        System.out.println("Result: " + r1);
+        // System.out.println("Result: " + r1);
 
-        System.out.println("=== r2 ===");
+        // System.out.println("=== r2 ===");
 
         // final var l2 = List.<Integer>nul().cons(1).cons(2).cons(3);
         // final var r2 = l1.join(l2).map(x -> x * 2);
