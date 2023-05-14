@@ -1,0 +1,4 @@
+method(global, this, params)
+
+main()
+    allocate vtables

@@ -1,59 +1,74 @@
 import java.util.*;
+import java.util.function.Function;
 
 import cs132.minijava.syntaxtree.*;
 import cs132.minijava.visitor.*;
 
-class MethodVisitor extends GJDepthFirst<Optional<Method>, TypeEnv> {
+class MethodVisitor extends GJDepthFirst<Method, T2<Class, TypeEnv>> {
     @Override
-    public Optional<Method> visit(MethodDeclaration n, TypeEnv argu) {
-        return n.f4.accept(new ListVisitor<>(new SymPairVisitor()), argu)
-                .foldFalliable(List.<SymPair>nul(), Named::distinct)
-                .or(() -> J2S.error("Duplicate params"))
-                .map(params -> {
-                    final var name = n.f2.f0.tokenImage;
-                    final var retType = n.f1.accept(new TypeVisitor(), argu);
-                    return new Method(name, params, retType, n);
-                });
+    public Method visit(MethodDeclaration n, T2<Class, TypeEnv> argu) {
+        final var c = argu.a;
+        final var env = argu.b;
+        final var params = n.f4.accept(new ListVisitor<>(new LocalVisitor()), env);
+        final var name = n.f2.f0.tokenImage;
+        final var retType = n.f1.accept(new TypeVisitor(), env);
+        return new Method(name, params, retType, n,
+                () -> c.superClass()
+                        .flatMap(sc -> sc.methodLookup(name))
+                        .map(u -> OverrideStatus.OVERRIDES)
+                        .orElseGet(() -> env.classes.filter(clas -> clas != c && clas.subtypes(c))
+                                .flatMap(clas -> clas.methods.get())
+                                .find(m -> m.name.equals(name))
+                                .map(u -> OverrideStatus.OVERRIDDEN)
+                                .orElse(OverrideStatus.UNIQUE)),
+                c,
+                () -> c.methods.get()
+                        .filter(m -> m.status.get() != OverrideStatus.UNIQUE)
+                        .firstIndex(m -> m.name.equals(name)).get() * 4);
     }
 }
 
-public class ClassVisitor extends GJDepthFirst<Class, Lazy<TypeEnv>> {
+public class ClassVisitor extends GJDepthFirst<Function<List<Class>, Class>, Lazy<? extends TypeEnv>> {
     @Override
-    public Class visit(TypeDeclaration n, Lazy<TypeEnv> argu) {
+    public Function<List<Class>, Class> visit(TypeDeclaration n, Lazy<? extends TypeEnv> argu) {
         return n.f0.choice.accept(this, argu);
     }
 
     @Override
-    public Class visit(ClassDeclaration n, Lazy<TypeEnv> argu) {
+    public Function<List<Class>, Class> visit(ClassDeclaration n, Lazy<? extends TypeEnv> argu) {
         final var className = n.f1.f0.tokenImage;
-        return new Class(className,
+        return classAcc -> new Class(className,
                 Optional.empty(),
-                () -> mkFields(n.f3, argu.get()),
-                (c) -> mkMethods(c, n.f4, argu.get()));
+                (c) -> mkFields(c, n.f3, argu.get()),
+                (c) -> mkMethods(c, n.f4, argu.get()),
+                argu,
+                () -> mkVtableOffset(classAcc));
     }
 
     @Override
-    public Class visit(ClassExtendsDeclaration n, Lazy<TypeEnv> argu) {
+    public Function<List<Class>, Class> visit(ClassExtendsDeclaration n, Lazy<? extends TypeEnv> argu) {
         final var className = n.f1.f0.tokenImage;
         final var superName = n.f3.f0.tokenImage;
-        return new Class(className,
+        return classAcc -> new Class(className,
                 Optional.of(() -> argu.get().classLookup(superName)),
-                () -> mkFields(n.f5, argu.get()),
-                (c) -> mkMethods(c, n.f6, argu.get()));
+                (c) -> mkFields(c, n.f5, argu.get()),
+                (c) -> mkMethods(c, n.f6, argu.get()),
+                argu,
+                () -> mkVtableOffset(classAcc));
     }
 
-    static List<SymPair> mkFields(NodeListOptional fieldNodes, TypeEnv argu) {
-        return fieldNodes.accept(new ListVisitor<>(new SymPairVisitor()), argu)
-                .foldFalliable(List.<SymPair>nul(), Named::distinct)
-                .or(() -> J2S.error("Duplicate fields"))
-                .get();
+    static <T extends TypeEnv> List<Field> mkFields(Class c, NodeListOptional fieldNodes, T argu) {
+        return fieldNodes.accept(new ListVisitor<>(new FieldVisitor()), argu)
+                .fold(List.<Field>nul(),
+                        (fieldAcc, mkField) -> fieldAcc
+                                .cons(mkField.apply(c.ownFieldsOffset.get() + fieldAcc.count() * 4)));
     }
 
-    static List<Method> mkMethods(Class c, NodeListOptional methodNodes, TypeEnv argu) {
-        return methodNodes.accept(new ListVisitor<>(new MethodVisitor()), argu)
-                .map(mOpt -> mOpt.filter(c::noOverloading))
-                .foldFalliable(List.<Method>nul(), Named::distinct)
-                .or(() -> J2S.error("Duplicate methods"))
-                .get();
+    static <T extends TypeEnv> List<Method> mkMethods(Class c, NodeListOptional methodNodes, T argu) {
+        return methodNodes.accept(new ListVisitor<>(new MethodVisitor()), new T2<>(c, argu));
+    }
+
+    static int mkVtableOffset(List<Class> classAcc) {
+        return classAcc.head().map(c -> c.vtableOffset.get() + c.vtableSize.get()).orElse(0);
     }
 }

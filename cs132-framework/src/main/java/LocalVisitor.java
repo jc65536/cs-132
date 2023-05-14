@@ -1,3 +1,5 @@
+import java.util.function.Function;
+
 import cs132.minijava.syntaxtree.*;
 import cs132.minijava.visitor.*;
 
@@ -29,23 +31,32 @@ class TypeVisitor extends GJDepthFirst<Type, TypeEnv> {
     }
 }
 
-public class SymPairVisitor extends GJDepthFirst<SymPair, TypeEnv> {
+class FieldVisitor extends GJDepthFirst<Function<Integer, Field>, TypeEnv> {
     @Override
-    public SymPair visit(VarDeclaration n, TypeEnv argu) {
+    public Function<Integer, Field> visit(VarDeclaration n, TypeEnv argu) {
         final var name = n.f1.f0.tokenImage;
         final var type = n.f0.accept(new TypeVisitor(), argu);
-        return new SymPair(name, type);
+        return fieldOffset -> new Field(name, type, fieldOffset);
+    }
+}
+
+public class LocalVisitor extends GJDepthFirst<Local, TypeEnv> {
+    @Override
+    public Local visit(VarDeclaration n, TypeEnv argu) {
+        final var name = n.f1.f0.tokenImage;
+        final var type = n.f0.accept(new TypeVisitor(), argu);
+        return new Local(name, type, new cs132.IR.token.Identifier("v_" + name));
     }
 
     @Override
-    public SymPair visit(FormalParameter n, TypeEnv argu) {
+    public Local visit(FormalParameter n, TypeEnv argu) {
         final var name = n.f1.f0.tokenImage;
         final var type = n.f0.accept(new TypeVisitor(), argu);
-        return new SymPair(name, type);
+        return new Local(name, type, new cs132.IR.token.Identifier("p_" + name));
     }
 
     @Override
-    public SymPair visit(FormalParameterRest n, TypeEnv argu) {
+    public Local visit(FormalParameterRest n, TypeEnv argu) {
         return n.f1.accept(this, argu);
     }
 }
