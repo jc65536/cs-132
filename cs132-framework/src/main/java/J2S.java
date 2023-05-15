@@ -46,7 +46,7 @@ public class J2S {
         final var newTypeEnv = typeEnv.addLocals(locals);
 
         final var p = main.f15.accept(new FoldVisitor<>(new StmtVisitor(),
-                te -> new T2<>(newTypeEnv, te)), new T2<>(newTypeEnv, vtableEnv));
+                (u, te) -> new T2<>(newTypeEnv, te)), new T2<>(newTypeEnv, vtableEnv));
 
         return new FunctionDecl(new FunctionName("main"),
                 List.<Identifier>nul().toJavaList(),

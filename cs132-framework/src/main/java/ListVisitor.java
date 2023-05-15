@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import cs132.minijava.syntaxtree.*;
@@ -43,10 +44,10 @@ public class ListVisitor<R, A> extends GJDepthFirst<List<R>, A> {
 }
 
 class FoldVisitor<R, M, A> extends GJDepthFirst<R, R> {
-    final GJDepthFirst<M, R> v;
-    final Function<M, R> f;
+    final GJDepthFirst<M, ? super R> v;
+    final BiFunction<R, M, R> f;
 
-    FoldVisitor(GJDepthFirst<M, R> v, Function<M, R> f) {
+    FoldVisitor(GJDepthFirst<M, ? super R> v, BiFunction<R, M, R> f) {
         this.v = v;
         this.f = f;
     }
@@ -61,16 +62,16 @@ class FoldVisitor<R, M, A> extends GJDepthFirst<R, R> {
 
     @Override
     public R visit(ExpressionList n, R argu) {
-        return n.f1.accept(this, f.apply(n.f0.accept(v, argu)));
+        return n.f1.accept(this, f.apply(argu, n.f0.accept(v, argu)));
     }
 
     @Override
     public R visit(FormalParameterList n, R argu) {
-        return n.f1.accept(this, f.apply(n.f0.accept(v, argu)));
+        return n.f1.accept(this, f.apply(argu, n.f0.accept(v, argu)));
     }
 
     @Override
     public R visit(NodeListOptional n, R argu) {
-        return n.nodes.stream().reduce(argu, (r, node) -> f.apply(node.accept(v, r)), (u, v) -> v);
+        return n.nodes.stream().reduce(argu, (r, node) -> f.apply(r, node.accept(v, r)), (u, v) -> v);
     }
 }

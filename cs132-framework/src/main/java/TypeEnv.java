@@ -300,7 +300,7 @@ class Method extends Named {
         final var typeEnv2 = typeEnv.addLocals(params).addLocals(locals);
         final var transEnv = new TransEnv(List.nul(), 0);
 
-        final var p = body.f8.accept(new FoldVisitor<>(new StmtVisitor(), te -> new T2<>(typeEnv2, te)),
+        final var p = body.f8.accept(new FoldVisitor<>(new StmtVisitor(), (u, te) -> new T2<>(typeEnv2, te)),
                 new T2<>(typeEnv2, transEnv));
 
         final var retExpr = body.f10.accept(new ExprVisitor(), new T2<>(typeEnv2, p.b));
@@ -310,12 +310,10 @@ class Method extends Named {
                 new cs132.IR.sparrow.Block(retExpr.c.code.toJavaList(), retExpr.a));
     }
 
-    T2<Identifier, TransEnv> call(Identifier thisSym, List<Identifier> restArgs, TransEnv pEnv) {
+    T2<Identifier, TransEnv> call(Identifier thisSym, List<Identifier> args, TransEnv pEnv) {
         final var t1 = pEnv.genSym();
         final var eSym = t1.a;
         final var env = t1.b;
-
-        final var args = restArgs.cons(thisSym).cons(TransEnv.statSym);
 
         switch (status.get()) {
             case OVERRIDDEN:

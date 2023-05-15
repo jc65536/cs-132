@@ -108,7 +108,7 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
         final var zEnv = visitBinOp(n.f0, n.f2, new T2<>(typeEnv, env),
                 (arrSym, idxSym) -> List.<Instruction>nul()
                         .cons(new LabelInstr(endLabel))
-                        .cons(new ErrorMessage("Array index out of bounds"))
+                        .cons(new ErrorMessage("\"array index out of bounds\""))
                         .cons(new LabelInstr(errLabel))
                         .cons(new Goto(endLabel))
                         .cons(new Load(eSym, arrSym, 4))
@@ -144,14 +144,17 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
         final var objClass = (Class) objExpr.b;
         final var objEnv = objExpr.c;
 
-        final var args = n.f4.accept(new ListVisitor<>(new ExprVisitor()), new T2<>(typeEnv, objEnv))
-                .map(lc -> lc.a);
+        final var t = n.f4.accept(new FoldVisitor<>(new ExprVisitor(),
+                (u, ret) -> new T3<>(typeEnv, ret.c, u.c.cons(ret.a))),
+                new T3<>(typeEnv, objEnv, List.<Identifier>nul()));
+        final var args = t.c.cons(TransEnv.thisSym()).cons(TransEnv.statSym);
+        final var argsEnv = t.b;
 
         final var m = objClass.methodLookup(n.f2.f0.tokenImage).get();
 
-        final var t = m.call(objSym, args, objEnv);
+        final var t2 = m.call(objSym, args, argsEnv);
 
-        return new T3<>(t.a, m.retType, t.b);
+        return new T3<>(t2.a, m.retType, t2.b);
     }
 
     @Override
@@ -208,20 +211,23 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
         final var transEnv = argu.b;
         final var t1 = transEnv.genSym();
         final var eSym = t1.a;
-        final var t2 = t1.b.genLabel();
-        final var goodLabel = t2.a;
-        final var env = t2.b;
+        final var t2 = t1.b.genSym();
+        final var sizeSym = t2.a;
+        final var t3 = t2.b.genLabel();
+        final var goodLabel = t3.a;
+        final var env = t3.b;
         final var lenExpr = n.f3.accept(this, new T2<>(typeEnv, env));
         final var lenSym = lenExpr.a;
         final var lenEnv = lenExpr.c;
         final var zEnv = lenEnv.join(List.<Instruction>nul()
-                .cons(new Alloc(eSym, lenSym))
-                .cons(new Multiply(lenSym, lenSym, eSym))
+                .cons(new Store(eSym, 0, lenSym))
+                .cons(new Alloc(eSym, sizeSym))
+                .cons(new Multiply(sizeSym, sizeSym, eSym))
                 .cons(new Move_Id_Integer(eSym, 4))
-                .cons(new Add(lenSym, lenSym, eSym))
+                .cons(new Add(sizeSym, lenSym, eSym))
                 .cons(new Move_Id_Integer(eSym, 1))
                 .cons(new LabelInstr(goodLabel))
-                .cons(new ErrorMessage("Invalid array length"))
+                .cons(new ErrorMessage("\"invalid array length\""))
                 .cons(new IfGoto(eSym, goodLabel))
                 .cons(new LessThan(eSym, lenSym, eSym))
                 .cons(new Move_Id_Integer(eSym, 0)));
