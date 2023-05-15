@@ -1,12 +1,15 @@
 import java.util.*;
 import java.util.function.*;
 
+import cs132.IR.sparrow.Add;
+import cs132.IR.sparrow.Alloc;
 import cs132.IR.sparrow.Call;
 import cs132.IR.sparrow.FunctionDecl;
 import cs132.IR.sparrow.Instruction;
 import cs132.IR.sparrow.Load;
 import cs132.IR.sparrow.Move_Id_FuncName;
 import cs132.IR.sparrow.Move_Id_Id;
+import cs132.IR.sparrow.Move_Id_Integer;
 import cs132.IR.sparrow.Store;
 import cs132.IR.token.FunctionName;
 import cs132.IR.token.Identifier;
@@ -46,17 +49,45 @@ enum Prim implements Type {
     }
 }
 
+class Vtable {
+    final Class target;
+    final List<Method> overrides;
+    final int size;
+    final Lazy<Integer> offset;
+
+    Vtable(Class target, List<Method> overrides, Lazy<? extends TypeEnv> env) {
+        this.target = target;
+        this.overrides = overrides;
+        this.size = overrides.count() * 4;
+        this.offset = new Lazy<>(() -> env.get().vtables.get().find(t -> this == t.a).get().b);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s: %s (%s)", target.name, overrides.fold("", (s, m) -> s + m.toString() + ", "),
+                this.hashCode());
+    }
+
+    TransEnv write(Identifier stat, Identifier tSym, TransEnv env) {
+        env = env.join(List.of(J2S.comment("Vtable for " + target.name)));
+
+        return overrides.fold(new T2<>(offset.get(), env), (acc, m) -> {
+            final var offset = acc.a;
+            final var tEnv = acc.b;
+            return new T2<>(offset + 4, tEnv.join(List.<Instruction>nul()
+                    .cons(new Store(stat, offset, tSym))
+                    .cons(new Move_Id_FuncName(tSym, m.funcName()))));
+        }).b;
+    }
+}
+
 class Class extends Named implements Type {
     private final Optional<Lazy<Class>> superClass;
     final Lazy<List<Field>> fields;
     final Lazy<List<Method>> methods;
+    final Lazy<List<Method>> overriddenMethods;
+    final Lazy<List<Method>> overridingMethods;
     final Lazy<? extends TypeEnv> env;
-
-    // Offset into static memory to entire vtable
-    final Lazy<Integer> vtableOffset;
-
-    // Offset into static memory to own vtable
-    final Lazy<Integer> ownVtableOffset;
 
     // Size of own vtable
     final Lazy<Integer> ownVtableSize;
@@ -67,31 +98,31 @@ class Class extends Named implements Type {
     // Size of entire object
     final Lazy<Integer> objSize;
 
+    final Lazy<Integer> ownObjSize;
+
     // Offset into object to own data
     final Lazy<Integer> ownObjOffset;
 
     // Ofset into object to own fields
     final Lazy<Integer> ownFieldsOffset;
 
+    final Lazy<List<Vtable>> vtables;
+
     Class(String name,
             Optional<? extends Supplier<Class>> superClass,
             Function<Class, List<Field>> mkFields,
             Function<Class, List<Method>> mkMethods,
-            Lazy<? extends TypeEnv> env,
-            Supplier<Integer> vtableOffset) {
+            Lazy<? extends TypeEnv> env) {
         super(name);
         this.superClass = superClass.map(Lazy::new);
         fields = new Lazy<>(() -> mkFields.apply(this));
         methods = new Lazy<>(() -> mkMethods.apply(this));
+        overriddenMethods = new Lazy<>(() -> methods.get().filter(m -> m.status.get() == OverrideStatus.OVERRIDDEN));
+        overridingMethods = new Lazy<>(() -> methods.get().filter(m -> m.status.get() == OverrideStatus.OVERRIDES));
         this.env = env;
 
-        this.vtableOffset = new Lazy<>(vtableOffset);
-
-        this.ownVtableOffset = new Lazy<>(
-                () -> superClass().map(sc -> sc.vtableSize.get()).orElse(0) + vtableOffset.get());
-
         ownVtableSize = new Lazy<>(
-                () -> methods.get().filter(m -> m.status.get() == OverrideStatus.OVERRIDDEN).count() * 4);
+                () -> overriddenMethods.get().count() * 4);
 
         this.vtableSize = new Lazy<>(() -> superClass().map(sc -> sc.vtableSize.get()).orElse(0) + ownVtableSize.get());
 
@@ -99,7 +130,26 @@ class Class extends Named implements Type {
 
         ownFieldsOffset = new Lazy<>(() -> ownObjOffset.get() + (ownVtableSize.get() > 0 ? 4 : 0));
 
+        ownObjSize = new Lazy<>(() -> overriddenMethods.get().head().map(u -> 4).orElse(0)
+                + fields.get().count() * 4);
+
         objSize = new Lazy<>(() -> ownFieldsOffset.get() + fields.get().count() * 4);
+
+        vtables = new Lazy<>(() -> {
+            final var overridenVtables = superClass()
+                    .map(sc -> sc.vtables.get()
+                            .map(vt -> vt.overrides
+                                    .find(m -> overridingMethods.get().exists(m::nameEquals))
+                                    .map(u -> new Vtable(vt.target, vt.overrides
+                                            .map(m -> overridingMethods.get().find(m::nameEquals).orElse(m)),
+                                            env))
+                                    .orElse(vt)))
+                    .orElse(List.nul());
+
+            return overriddenMethods.get().head()
+                    .map(u -> overridenVtables.cons(new Vtable(this, overriddenMethods.get(), env)))
+                    .orElse(overridenVtables);
+        });
     }
 
     Optional<Class> superClass() {
@@ -123,29 +173,28 @@ class Class extends Named implements Type {
                 .or(() -> superClass().flatMap(sc -> sc.methodLookup(name)));
     }
 
-    T2<Integer, TransEnv> mkVtable(Identifier stat, Identifier tSym, int offset, TransEnv env, List<Method> overrides) {
-        final var overridenMethods = methods.get().filter(m -> m.status.get() == OverrideStatus.OVERRIDDEN);
-        final var overridingMethods = methods.get().filter(m -> m.status.get() == OverrideStatus.OVERRIDES);
+    T2<Identifier, TransEnv> alloc(TransEnv argu) {
+        final var t1 = argu.genSym();
+        final var obj = t1.a;
+        final var t2 = t1.b.genSym();
+        final var tSym = t2.a;
+        final var env = t2.b;
+        return new T2<>(obj, initialize(obj, tSym,
+                env.join(List.<Instruction>of(new Alloc(obj, tSym))
+                        .cons(new Move_Id_Integer(tSym, objSize.get())))));
+    }
 
-        final var t1 = overrides.partition(m -> overridenMethods.exists(n -> m.name.equals(n.name)));
-        final var selfOverrides = t1.a;
-        final var superOverrides = t1.b;
+    TransEnv initialize(Identifier obj, Identifier tSym, TransEnv argu) {
+        final var env = superClass().map(sc -> sc.initialize(obj, tSym, argu)).orElse(argu);
 
-        final var env2 = env.join(List.of(J2S.comment("Vtable for " + name)));
-
-        final var t2 = superClass()
-                .map(sc -> sc.mkVtable(stat, tSym, offset, env2, superOverrides.join(overridingMethods)))
-                .orElse(new T2<>(offset, env2));
-
-        return overridenMethods.fold(t2,
-                (acc, m) -> {
-                    final var tOffset = acc.a;
-                    final var tEnv = acc.b;
-                    final var methodEntry = selfOverrides.find(m::nameEquals).orElse(m);
-                    return new T2<>(tOffset + 4, tEnv.join(List.<Instruction>nul()
-                            .cons(new Store(stat, tOffset, tSym))
-                            .cons(new Move_Id_FuncName(tSym, methodEntry.funcName()))));
-                });
+        return vtables.get()
+                .find(vt -> vt.target.equals(this))
+                .map(vt -> env.join(List.<Instruction>nul()
+                        .cons(new Add(obj, obj, tSym))
+                        .cons(new Move_Id_Integer(tSym, ownObjSize.get()))
+                        .cons(new Store(obj, 0, tSym))
+                        .cons(new Load(tSym, TransEnv.statSym, vt.offset.get()))))
+                .orElse(env);
     }
 }
 
@@ -212,30 +261,24 @@ class Method extends Named {
     final Type retType;
     final MethodDeclaration body;
     final Lazy<OverrideStatus> status;
-    final Lazy<Integer> vtableOffset;
     final Class c;
 
     Method(String name, List<Local> params, Type retType, MethodDeclaration body, Supplier<OverrideStatus> status,
-            Class c, Supplier<Integer> vtableOffset) {
+            Class c) {
         super(name);
         this.params = params;
         this.retType = retType;
         this.body = body;
         this.status = new Lazy<>(status);
         this.c = c;
-        this.vtableOffset = new Lazy<>(vtableOffset);
     }
 
     Method setStatus(Supplier<OverrideStatus> status) {
-        return new Method(name, params, retType, body, status, c, vtableOffset);
+        return new Method(name, params, retType, body, status, c);
     }
 
     Method setClass(Class c) {
-        return new Method(name, params, retType, body, status, c, vtableOffset);
-    }
-
-    Method setOffset(Supplier<Integer> offset) {
-        return new Method(name, params, retType, body, status, c, offset);
+        return new Method(name, params, retType, body, status, c);
     }
 
     boolean argsCompat(List<? extends Type> argTypes) {
@@ -251,19 +294,19 @@ class Method extends Named {
                 new cs132.IR.sparrow.Block(List.<Instruction>nul().toJavaList(), new Identifier("ret")));
     }
 
-    T2<Identifier, TransEnv> call(Identifier stat, Identifier thisSym, List<Identifier> restArgs, TransEnv pEnv) {
+    T2<Identifier, TransEnv> call(Identifier thisSym, List<Identifier> restArgs, TransEnv pEnv) {
         final var t1 = pEnv.genSym();
         final var eSym = t1.a;
         final var env = t1.b;
 
-        final var args = restArgs.cons(thisSym).cons(stat);
+        final var args = restArgs.cons(thisSym).cons(TransEnv.statSym);
 
         switch (status.get()) {
             case OVERRIDDEN:
             case OVERRIDES:
                 return new T2<>(eSym, env.join(List.<Instruction>nul()
                         .cons(new Call(eSym, eSym, args.toJavaList()))
-                        .cons(new Load(eSym, eSym, vtableOffset.get()))
+                        .cons(new Load(eSym, eSym, 0))
                         .cons(new Load(eSym, thisSym, c.ownObjOffset.get()))));
             case UNIQUE:
             default:
@@ -274,7 +317,12 @@ class Method extends Named {
     }
 
     FunctionName funcName() {
-        return new FunctionName(c.name + "_" + name);
+        return new FunctionName(toString());
+    }
+
+    @Override
+    public String toString() {
+        return c.name + "_" + name;
     }
 }
 
@@ -282,11 +330,20 @@ public class TypeEnv {
     final List<Local> locals;
     final List<Class> classes;
     final Optional<Class> currClass;
+    final Lazy<List<T2<Vtable, Integer>>> vtables;
 
     TypeEnv(List<Local> locals, List<Class> classes, Optional<Class> currClass) {
         this.locals = locals;
         this.classes = classes;
         this.currClass = currClass;
+        this.vtables = new Lazy<>(() -> classes
+                .flatMap(c -> c.vtables.get())
+                .unique(Object::equals)
+                .fold(new T2<>(List.<T2<Vtable, Integer>>nul(), 0), (acc, vt) -> {
+                    final var list = acc.a;
+                    final var offset = acc.b;
+                    return new T2<>(list.cons(new T2<>(vt, offset)), offset + vt.size);
+                }).a);
     }
 
     TypeEnv enterClass(Class c) {
@@ -340,4 +397,6 @@ class TransEnv extends TypeEnv {
     static Identifier thisSym() {
         return new Identifier("this");
     }
+
+    static final Identifier statSym = new Identifier("__stat__");
 }

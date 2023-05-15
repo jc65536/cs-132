@@ -33,6 +33,12 @@ class C extends B {
     }
 }
 
+class D extends B {
+    public int d1() {
+        return 0;
+    }
+}
+
 class E extends A {
     public int a2() {
         return 1;

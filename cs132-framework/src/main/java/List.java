@@ -74,6 +74,8 @@ interface ListInt<T> {
     Optional<Integer> firstIndex(int i, Predicate<? super T> p);
 
     Optional<T> head();
+
+    List<T> unique(List<T> hist, BiPredicate<T, T> eq);
 }
 
 public class List<T> extends Lazy<ListElem<T>> implements ListInt<T> {
@@ -182,6 +184,15 @@ public class List<T> extends Lazy<ListElem<T>> implements ListInt<T> {
     public Optional<T> head() {
         return get().head();
     }
+
+    @Override
+    public List<T> unique(List<T> hist, BiPredicate<T, T> eq) {
+        return new List<>(bind(l -> l.unique(hist, eq)));
+    }
+
+    List<T> unique(BiPredicate<T, T> eq) {
+        return unique(List.nul(), eq);
+    }
 }
 
 abstract class ListElem<T> implements ListInt<T> {
@@ -252,8 +263,13 @@ class Null<T> extends ListElem<T> {
     public Optional<T> head() {
         return Optional.empty();
     }
-}
 
+    @Override
+    public List<T> unique(List<T> hist, BiPredicate<T, T> eq) {
+        return List.nul();
+    }
+}
+    
 class Pair<T> extends ListElem<T> {
     final T val;
     final List<T> next;
@@ -337,5 +353,13 @@ class Pair<T> extends ListElem<T> {
     @Override
     public Optional<T> head() {
         return Optional.of(val);
+    }
+
+    @Override
+    public List<T> unique(List<T> hist, BiPredicate<T, T> eq) {
+        if (hist.exists(v -> eq.test(v, val)))
+            return next.unique(hist, eq);
+        else
+            return next.unique(hist.cons(val), eq).cons(val);
     }
 }

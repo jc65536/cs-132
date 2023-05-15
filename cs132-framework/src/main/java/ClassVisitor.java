@@ -21,10 +21,7 @@ class MethodVisitor extends GJDepthFirst<Method, T2<Class, TypeEnv>> {
                                 .find(m -> m.name.equals(name))
                                 .map(u -> OverrideStatus.OVERRIDDEN)
                                 .orElse(OverrideStatus.UNIQUE)),
-                c,
-                () -> c.methods.get()
-                        .filter(m -> m.status.get() != OverrideStatus.UNIQUE)
-                        .firstIndex(m -> m.name.equals(name)).get() * 4);
+                c);
     }
 }
 
@@ -41,8 +38,7 @@ public class ClassVisitor extends GJDepthFirst<Function<List<Class>, Class>, Laz
                 Optional.empty(),
                 (c) -> mkFields(c, n.f3, argu.get()),
                 (c) -> mkMethods(c, n.f4, argu.get()),
-                argu,
-                () -> mkVtableOffset(classAcc));
+                argu);
     }
 
     @Override
@@ -53,8 +49,7 @@ public class ClassVisitor extends GJDepthFirst<Function<List<Class>, Class>, Laz
                 Optional.of(() -> argu.get().classLookup(superName)),
                 (c) -> mkFields(c, n.f5, argu.get()),
                 (c) -> mkMethods(c, n.f6, argu.get()),
-                argu,
-                () -> mkVtableOffset(classAcc));
+                argu);
     }
 
     static <T extends TypeEnv> List<Field> mkFields(Class c, NodeListOptional fieldNodes, T argu) {
@@ -66,9 +61,5 @@ public class ClassVisitor extends GJDepthFirst<Function<List<Class>, Class>, Laz
 
     static <T extends TypeEnv> List<Method> mkMethods(Class c, NodeListOptional methodNodes, T argu) {
         return methodNodes.accept(new ListVisitor<>(new MethodVisitor()), new T2<>(c, argu));
-    }
-
-    static int mkVtableOffset(List<Class> classAcc) {
-        return classAcc.head().map(c -> c.vtableOffset.get() + c.vtableSize.get()).orElse(0);
     }
 }

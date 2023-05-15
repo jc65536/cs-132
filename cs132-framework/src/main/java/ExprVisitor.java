@@ -121,8 +121,18 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, Tr
 
     @Override
     public T3<Identifier, Type, TransEnv> visit(MessageSend n, TransEnv argu) {
-        // TODO
-        return null;
+        final var objExpr = n.f0.accept(this, argu);
+        final var objSym = objExpr.a;
+        final var objClass = (Class) objExpr.b;
+        final var objEnv = objExpr.c;
+
+        final var args = n.f4.accept(new ListVisitor<>(new LocalVisitor()), objEnv).map(lc -> lc.sym);
+
+        final var m = objClass.methodLookup(n.f2.f0.tokenImage).get();
+
+        final var t = m.call(objSym, args, argu);
+
+        return new T3<>(t.a, m.retType, t.b);
     }
 
     @Override
@@ -197,8 +207,13 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, Tr
 
     @Override
     public T3<Identifier, Type, TransEnv> visit(AllocationExpression n, TransEnv argu) {
-        // TODO
-        return super.visit(n, argu);
+        final var className = n.f1.f0.tokenImage;
+
+        final var cls = argu.classLookup(className);
+
+        final var t = cls.alloc(argu);
+
+        return new T3<>(t.a, cls, t.b);
     }
 
     @Override

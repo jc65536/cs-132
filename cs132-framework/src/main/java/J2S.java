@@ -24,7 +24,7 @@ public class J2S {
     }
 
     static FunctionDecl transMain(TransEnv argu) {
-        final var statSize = argu.classes.fold(0, (acc, c) -> acc + c.vtableSize.get());
+        final var statSize = argu.vtables.get().head().map(t -> t.b + t.a.size).orElse(0);
 
         final var t1 = argu.genSym();
         final var tSym = t1.a;
@@ -36,8 +36,11 @@ public class J2S {
                 .cons(new Alloc(stat, tSym))
                 .cons(new Move_Id_Integer(tSym, statSize)));
 
-        final var t3 = statEnv.classes.fold(statEnv,
-                (acc, c) -> c.mkVtable(stat, tSym, c.vtableOffset.get(), acc, List.nul()).b);
+        final var t3 = statEnv.vtables.get().fold(statEnv, (acc, t) -> {
+            final var vt = t.a;
+            System.out.println("Vtable: " + vt);
+            return vt.write(stat, tSym, acc);
+        });
         final var zEnv = t3;
 
         return new FunctionDecl(new FunctionName("main"), List.<Identifier>nul().toJavaList(),
@@ -62,6 +65,9 @@ public class J2S {
                 .cons(transMain(env));
 
         final var prgm = new Program(funs.toJavaList());
+
+        System.out.println(env.classes.fold("", (s, c) -> String.format("%s\nVtables of %s\n%s", s, c.name,
+                c.vtables.get().fold("", (t, v) -> t + v.toString() + "\n"))));
 
         System.out.println(prgm.toString());
     }
