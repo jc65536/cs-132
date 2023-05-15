@@ -248,7 +248,7 @@ class Local extends Variable {
 
     @Override
     TransEnv assign(Identifier dest, TransEnv env) {
-        return env.join(List.of(new Move_Id_Id(dest, this.sym)));
+        return env.join(List.of(new Move_Id_Id(sym, dest)));
     }
 }
 
@@ -306,7 +306,7 @@ class Method extends Named {
         final var retExpr = body.f10.accept(new ExprVisitor(), new T2<>(typeEnv2, p.b));
 
         return new FunctionDecl(funcName(),
-                params.map(s -> s.sym).toJavaList(),
+                params.map(s -> s.sym).cons(TransEnv.thisSym()).cons(TransEnv.statSym).toJavaList(),
                 new cs132.IR.sparrow.Block(retExpr.c.code.toJavaList(), retExpr.a));
     }
 

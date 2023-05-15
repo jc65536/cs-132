@@ -65,7 +65,7 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
         final var eSym = t.a;
         final var env = t.b;
         final var zEnv = visitBinOp(n.f0, n.f2, new T2<>(typeEnv, env),
-                (lSym, rSym) -> List.of(new LessThan(eSym, lSym, rSym)));
+                (lSym, rSym) -> List.of(new Add(eSym, lSym, rSym)));
         return new T3<>(eSym, Prim.INT, zEnv);
     }
 
@@ -77,7 +77,7 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
         final var eSym = t.a;
         final var env = t.b;
         final var zEnv = visitBinOp(n.f0, n.f2, new T2<>(typeEnv, env),
-                (lSym, rSym) -> List.of(new LessThan(eSym, lSym, rSym)));
+                (lSym, rSym) -> List.of(new Subtract(eSym, lSym, rSym)));
         return new T3<>(eSym, Prim.INT, zEnv);
     }
 
@@ -89,7 +89,7 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
         final var eSym = t.a;
         final var env = t.b;
         final var zEnv = visitBinOp(n.f0, n.f2, new T2<>(typeEnv, env),
-                (lSym, rSym) -> List.of(new LessThan(eSym, lSym, rSym)));
+                (lSym, rSym) -> List.of(new Multiply(eSym, lSym, rSym)));
         return new T3<>(eSym, Prim.INT, zEnv);
     }
 

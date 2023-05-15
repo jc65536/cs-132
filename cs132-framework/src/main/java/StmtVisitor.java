@@ -110,7 +110,8 @@ public class StmtVisitor extends GJDepthFirst<TransEnv, T2<TypeEnv, TransEnv>> {
         final var jmpEnv = condEnv.join(List.of(new IfGoto(condSym, endLabel)));
 
         return n.f4.accept(this, new T2<>(typeEnv, jmpEnv))
-                .join(List.of(new Goto(loopLabel)));
+                .join(List.<Instruction>of(new LabelInstr(endLabel))
+                        .cons(new Goto(loopLabel)));
     }
 
     @Override
