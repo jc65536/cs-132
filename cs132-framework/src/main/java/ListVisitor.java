@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.function.Function;
 
 import cs132.minijava.syntaxtree.*;
 import cs132.minijava.visitor.*;
@@ -38,5 +39,38 @@ public class ListVisitor<R, A> extends GJDepthFirst<List<R>, A> {
             return new List<>(() -> new Pair<>(it.next().accept(v, argu), mkList(it, argu)));
         else
             return List.nul();
+    }
+}
+
+class FoldVisitor<R, M, A> extends GJDepthFirst<R, R> {
+    final GJDepthFirst<M, R> v;
+    final Function<M, R> f;
+
+    FoldVisitor(GJDepthFirst<M, R> v, Function<M, R> f) {
+        this.v = v;
+        this.f = f;
+    }
+
+    @Override
+    public R visit(NodeOptional n, R argu) {
+        if (n.present())
+            return n.node.accept(this, argu);
+        else
+            return argu;
+    }
+
+    @Override
+    public R visit(ExpressionList n, R argu) {
+        return n.f1.accept(this, f.apply(n.f0.accept(v, argu)));
+    }
+
+    @Override
+    public R visit(FormalParameterList n, R argu) {
+        return n.f1.accept(this, f.apply(n.f0.accept(v, argu)));
+    }
+
+    @Override
+    public R visit(NodeListOptional n, R argu) {
+        return n.nodes.stream().reduce(argu, (r, node) -> f.apply(node.accept(v, r)), (u, v) -> v);
     }
 }

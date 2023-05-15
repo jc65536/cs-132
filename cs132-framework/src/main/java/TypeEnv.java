@@ -69,7 +69,7 @@ class Vtable {
     }
 
     TransEnv write(Identifier stat, Identifier tSym, TransEnv env) {
-        env = env.join(List.of(J2S.comment("Vtable for " + target.name)));
+        env = env.join(List.of(J2S.comment("Vtable_for_" + target.name)));
 
         return overrides.fold(new T2<>(offset.get(), env), (acc, m) -> {
             final var offset = acc.a;
@@ -258,15 +258,22 @@ enum OverrideStatus {
 
 class Method extends Named {
     final List<Local> params;
+    final List<Local> locals;
     final Type retType;
     final MethodDeclaration body;
     final Lazy<OverrideStatus> status;
     final Class c;
 
-    Method(String name, List<Local> params, Type retType, MethodDeclaration body, Supplier<OverrideStatus> status,
+    Method(String name,
+            List<Local> params,
+            List<Local> locals,
+            Type retType,
+            MethodDeclaration body,
+            Supplier<OverrideStatus> status,
             Class c) {
         super(name);
         this.params = params;
+        this.locals = locals;
         this.retType = retType;
         this.body = body;
         this.status = new Lazy<>(status);
@@ -274,11 +281,11 @@ class Method extends Named {
     }
 
     Method setStatus(Supplier<OverrideStatus> status) {
-        return new Method(name, params, retType, body, status, c);
+        return new Method(name, params, locals, retType, body, status, c);
     }
 
     Method setClass(Class c) {
-        return new Method(name, params, retType, body, status, c);
+        return new Method(name, params, locals, retType, body, status, c);
     }
 
     boolean argsCompat(List<? extends Type> argTypes) {
@@ -289,9 +296,18 @@ class Method extends Named {
         return retType == other.retType && params.equals(other.params, (u, v) -> u.type == v.type);
     }
 
-    FunctionDecl translate() {
-        return new FunctionDecl(funcName(), List.<Identifier>nul().toJavaList(),
-                new cs132.IR.sparrow.Block(List.<Instruction>nul().toJavaList(), new Identifier("ret")));
+    FunctionDecl translate(TypeEnv typeEnv) {
+        final var typeEnv2 = typeEnv.addLocals(params).addLocals(locals);
+        final var transEnv = new TransEnv(List.nul(), 0);
+
+        final var p = body.f8.accept(new FoldVisitor<>(new StmtVisitor(), te -> new T2<>(typeEnv2, te)),
+                new T2<>(typeEnv2, transEnv));
+
+        final var retExpr = body.f10.accept(new ExprVisitor(), new T2<>(typeEnv2, p.b));
+
+        return new FunctionDecl(funcName(),
+                params.map(s -> s.sym).toJavaList(),
+                new cs132.IR.sparrow.Block(retExpr.c.code.toJavaList(), retExpr.a));
     }
 
     T2<Identifier, TransEnv> call(Identifier thisSym, List<Identifier> restArgs, TransEnv pEnv) {
@@ -356,6 +372,10 @@ public class TypeEnv {
                 .get();
     }
 
+    TypeEnv addLocals(List<Local> locals) {
+        return new TypeEnv(this.locals.join(locals), classes, currClass);
+    }
+
     Optional<Variable> symLookup(String name) {
         return locals.find(s -> s.name.equals(name))
                 .<Variable>map(x -> x)
@@ -364,22 +384,21 @@ public class TypeEnv {
     }
 }
 
-class TransEnv extends TypeEnv {
+class TransEnv {
     final List<Instruction> code;
     final int k;
 
-    TransEnv(TypeEnv typeEnv, List<Instruction> code, int k) {
-        super(typeEnv.locals, typeEnv.classes, typeEnv.currClass);
+    TransEnv(List<Instruction> code, int k) {
         this.code = code;
         this.k = k;
     }
 
     TransEnv inc() {
-        return new TransEnv(this, code, k + 1);
+        return new TransEnv(code, k + 1);
     }
 
     T2<Identifier, TransEnv> genSym() {
-        return new T2<>(new Identifier("t" + k), inc());
+        return new T2<>(new Identifier("v" + k), inc());
     }
 
     T2<Label, TransEnv> genLabel() {
@@ -387,11 +406,7 @@ class TransEnv extends TypeEnv {
     }
 
     TransEnv join(List<Instruction> c) {
-        return new TransEnv(this, code.join(c), k);
-    }
-
-    TransEnv addLocal(Local pair) {
-        return new TransEnv(new TypeEnv(locals.cons(pair), classes, currClass), code, k);
+        return new TransEnv(code.join(c), k);
     }
 
     static Identifier thisSym() {

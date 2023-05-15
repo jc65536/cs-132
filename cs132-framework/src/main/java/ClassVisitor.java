@@ -11,8 +11,9 @@ class MethodVisitor extends GJDepthFirst<Method, T2<Class, TypeEnv>> {
         final var env = argu.b;
         final var params = n.f4.accept(new ListVisitor<>(new LocalVisitor()), env);
         final var name = n.f2.f0.tokenImage;
+        final var locals = n.f7.accept(new ListVisitor<>(new LocalVisitor()), env);
         final var retType = n.f1.accept(new TypeVisitor(), env);
-        return new Method(name, params, retType, n,
+        return new Method(name, params, locals, retType, n,
                 () -> c.superClass()
                         .flatMap(sc -> sc.methodLookup(name))
                         .map(u -> OverrideStatus.OVERRIDES)
