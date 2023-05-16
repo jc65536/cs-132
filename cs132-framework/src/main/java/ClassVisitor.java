@@ -56,10 +56,9 @@ public class ClassVisitor extends GJDepthFirst<Function<List<Class>, Class>, Laz
     }
 
     static List<Field> mkFields(Class c, NodeListOptional fieldNodes, TypeEnv argu) {
-        return fieldNodes.accept(new ListVisitor<>(new FieldVisitor()), argu)
-                .fold(List.<Field>nul(),
-                        (fieldAcc, mkField) -> fieldAcc
-                                .cons(mkField.apply(c.ownFieldsOffset.get() + fieldAcc.count() * 4)));
+        int fieldOffset = c.ownObjOffset.get() + c.overriddenMethods.get().head().map(u -> 4).orElse(0);
+        return fieldNodes.accept(new ListVisitor<>(new FieldVisitor()), argu).fold(List.<Field>nul(),
+                (fieldAcc, mkField) -> fieldAcc.cons(mkField.apply(fieldOffset + fieldAcc.count() * 4)));
     }
 
     static List<Method> mkMethods(Class c, NodeListOptional methodNodes, TypeEnv argu) {

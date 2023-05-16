@@ -22,11 +22,8 @@ public class J2S {
                 .cons(new Alloc(TransEnv.statSym, tSym))
                 .cons(new Move_Id_Integer(tSym, statSize)));
 
-        final var vtableEnv = typeEnv.vtables.get().fold(statEnv, (acc, t) -> {
-            final var vt = t.a;
-            // System.out.println("Vtable: " + vt);
-            return vt.write(TransEnv.statSym, tSym, acc);
-        });
+        final var vtableEnv = typeEnv.vtables.get().fold(statEnv,
+                (acc, t) -> t.a.write(TransEnv.statSym, tSym, acc));
 
         final var locals = main.f14.accept(new ListVisitor<>(new LocalVisitor()), typeEnv);
 
@@ -57,10 +54,6 @@ public class J2S {
                 .cons(transMain(root.f0, env));
 
         final var prgm = new Program(funs.toJavaList());
-
-        // System.out.println(env.classes.fold("", (s, c) -> String.format("%s\nVtables
-        // of %s\n%s", s, c.name,
-        // c.vtables.get().fold("", (t, v) -> t + v.toString() + "\n"))));
 
         System.out.println(prgm.toString());
     }

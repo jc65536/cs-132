@@ -54,8 +54,6 @@ interface ListInt<T> {
 
     <U> List<U> flatMap(Function<T, List<U>> f);
 
-    <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f);
-
     List<T> join(List<T> other);
 
     int count();
@@ -75,11 +73,6 @@ public class List<T> extends Lazy<ListElem<T>> implements ListInt<T> {
     @Override
     public Optional<T> find(Predicate<? super T> p) {
         return get().find(p);
-    }
-
-    @Override
-    public <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f) {
-        return get().equals(other, f);
     }
 
     static <T> List<T> nul() {
@@ -179,11 +172,6 @@ class Null<T> extends ListElem<T> {
     }
 
     @Override
-    public <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f) {
-        return other.get() instanceof Null<?>;
-    }
-
-    @Override
     public <U> List<U> map(Function<T, U> f) {
         return List.nul();
     }
@@ -241,15 +229,6 @@ class Pair<T> extends ListElem<T> {
     @Override
     public Optional<T> find(Predicate<? super T> p) {
         return Optional.of(val).filter(p).or(() -> next.find(p));
-    }
-
-    @Override
-    public <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f) {
-        return Optional.of(other.get())
-                .filter(o -> o instanceof Pair<?>)
-                .map(o -> (Pair<U>) o)
-                .map(p -> f.apply(val, p.val) && next.equals(p.next, f))
-                .orElse(false);
     }
 
     @Override

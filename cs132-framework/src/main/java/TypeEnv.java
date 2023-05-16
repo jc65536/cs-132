@@ -65,22 +65,14 @@ class Class extends Named implements Type {
     final Lazy<List<Method>> overridingMethods;
     final Lazy<? extends TypeEnv> env;
 
-    // Size of own vtable
-    final Lazy<Integer> ownVtableSize;
-
     // Size of entire vtable
     final Lazy<Integer> vtableSize;
 
     // Size of entire object
     final Lazy<Integer> objSize;
 
-    final Lazy<Integer> ownObjSize;
-
     // Offset into object to own data
     final Lazy<Integer> ownObjOffset;
-
-    // Ofset into object to own fields
-    final Lazy<Integer> ownFieldsOffset;
 
     final Lazy<List<Vtable>> vtables;
 
@@ -98,19 +90,14 @@ class Class extends Named implements Type {
         overridingMethods = new Lazy<>(() -> methods.get().filter(m -> m.status.get() instanceof Method.Overrides));
         this.env = env;
 
-        ownVtableSize = new Lazy<>(
-                () -> overriddenMethods.get().count() * 4);
-
-        this.vtableSize = new Lazy<>(() -> superClass().map(sc -> sc.vtableSize.get()).orElse(0) + ownVtableSize.get());
+        this.vtableSize = new Lazy<>(() -> superClass().map(sc -> sc.vtableSize.get()).orElse(0)
+                + overriddenMethods.get().count() * 4);
 
         ownObjOffset = new Lazy<>(() -> superClass().map(sc -> sc.objSize.get()).orElse(0));
 
-        ownFieldsOffset = new Lazy<>(() -> ownObjOffset.get() + (ownVtableSize.get() > 0 ? 4 : 0));
-
-        ownObjSize = new Lazy<>(() -> overriddenMethods.get().head().map(u -> 4).orElse(0)
+        objSize = new Lazy<>(() -> ownObjOffset.get()
+                + overriddenMethods.get().head().map(u -> 4).orElse(0)
                 + fields.get().count() * 4);
-
-        objSize = new Lazy<>(() -> ownFieldsOffset.get() + fields.get().count() * 4);
 
         vtables = new Lazy<>(() -> mkVtables.apply(this));
     }
@@ -140,13 +127,10 @@ class Class extends Named implements Type {
         final var t1 = argu.genSym();
         final var obj = t1.a;
         final var t2 = t1.b.genSym();
-        final var tObj = t2.a;
-        final var t3 = t2.b.genSym();
-        final var tSym = t3.a;
-        final var env = t3.b;
-        return new T2<>(obj, initialize(tObj, tSym,
+        final var tSym = t2.a;
+        final var env = t2.b;
+        return new T2<>(obj, initialize(obj, tSym,
                 env.join(List.<Instruction>nul()
-                        .cons(new Move_Id_Id(tObj, obj))
                         .cons(new Alloc(obj, tSym))
                         .cons(new Move_Id_Integer(tSym, objSize.get()))),
                 vtables.get()));
@@ -157,9 +141,7 @@ class Class extends Named implements Type {
 
         return vtables.find(vt -> vt.target.equals(this))
                 .map(vt -> env.join(List.<Instruction>nul()
-                        .cons(new Add(obj, obj, tSym))
-                        .cons(new Move_Id_Integer(tSym, ownObjSize.get()))
-                        .cons(new Store(obj, 0, tSym))
+                        .cons(new Store(obj, ownObjOffset.get(), tSym))
                         .cons(new Add(tSym, TransEnv.statSym, tSym))
                         .cons(new Move_Id_Integer(tSym, vt.offset.get()))))
                 .orElse(env);
@@ -422,13 +404,13 @@ class TransEnv {
         final var env = u3.b;
 
         return env.join(List.<Instruction>nul()
-            .cons(new LabelInstr(endLabel))
-            .cons(new ErrorMessage("\"array index out of bounds\""))
-            .cons(new LabelInstr(oobLabel))
-            .cons(new Goto(endLabel))
-            .cons(new IfGoto(tmp, oobLabel))
-            .cons(new LessThan(tmp, idx, tmp))
-            .cons(new Load(tmp, arr, 0)));
+                .cons(new LabelInstr(endLabel))
+                .cons(new ErrorMessage("\"array index out of bounds\""))
+                .cons(new LabelInstr(oobLabel))
+                .cons(new Goto(endLabel))
+                .cons(new IfGoto(tmp, oobLabel))
+                .cons(new LessThan(tmp, idx, tmp))
+                .cons(new Load(tmp, arr, 0)));
     }
 
     static final Identifier thisSym = new Identifier("this");

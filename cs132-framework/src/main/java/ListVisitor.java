@@ -1,6 +1,5 @@
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.function.*;
 
 import cs132.minijava.syntaxtree.*;
 import cs132.minijava.visitor.*;
