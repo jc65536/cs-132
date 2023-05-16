@@ -12,7 +12,12 @@ public class J2S {
     }
 
     static FunctionDecl transMain(MainClass main, TypeEnv typeEnv) {
-        final var statSize = typeEnv.vtables.get().head().map(t -> t.b + t.a.size).orElse(0);
+        final var statSize = typeEnv.vtables.get()
+                .fold(Optional.<Vtable>empty(), (mvtOpt, vt) -> mvtOpt
+                        .filter(mvt -> mvt.offset > vt.offset)
+                        .or(() -> Optional.of(vt)))
+                .map(vt -> vt.offset + vt.size)
+                .orElse(0);
 
         final var t1 = new TransEnv(List.nul(), 0).genSym();
         final var tSym = t1.a;
@@ -23,7 +28,7 @@ public class J2S {
                 .cons(new Move_Id_Integer(tSym, statSize)));
 
         final var vtableEnv = typeEnv.vtables.get().fold(statEnv,
-                (acc, t) -> t.a.write(TransEnv.statSym, tSym, acc));
+                (acc, vt) -> vt.write(TransEnv.statSym, tSym, acc));
 
         final var locals = main.f14.accept(new ListVisitor<>(new LocalVisitor()), typeEnv);
 
@@ -45,9 +50,29 @@ public class J2S {
         final var env = new Lazy<TypeEnv>(z -> {
             final var classes = root.f1
                     .accept(new ListVisitor<>(new ClassVisitor()), z)
-                    .fold(List.<Class>nul(), (classAcc, mkClass) -> classAcc.cons(mkClass.apply(classAcc)));
+                    .fold(new T2<>(new Lazy<>(() -> 0), List.<Class>nul()),
+                            (acc, mkClass) -> {
+                                final var vtableOffset = acc.a;
+                                final var classAcc = acc.b;
+                                final var cls = mkClass.apply(vtableOffset);
+                                return new T2<>(new Lazy<>(() -> vtableOffset.get() + cls.vtableSize.get()),
+                                        classAcc.cons(cls));
+                            }).b;
             return new TypeEnv(List.nul(), classes, Optional.empty());
         }).get();
+
+        // env.classes.map(c -> {
+        //     System.out.printf("Class %s; %d overridden; %d overriding\n", c.name,
+        //             c.overriddenMethods.get().count(),
+        //             c.overridingMethods.get().count());
+
+        //     c.methods.get().map(m -> {
+        //         System.out.printf("  Method %s\tstatus %s\n", m, m.status.get());
+        //         return 0;
+        //     }).count();
+        
+        //     return 0;
+        // }).count();
 
         final var funs = env.classes.flatMap(c -> c.methods.get()
                 .map(m -> m.translate(env.enterClass(c))))

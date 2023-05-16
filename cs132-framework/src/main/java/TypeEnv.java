@@ -33,27 +33,33 @@ enum Prim implements Type {
 
 class Vtable {
     final Class target;
-    final List<Method> overrides;
+    final List<T2<Method, Integer>> overrides;
     final int size;
-    final Lazy<Integer> offset;
+    final Integer offset;
 
-    Vtable(Class target, List<Method> overrides, TypeEnv env) {
+    Vtable(Class target, List<Method> overrides, int offset) {
         this.target = target;
-        this.overrides = overrides;
-        this.size = overrides.count() * 4;
-        this.offset = new Lazy<>(() -> env.vtables.get().find(t -> this == t.a).get().b);
+
+        this.overrides = overrides.fold(List.<T2<Method, Integer>>nul(),
+                (acc, m) -> acc.cons(new T2<>(m, acc.count() * 4)));
+
+        this.size = this.overrides.count() * 4;
+
+        this.offset = offset;
     }
 
     TransEnv write(Identifier stat, Identifier tSym, TransEnv env) {
-        env = env.join(List.of(J2S.comment(String.format("Vtable_for_%s_offset_%d", target.name, offset.get()))));
+        env = env.join(List.of(J2S.comment(String.format("Vtable_for_%s_offset_%d_size_%d_overrides_%d", target.name,
+                offset, size, overrides.count()))));
 
-        return overrides.fold(new T2<>(offset.get(), env), (acc, m) -> {
-            final var offset = acc.a;
-            final var tEnv = acc.b;
-            return new T2<>(offset + 4, tEnv.join(List.<Instruction>nul()
-                    .cons(new Store(stat, offset, tSym))
-                    .cons(new Move_Id_FuncName(tSym, m.funcName()))));
-        }).b;
+        return overrides.fold(env, (acc, u) -> {
+            final var m = u.a;
+            final var entryOffset = u.b;
+
+            return acc.join(List.<Instruction>nul()
+                    .cons(new Store(stat, offset + entryOffset, tSym))
+                    .cons(new Move_Id_FuncName(tSym, m.funcName())));
+        });
     }
 }
 
@@ -63,7 +69,6 @@ class Class extends Named implements Type {
     final Lazy<List<Method>> methods;
     final Lazy<List<Method>> overriddenMethods;
     final Lazy<List<Method>> overridingMethods;
-    final Lazy<? extends TypeEnv> env;
 
     // Size of entire vtable
     final Lazy<Integer> vtableSize;
@@ -80,17 +85,19 @@ class Class extends Named implements Type {
             Optional<? extends Supplier<Class>> superClass,
             Function<Class, List<Field>> mkFields,
             Function<Class, List<Method>> mkMethods,
-            Function<Class, List<Vtable>> mkVtables,
-            Lazy<TypeEnv> env) {
+            Function<Class, List<Vtable>> mkVtables) {
         super(name);
         this.superClass = superClass.map(Lazy::new);
         fields = new Lazy<>(() -> mkFields.apply(this));
         methods = new Lazy<>(() -> mkMethods.apply(this));
-        overriddenMethods = new Lazy<>(() -> methods.get().filter(m -> m.status.get() instanceof Method.Overridden));
-        overridingMethods = new Lazy<>(() -> methods.get().filter(m -> m.status.get() instanceof Method.Overrides));
-        this.env = env;
 
-        this.vtableSize = new Lazy<>(() -> superClass().map(sc -> sc.vtableSize.get()).orElse(0)
+        overriddenMethods = new Lazy<>(() -> methods.get()
+                .filter(m -> m.status.get() instanceof Method.Overridden));
+
+        overridingMethods = new Lazy<>(() -> methods.get()
+                .filter(m -> m.status.get() instanceof Method.Overrides));
+
+        vtableSize = new Lazy<>(() -> superClass().map(sc -> sc.vtableSize.get()).orElse(0)
                 + overriddenMethods.get().count() * 4);
 
         ownObjOffset = new Lazy<>(() -> superClass().map(sc -> sc.objSize.get()).orElse(0));
@@ -143,7 +150,7 @@ class Class extends Named implements Type {
                 .map(vt -> env.join(List.<Instruction>nul()
                         .cons(new Store(obj, ownObjOffset.get(), tSym))
                         .cons(new Add(tSym, TransEnv.statSym, tSym))
-                        .cons(new Move_Id_Integer(tSym, vt.offset.get()))))
+                        .cons(new Move_Id_Integer(tSym, vt.offset))))
                 .orElse(env);
     }
 }
@@ -240,7 +247,7 @@ class Method extends Named {
         }
     }
 
-    class Overridden extends Unique {
+    class Overridden implements OverrideStatus {
         @Override
         public T2<Identifier, TransEnv> call(Identifier thisSym,
                 List<Identifier> args,
@@ -249,16 +256,33 @@ class Method extends Named {
             return new T2<>(eSym, env.join(List.<Instruction>nul()
                     .cons(new Call(eSym, eSym, args.toJavaList()))
                     .cons(new Load(eSym, eSym,
-                            c.vtables.get().head().get().overrides.firstIndex(Method.this::equals).get() * 4))
+                            c.vtables.get().head().get().overrides.find(u -> Method.this == u.a).get().b * 4))
                     .cons(new Load(eSym, thisSym, c.ownObjOffset.get()))));
+        }
+
+        @Override
+        public Class origClass() {
+            return c;
         }
     }
 
-    class Overrides extends Overridden {
+    class Overrides implements OverrideStatus {
         final Class target;
 
         Overrides(Class target) {
             this.target = target;
+        }
+
+        @Override
+        public T2<Identifier, TransEnv> call(Identifier thisSym,
+                List<Identifier> args,
+                Identifier eSym,
+                TransEnv env) {
+            return new T2<>(eSym, env.join(List.<Instruction>nul()
+                    .cons(new Call(eSym, eSym, args.toJavaList()))
+                    .cons(new Load(eSym, eSym,
+                            c.vtables.get().head().get().overrides.find(u -> Method.this == u.a).get().b * 4))
+                    .cons(new Load(eSym, thisSym, c.ownObjOffset.get()))));
         }
 
         @Override
@@ -319,20 +343,13 @@ public class TypeEnv {
     final List<Local> locals;
     final List<Class> classes;
     final Optional<Class> currClass;
-    final Lazy<List<T2<Vtable, Integer>>> vtables;
+    final Lazy<List<Vtable>> vtables;
 
     TypeEnv(List<Local> locals, List<Class> classes, Optional<Class> currClass) {
         this.locals = locals;
         this.classes = classes;
         this.currClass = currClass;
-        this.vtables = new Lazy<>(() -> classes
-                .flatMap(c -> c.vtables.get())
-                .unique(Object::equals)
-                .fold(new T2<>(List.<T2<Vtable, Integer>>nul(), 0), (acc, vt) -> {
-                    final var list = acc.a;
-                    final var offset = acc.b;
-                    return new T2<>(list.cons(new T2<>(vt, offset)), offset + vt.size);
-                }).a);
+        this.vtables = new Lazy<>(() -> classes.flatMap(c -> c.vtables.get()).unique(Object::equals));
     }
 
     TypeEnv enterClass(Class c) {

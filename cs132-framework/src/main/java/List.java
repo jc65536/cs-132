@@ -9,6 +9,10 @@ class T2<A, B> {
         this.a = a;
         this.b = b;
     }
+
+    <T> T consume(BiFunction<A, B, T> f) {
+        return f.apply(a, b);
+    }
 }
 
 class T3<A, B, C> extends T2<A, B> {
@@ -85,14 +89,6 @@ public class List<T> extends Lazy<ListElem<T>> implements ListInt<T> {
 
     static <T> List<T> of(T val) {
         return List.<T>nul().cons(val);
-    }
-
-    boolean forAll(Predicate<T> p) {
-        return !exists(p.negate());
-    }
-
-    boolean exists(Predicate<T> p) {
-        return find(p).isPresent();
     }
 
     @Override
@@ -276,9 +272,8 @@ class Pair<T> extends ListElem<T> {
 
     @Override
     public List<T> unique(List<T> hist, BiPredicate<T, T> eq) {
-        if (hist.exists(v -> eq.test(v, val)))
-            return next.unique(hist, eq);
-        else
-            return next.unique(hist.cons(val), eq).cons(val);
+        return hist.find(v -> eq.test(v, val))
+                .map(u -> next.unique(hist, eq))
+                .orElseGet(() -> next.unique(hist.cons(val), eq).cons(val));
     }
 }

@@ -19,40 +19,38 @@ class MethodVisitor extends GJDepthFirst<Method, T2<Class, TypeEnv>> {
                         .<OverrideStatus>map(sm -> m.new Overrides(sm.status.get().origClass()))
                         .orElseGet(() -> typeEnv.classes.filter(cls -> cls != c && cls.subtypes(c))
                                 .flatMap(cls -> cls.methods.get())
-                                .find(sm -> sm.name.equals(name))
+                                .find(m::nameEquals)
                                 .<OverrideStatus>map(u -> m.new Overridden())
-                                .orElse(m.new Unique())),
+                                .orElseGet(() -> m.new Unique())),
                 c);
     }
 }
 
-public class ClassVisitor extends GJDepthFirst<Function<List<Class>, Class>, Lazy<TypeEnv>> {
+public class ClassVisitor extends GJDepthFirst<Function<Lazy<Integer>, Class>, Lazy<TypeEnv>> {
     @Override
-    public Function<List<Class>, Class> visit(TypeDeclaration n, Lazy<TypeEnv> argu) {
+    public Function<Lazy<Integer>, Class> visit(TypeDeclaration n, Lazy<TypeEnv> argu) {
         return n.f0.choice.accept(this, argu);
     }
 
     @Override
-    public Function<List<Class>, Class> visit(ClassDeclaration n, Lazy<TypeEnv> argu) {
+    public Function<Lazy<Integer>, Class> visit(ClassDeclaration n, Lazy<TypeEnv> argu) {
         final var className = n.f1.f0.tokenImage;
-        return classAcc -> new Class(className,
+        return vtableOffset -> new Class(className,
                 Optional.empty(),
                 (c) -> mkFields(c, n.f3, argu.get()),
                 (c) -> mkMethods(c, n.f4, argu.get()),
-                (c) -> mkVtables(c, argu.get()),
-                argu);
+                (c) -> mkVtables(c, argu.get(), vtableOffset.get()));
     }
 
     @Override
-    public Function<List<Class>, Class> visit(ClassExtendsDeclaration n, Lazy<TypeEnv> argu) {
+    public Function<Lazy<Integer>, Class> visit(ClassExtendsDeclaration n, Lazy<TypeEnv> argu) {
         final var className = n.f1.f0.tokenImage;
         final var superName = n.f3.f0.tokenImage;
-        return classAcc -> new Class(className,
+        return vtableOffset -> new Class(className,
                 Optional.of(() -> argu.get().classLookup(superName)),
                 (c) -> mkFields(c, n.f5, argu.get()),
                 (c) -> mkMethods(c, n.f6, argu.get()),
-                (c) -> mkVtables(c, argu.get()),
-                argu);
+                (c) -> mkVtables(c, argu.get(), vtableOffset.get()));
     }
 
     static List<Field> mkFields(Class c, NodeListOptional fieldNodes, TypeEnv argu) {
@@ -65,22 +63,26 @@ public class ClassVisitor extends GJDepthFirst<Function<List<Class>, Class>, Laz
         return methodNodes.accept(new ListVisitor<>(new MethodVisitor()), new T2<>(c, argu));
     }
 
-    static List<Vtable> mkVtables(Class c, TypeEnv env) {
-        final var overridenVtables = c.superClass()
-                .map(sc -> sc.vtables.get().map(vt -> {
+    static List<Vtable> mkVtables(Class c, TypeEnv env, int vtableOffset) {
+        return c.superClass()
+                .map(sc -> sc.vtables.get())
+                .orElse(List.nul())
+                .fold(new T2<>(vtableOffset, List.<Vtable>nul()), (acc, vt) -> {
+                    final var offset = acc.a;
+                    final var list = acc.b;
+
                     final var overridingMethods = c.overridingMethods.get()
                             .filter(m -> m.status.get().origClass() == vt.target);
 
                     return overridingMethods.head()
-                            .map(u -> new Vtable(vt.target,
-                                    vt.overrides.map(m -> overridingMethods.get().find(m::nameEquals).orElse(m)),
-                                    env))
-                            .orElse(vt);
-                }))
-                .orElse(List.nul());
-
-        return c.overriddenMethods.get().head()
-                .map(u -> overridenVtables.cons(new Vtable(c, c.overriddenMethods.get(), env)))
-                .orElse(overridenVtables);
+                            .map(u -> new Vtable(vt.target, vt.overrides
+                                    .map(tu -> overridingMethods.find(tu.a::nameEquals).orElse(tu.a)),
+                                    offset))
+                            .map(newVt -> new T2<>(offset + newVt.size, list.cons(newVt)))
+                            .orElse(new T2<>(offset, list.cons(vt)));
+                })
+                .consume((nextVtableOffset, overriddenVtables) -> c.overriddenMethods.get().head()
+                        .map(u -> overriddenVtables.cons(new Vtable(c, c.overriddenMethods.get(), nextVtableOffset)))
+                        .orElse(overriddenVtables));
     }
 }

@@ -235,7 +235,7 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
                 .cons(new Add(sizeSym, lenSym, eSym))
                 .cons(new Move_Id_Integer(eSym, 1))
                 .cons(new LabelInstr(goodLabel))
-                .cons(new ErrorMessage("\"invalid array length\""))
+                .cons(new ErrorMessage("\"array index out of bounds\""))
                 .cons(new IfGoto(eSym, goodLabel))
                 .cons(new LessThan(eSym, lenSym, eSym))
                 .cons(new Move_Id_Integer(eSym, 0)));
