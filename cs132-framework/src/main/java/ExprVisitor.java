@@ -144,11 +144,12 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
         final var objClass = (Class) objExpr.b;
         final var objEnv = objExpr.c;
 
-        final var t = n.f4.accept(new FoldVisitor<>(new ExprVisitor(),
-                (u, ret) -> new T3<>(typeEnv, ret.c, u.c.cons(ret.a))),
+        final var t1 = n.f4.accept(new FoldVisitor<>(new ExprVisitor(),
+                (acc, exprRet) -> new T3<>(typeEnv, exprRet.c, acc.c.cons(exprRet.a))),
                 new T3<>(typeEnv, objEnv, List.<Identifier>nul()));
-        final var args = t.c.reverse().cons(objSym).cons(TransEnv.statSym);
-        final var argsEnv = t.b;
+
+        final var args = t1.c.reverse().cons(objSym).cons(TransEnv.statSym);
+        final var argsEnv = t1.b;
 
         final var m = objClass.methodLookup(n.f2.f0.tokenImage).get();
 
@@ -209,13 +210,13 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
     public T3<Identifier, Type, TransEnv> visit(ArrayAllocationExpression n, T2<TypeEnv, TransEnv> argu) {
         final var typeEnv = argu.a;
         final var transEnv = argu.b;
-        final var t1 = transEnv.genSym();
-        final var eSym = t1.a;
-        final var t2 = t1.b.genSym();
-        final var sizeSym = t2.a;
-        final var t3 = t2.b.genLabel();
-        final var goodLabel = t3.a;
-        final var env = t3.b;
+        final var u1 = transEnv.genSym();
+        final var eSym = u1.a;
+        final var u2 = u1.b.genSym();
+        final var sizeSym = u2.a;
+        final var u3 = u2.b.genLabel();
+        final var goodLabel = u3.a;
+        final var env = u3.b;
         final var lenExpr = n.f3.accept(this, new T2<>(typeEnv, env));
         final var lenSym = lenExpr.a;
         final var lenEnv = lenExpr.c;

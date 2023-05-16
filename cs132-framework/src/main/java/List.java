@@ -60,8 +60,6 @@ interface ListInt<T> {
 
     int count();
 
-    T2<List<T>, List<T>> partition(Predicate<? super T> p);
-
     Optional<Integer> firstIndex(int i, Predicate<? super T> p);
 
     Optional<T> head();
@@ -148,11 +146,6 @@ public class List<T> extends Lazy<ListElem<T>> implements ListInt<T> {
     }
 
     @Override
-    public T2<List<T>, List<T>> partition(Predicate<? super T> p) {
-        return get().partition(p);
-    }
-
-    @Override
     public Optional<Integer> firstIndex(int i, Predicate<? super T> p) {
         return get().firstIndex(i, p);
     }
@@ -218,11 +211,6 @@ class Null<T> extends ListElem<T> {
     @Override
     public int count() {
         return 0;
-    }
-
-    @Override
-    public T2<List<T>, List<T>> partition(Predicate<? super T> p) {
-        return new T2<>(List.nul(), List.nul());
     }
 
     @Override
@@ -295,15 +283,6 @@ class Pair<T> extends ListElem<T> {
     @Override
     public int count() {
         return 1 + next.count();
-    }
-
-    @Override
-    public T2<List<T>, List<T>> partition(Predicate<? super T> p) {
-        final var t = next.partition(p);
-        if (p.test(val))
-            return new T2<>(t.a.cons(val), t.b);
-        else
-            return new T2<>(t.a, t.b.cons(val));
     }
 
     @Override

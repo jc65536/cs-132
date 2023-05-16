@@ -32,12 +32,13 @@ public class J2S {
 
         final var newTypeEnv = typeEnv.addLocals(locals);
 
-        final var p = main.f15.accept(new FoldVisitor<>(new StmtVisitor(),
-                (u, te) -> new T2<>(newTypeEnv, te)), new T2<>(newTypeEnv, vtableEnv));
+        final var bodyEnv = main.f15.accept(new FoldVisitor<>(new StmtVisitor(),
+                (acc, env) -> new T2<>(newTypeEnv, env)),
+                new T2<>(newTypeEnv, vtableEnv)).b;
 
         return new FunctionDecl(new FunctionName("main"),
                 List.<Identifier>nul().toJavaList(),
-                new Block(p.b.code.toJavaList(), TransEnv.statSym));
+                new Block(bodyEnv.code.toJavaList(), TransEnv.statSym));
     }
 
     public static void main(String[] args) throws Exception {

@@ -237,7 +237,7 @@ class Method extends Named {
     final List<Local> locals;
     final Type retType;
     final MethodDeclaration body;
-    final Lazy<? extends OverrideStatus> status;
+    final Lazy<OverrideStatus> status;
     final Class c;
 
     class Unique implements OverrideStatus {
@@ -265,8 +265,8 @@ class Method extends Named {
                 TransEnv env) {
             return new T2<>(eSym, env.join(List.<Instruction>nul()
                     .cons(new Call(eSym, eSym, args.toJavaList()))
-                    .cons(new Load(eSym, eSym, c.vtables.get().head().get()
-                    .overrides.firstIndex(Method.this::equals).get() * 4))
+                    .cons(new Load(eSym, eSym,
+                            c.vtables.get().head().get().overrides.firstIndex(Method.this::equals).get() * 4))
                     .cons(new Load(eSym, thisSym, c.ownObjOffset.get()))));
         }
     }
@@ -289,7 +289,7 @@ class Method extends Named {
             List<Local> locals,
             Type retType,
             MethodDeclaration body,
-            Function<Method, ? extends OverrideStatus> mkStatus,
+            Function<Method, OverrideStatus> mkStatus,
             Class c) {
         super(name);
         this.params = params;
@@ -300,22 +300,15 @@ class Method extends Named {
         this.c = c;
     }
 
-    boolean argsCompat(List<? extends Type> argTypes) {
-        return argTypes.equals(params, (u, v) -> u.subtypes(v.type));
-    }
-
-    boolean typeEquals(Method other) {
-        return retType == other.retType && params.equals(other.params, (u, v) -> u.type == v.type);
-    }
-
     FunctionDecl translate(TypeEnv typeEnv) {
-        final var typeEnv2 = typeEnv.addLocals(params).addLocals(locals);
+        final var localsEnv = typeEnv.addLocals(params).addLocals(locals);
         final var transEnv = new TransEnv(List.nul(), 0);
 
-        final var p = body.f8.accept(new FoldVisitor<>(new StmtVisitor(), (u, te) -> new T2<>(typeEnv2, te)),
-                new T2<>(typeEnv2, transEnv));
+        final var p = body.f8.accept(new FoldVisitor<>(new StmtVisitor(),
+                (acc, env) -> new T2<>(localsEnv, env)),
+                new T2<>(localsEnv, transEnv));
 
-        final var retExpr = body.f10.accept(new ExprVisitor(), new T2<>(typeEnv2, p.b));
+        final var retExpr = body.f10.accept(new ExprVisitor(), new T2<>(localsEnv, p.b));
 
         return new FunctionDecl(funcName(),
                 params.map(s -> s.sym).cons(TransEnv.thisSym).cons(TransEnv.statSym).toJavaList(),
