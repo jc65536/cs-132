@@ -17,14 +17,6 @@ abstract class Named {
         this.name = name;
     }
 
-    static <T extends Named> Optional<List<T>> distinct(List<T> acc, Optional<T> nOpt) {
-        return nOpt.filter(n -> acc.forAll(m -> !m.name.equals(n.name))).map(acc::cons);
-    }
-
-    static <T extends Named> Optional<List<T>> distinct(List<T> acc, T n) {
-        return distinct(acc, Optional.of(n));
-    }
-
     boolean nameEquals(Named n) {
         return name.equals(n.name);
     }
@@ -45,17 +37,11 @@ class Vtable {
     final int size;
     final Lazy<Integer> offset;
 
-    Vtable(Class target, List<Method> overrides, Lazy<? extends TypeEnv> env) {
+    Vtable(Class target, List<Method> overrides, TypeEnv env) {
         this.target = target;
         this.overrides = overrides;
         this.size = overrides.count() * 4;
-        this.offset = new Lazy<>(() -> env.get().vtables.get().find(t -> this == t.a).get().b);
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%s: %s (%s)", target.name, overrides.fold("", (s, m) -> s + m.toString() + ", "),
-                this.hashCode());
+        this.offset = new Lazy<>(() -> env.vtables.get().find(t -> this == t.a).get().b);
     }
 
     TransEnv write(Identifier stat, Identifier tSym, TransEnv env) {
@@ -102,13 +88,14 @@ class Class extends Named implements Type {
             Optional<? extends Supplier<Class>> superClass,
             Function<Class, List<Field>> mkFields,
             Function<Class, List<Method>> mkMethods,
-            Lazy<? extends TypeEnv> env) {
+            Function<Class, List<Vtable>> mkVtables,
+            Lazy<TypeEnv> env) {
         super(name);
         this.superClass = superClass.map(Lazy::new);
         fields = new Lazy<>(() -> mkFields.apply(this));
         methods = new Lazy<>(() -> mkMethods.apply(this));
-        overriddenMethods = new Lazy<>(() -> methods.get().filter(m -> m.status.get() == OverrideStatus.OVERRIDDEN));
-        overridingMethods = new Lazy<>(() -> methods.get().filter(m -> m.status.get() == OverrideStatus.OVERRIDES));
+        overriddenMethods = new Lazy<>(() -> methods.get().filter(m -> m.status.get() instanceof Method.Overridden));
+        overridingMethods = new Lazy<>(() -> methods.get().filter(m -> m.status.get() instanceof Method.Overrides));
         this.env = env;
 
         ownVtableSize = new Lazy<>(
@@ -125,21 +112,7 @@ class Class extends Named implements Type {
 
         objSize = new Lazy<>(() -> ownFieldsOffset.get() + fields.get().count() * 4);
 
-        vtables = new Lazy<>(() -> {
-            final var overridenVtables = superClass()
-                    .map(sc -> sc.vtables.get()
-                            .map(vt -> vt.overrides
-                                    .find(m -> overridingMethods.get().exists(m::nameEquals))
-                                    .map(u -> new Vtable(vt.target, vt.overrides
-                                            .map(m -> overridingMethods.get().find(m::nameEquals).orElse(m)),
-                                            env))
-                                    .orElse(vt)))
-                    .orElse(List.nul());
-
-            return overriddenMethods.get().head()
-                    .map(u -> overridenVtables.cons(new Vtable(this, overriddenMethods.get(), env)))
-                    .orElse(overridenVtables);
-        });
+        vtables = new Lazy<>(() -> mkVtables.apply(this));
     }
 
     Optional<Class> superClass() {
@@ -215,16 +188,16 @@ class Field extends Variable {
     }
 
     @Override
-    T2<Identifier, TransEnv> toTemp(TransEnv argu) {
-        final var t = argu.genSym();
-        final var sym = t.a;
-        final var env = t.b;
-        return new T2<>(sym, env.join(List.of(new Load(sym, TransEnv.thisSym(), offset))));
+    T2<Identifier, TransEnv> toTemp(TransEnv env) {
+        final var u = env.genSym();
+        final var tSym = u.a;
+        final var env1 = u.b;
+        return new T2<>(tSym, env1.join(List.of(new Load(tSym, TransEnv.thisSym, offset))));
     }
 
     @Override
     TransEnv assign(Identifier src, TransEnv env) {
-        return env.join(List.of(new Store(TransEnv.thisSym(), offset, src)));
+        return env.join(List.of(new Store(TransEnv.thisSym, offset, src)));
     }
 }
 
@@ -237,21 +210,26 @@ class Local extends Variable {
     }
 
     @Override
-    T2<Identifier, TransEnv> toTemp(TransEnv argu) {
-        final var t = argu.genSym();
-        final var sym = t.a;
-        final var env = t.b;
-        return new T2<>(sym, env.join(List.of(new Move_Id_Id(sym, this.sym))));
+    T2<Identifier, TransEnv> toTemp(TransEnv env) {
+        final var u = env.genSym();
+        final var tSym = u.a;
+        final var env1 = u.b;
+        return new T2<>(tSym, env1.join(List.of(new Move_Id_Id(tSym, sym))));
     }
 
     @Override
-    TransEnv assign(Identifier dest, TransEnv env) {
-        return env.join(List.of(new Move_Id_Id(sym, dest)));
+    TransEnv assign(Identifier src, TransEnv env) {
+        return env.join(List.of(new Move_Id_Id(sym, src)));
     }
 }
 
-enum OverrideStatus {
-    OVERRIDES, OVERRIDDEN, UNIQUE
+interface OverrideStatus {
+    T2<Identifier, TransEnv> call(Identifier thisSym,
+            List<Identifier> args,
+            Identifier eSym,
+            TransEnv env);
+
+    Class origClass();
 }
 
 class Method extends Named {
@@ -259,31 +237,67 @@ class Method extends Named {
     final List<Local> locals;
     final Type retType;
     final MethodDeclaration body;
-    final Lazy<OverrideStatus> status;
+    final Lazy<? extends OverrideStatus> status;
     final Class c;
+
+    class Unique implements OverrideStatus {
+        @Override
+        public T2<Identifier, TransEnv> call(Identifier thisSym,
+                List<Identifier> args,
+                Identifier eSym,
+                TransEnv env) {
+            return new T2<>(eSym, env.join(List.<Instruction>nul()
+                    .cons(new Call(eSym, eSym, args.toJavaList()))
+                    .cons(new Move_Id_FuncName(eSym, funcName()))));
+        }
+
+        @Override
+        public Class origClass() {
+            return c;
+        }
+    }
+
+    class Overridden extends Unique {
+        @Override
+        public T2<Identifier, TransEnv> call(Identifier thisSym,
+                List<Identifier> args,
+                Identifier eSym,
+                TransEnv env) {
+            return new T2<>(eSym, env.join(List.<Instruction>nul()
+                    .cons(new Call(eSym, eSym, args.toJavaList()))
+                    .cons(new Load(eSym, eSym, c.vtables.get().head().get()
+                    .overrides.firstIndex(Method.this::equals).get() * 4))
+                    .cons(new Load(eSym, thisSym, c.ownObjOffset.get()))));
+        }
+    }
+
+    class Overrides extends Overridden {
+        final Class target;
+
+        Overrides(Class target) {
+            this.target = target;
+        }
+
+        @Override
+        public Class origClass() {
+            return target;
+        }
+    }
 
     Method(String name,
             List<Local> params,
             List<Local> locals,
             Type retType,
             MethodDeclaration body,
-            Supplier<OverrideStatus> status,
+            Function<Method, ? extends OverrideStatus> mkStatus,
             Class c) {
         super(name);
         this.params = params;
         this.locals = locals;
         this.retType = retType;
         this.body = body;
-        this.status = new Lazy<>(status);
+        this.status = new Lazy<>(() -> mkStatus.apply(this));
         this.c = c;
-    }
-
-    Method setStatus(Supplier<OverrideStatus> status) {
-        return new Method(name, params, locals, retType, body, status, c);
-    }
-
-    Method setClass(Class c) {
-        return new Method(name, params, locals, retType, body, status, c);
     }
 
     boolean argsCompat(List<? extends Type> argTypes) {
@@ -304,29 +318,15 @@ class Method extends Named {
         final var retExpr = body.f10.accept(new ExprVisitor(), new T2<>(typeEnv2, p.b));
 
         return new FunctionDecl(funcName(),
-                params.map(s -> s.sym).cons(TransEnv.thisSym()).cons(TransEnv.statSym).toJavaList(),
+                params.map(s -> s.sym).cons(TransEnv.thisSym).cons(TransEnv.statSym).toJavaList(),
                 new cs132.IR.sparrow.Block(retExpr.c.code.toJavaList(), retExpr.a));
     }
 
-    T2<Identifier, TransEnv> call(Identifier thisSym, List<Identifier> args, TransEnv pEnv) {
-        final var t1 = pEnv.genSym();
+    T2<Identifier, TransEnv> call(Identifier thisSym, List<Identifier> args, TransEnv env) {
+        final var t1 = env.genSym();
         final var eSym = t1.a;
-        final var env = t1.b;
-
-        switch (status.get()) {
-            case OVERRIDDEN:
-            case OVERRIDES:
-                return new T2<>(eSym, env.join(List.<Instruction>nul()
-                        .cons(new Call(eSym, eSym, args.toJavaList()))
-                        .cons(new Load(eSym, eSym,
-                                c.vtables.get().head().get().overrides.firstIndex(this::equals).get()))
-                        .cons(new Load(eSym, thisSym, c.ownObjOffset.get()))));
-            case UNIQUE:
-            default:
-                return new T2<>(eSym, env.join(List.<Instruction>nul()
-                        .cons(new Call(eSym, eSym, args.toJavaList()))
-                        .cons(new Move_Id_FuncName(eSym, funcName()))));
-        }
+        final var env1 = t1.b;
+        return status.get().call(thisSym, args, eSym, env1);
     }
 
     FunctionName funcName() {
@@ -403,9 +403,7 @@ class TransEnv {
         return new TransEnv(code.join(c), k);
     }
 
-    static Identifier thisSym() {
-        return new Identifier("this");
-    }
+    static final Identifier thisSym = new Identifier("this");
 
     static final Identifier statSym = new Identifier("__stat__");
 }

@@ -202,7 +202,7 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
 
     @Override
     public T3<Identifier, Type, TransEnv> visit(ThisExpression n, T2<TypeEnv, TransEnv> argu) {
-        return new T3<>(TransEnv.thisSym(), argu.a.currClass.get(), argu.b);
+        return new T3<>(TransEnv.thisSym, argu.a.currClass.get(), argu.b);
     }
 
     @Override
