@@ -49,11 +49,10 @@ public class StmtVisitor extends GJDepthFirst<TransEnv, T2<TypeEnv, TransEnv>> {
             final var rSym = rExpr.a;
             final var rEnv = rExpr.c;
 
-            return rEnv.join(List.<Instruction>nul()
-                    .cons(new Store(arrSym, 4, rSym))
-                    .cons(new Add(arrSym, arrSym, idxSym))
+            return rEnv.cons(new Move_Id_Integer(tmp, 4))
                     .cons(new Multiply(idxSym, idxSym, tmp))
-                    .cons(new Move_Id_Integer(tmp, 4)));
+                    .cons(new Add(arrSym, arrSym, idxSym))
+                    .cons(new Store(arrSym, 4, rSym));
         });
     }
 
@@ -66,15 +65,14 @@ public class StmtVisitor extends GJDepthFirst<TransEnv, T2<TypeEnv, TransEnv>> {
             final var condSym = condExpr.a;
             final var condEnv = condExpr.c;
 
-            final var jmpEnv = condEnv.join(List.of(new IfGoto(condSym, fail)));
+            final var jmpEnv = condEnv.cons(new IfGoto(condSym, fail));
 
             final var ifEnv = n.f4.accept(this, new T2<>(typeEnv, jmpEnv))
-                    .join(List.<Instruction>nul()
-                            .cons(new LabelInstr(fail))
-                            .cons(new Goto(end)));
+                    .cons(new Goto(end))
+                    .cons(new LabelInstr(fail));
 
             return n.f6.accept(this, new T2<>(typeEnv, ifEnv))
-                    .join(List.of(new LabelInstr(end)));
+                    .cons(new LabelInstr(end));
         }));
     }
 
@@ -84,15 +82,15 @@ public class StmtVisitor extends GJDepthFirst<TransEnv, T2<TypeEnv, TransEnv>> {
         final var transEnv = argu.b;
         return transEnv.genLabel((start, env1) -> env1.genLabel((end, env2) -> {
             final var condExpr = n.f2.accept(new ExprVisitor(),
-                    new T2<>(typeEnv, env2.join(List.of(new LabelInstr(start)))));
+                    new T2<>(typeEnv, env2.cons(new LabelInstr(start))));
             final var condSym = condExpr.a;
             final var condEnv = condExpr.c;
 
-            final var jmpEnv = condEnv.join(List.of(new IfGoto(condSym, end)));
+            final var jmpEnv = condEnv.cons(new IfGoto(condSym, end));
 
             return n.f4.accept(this, new T2<>(typeEnv, jmpEnv))
-                    .join(List.<Instruction>of(new LabelInstr(end))
-                            .cons(new Goto(start)));
+                    .cons(new Goto(start))
+                    .cons(new LabelInstr(end));
         }));
     }
 
@@ -101,6 +99,6 @@ public class StmtVisitor extends GJDepthFirst<TransEnv, T2<TypeEnv, TransEnv>> {
         final var argExpr = n.f2.accept(new ExprVisitor(), argu);
         final var argSym = argExpr.a;
         final var argEnv = argExpr.c;
-        return argEnv.join(List.of(new Print(argSym)));
+        return argEnv.cons(new Print(argSym));
     }
 }

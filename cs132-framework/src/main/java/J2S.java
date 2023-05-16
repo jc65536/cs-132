@@ -20,9 +20,9 @@ public class J2S {
                 .orElse(0);
 
         return new TransEnv(List.nul(), 0).genSym((tmp, transEnv) -> {
-            final var statEnv = transEnv.join(List.<Instruction>nul()
-                    .cons(new Alloc(TransEnv.statSym, tmp))
-                    .cons(new Move_Id_Integer(tmp, statSize)));
+            final var statEnv = transEnv
+                    .cons(new Move_Id_Integer(tmp, statSize))
+                    .cons(new Alloc(TransEnv.statSym, tmp));
 
             final var vtableEnv = typeEnv.vtables.get().fold(statEnv,
                     (acc, vt) -> vt.write(TransEnv.statSym, tmp, acc));
@@ -37,7 +37,7 @@ public class J2S {
 
             return new FunctionDecl(new FunctionName("main"),
                     List.<Identifier>nul().toJavaList(),
-                    new Block(bodyEnv.code.toJavaList(), TransEnv.statSym));
+                    new Block(bodyEnv.revCode.reverse().toJavaList(), TransEnv.statSym));
         });
     }
 
@@ -58,19 +58,6 @@ public class J2S {
                             }).b;
             return new TypeEnv(List.nul(), classes, Optional.empty());
         }).get();
-
-        // env.classes.map(c -> {
-        // System.out.printf("Class %s; %d overridden; %d overriding\n", c.name,
-        // c.overriddenMethods.get().count(),
-        // c.overridingMethods.get().count());
-
-        // c.methods.get().map(m -> {
-        // System.out.printf(" Method %s\tstatus %s\n", m, m.status.get());
-        // return 0;
-        // }).count();
-
-        // return 0;
-        // }).count();
 
         final var funs = env.classes.flatMap(c -> c.methods.get()
                 .map(m -> m.translate(env.enterClass(c))))

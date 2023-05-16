@@ -45,11 +45,10 @@ class Vtable {
     }
 
     TransEnv write(Identifier stat, Identifier tSym, TransEnv env) {
-        env = env.join(List.of(J2S.comment(String.format("vtable_for_%s", target.name))));
+        env = env.cons(J2S.comment(String.format("vtable_for_%s", target.name)));
         return overrides.fold(env, (acc, m) -> {
-            return acc.join(List.<Instruction>nul()
-                    .cons(new Store(stat, offset + ((Method.Vtabled) m.status.get()).offset.get(), tSym))
-                    .cons(new Move_Id_FuncName(tSym, m.funcName())));
+            return acc.cons(new Move_Id_FuncName(tSym, m.funcName()))
+                    .cons(new Store(stat, offset + ((Method.Vtabled) m.status.get()).offset.get(), tSym));
         });
     }
 }
@@ -124,9 +123,7 @@ class Class extends Named implements Type {
     T2<Identifier, TransEnv> alloc(TransEnv argu) {
         return argu.genSym((obj, env1) -> env1.genSym((tmp, env2) -> {
             return new T2<>(obj, initialize(obj, tmp,
-                    env2.join(List.<Instruction>nul()
-                            .cons(new Alloc(obj, tmp))
-                            .cons(new Move_Id_Integer(tmp, objSize.get()))),
+                    env2.cons(new Move_Id_Integer(tmp, objSize.get())).cons(new Alloc(obj, tmp)),
                     vtables.get()));
         }));
     }
@@ -135,10 +132,10 @@ class Class extends Named implements Type {
         final var env = superClass().map(sc -> sc.initialize(obj, tSym, argu, vtables)).orElse(argu);
 
         return vtables.find(vt -> vt.target.equals(this))
-                .map(vt -> env.join(List.<Instruction>nul()
-                        .cons(new Store(obj, ownObjOffset.get(), tSym))
+                .map(vt -> env
+                        .cons(new Move_Id_Integer(tSym, vt.offset))
                         .cons(new Add(tSym, TransEnv.statSym, tSym))
-                        .cons(new Move_Id_Integer(tSym, vt.offset))))
+                        .cons(new Store(obj, ownObjOffset.get(), tSym)))
                 .orElse(env);
     }
 }
@@ -166,13 +163,13 @@ class Field extends Variable {
 
     @Override
     T2<Identifier, TransEnv> toTemp(TransEnv env) {
-        return env.genSym((tmp, env1) -> new T2<>(tmp, env1.join(List.<Instruction>nul()
-                .cons(new Load(tmp, TransEnv.thisSym, offset)))));
+        return env.genSym((tmp, env1) -> new T2<>(tmp,
+                env1.cons(new Load(tmp, TransEnv.thisSym, offset))));
     }
 
     @Override
     TransEnv assign(Identifier src, TransEnv env) {
-        return env.join(List.of(new Store(TransEnv.thisSym, offset, src)));
+        return env.cons(new Store(TransEnv.thisSym, offset, src));
     }
 }
 
@@ -187,12 +184,12 @@ class Local extends Variable {
     @Override
     T2<Identifier, TransEnv> toTemp(TransEnv env) {
         return env.genSym((tmp, env1) -> new T2<>(tmp,
-                env1.join(List.of(new Move_Id_Id(tmp, sym)))));
+                env1.cons(new Move_Id_Id(tmp, sym))));
     }
 
     @Override
     TransEnv assign(Identifier src, TransEnv env) {
-        return env.join(List.of(new Move_Id_Id(sym, src)));
+        return env.cons(new Move_Id_Id(sym, src));
     }
 }
 
@@ -219,9 +216,9 @@ class Method extends Named {
                 List<Identifier> args,
                 Identifier eSym,
                 TransEnv env) {
-            return new T2<>(eSym, env.join(List.<Instruction>nul()
-                    .cons(new Call(eSym, eSym, args.toJavaList()))
-                    .cons(new Move_Id_FuncName(eSym, funcName()))));
+            return new T2<>(eSym, env
+                    .cons(new Move_Id_FuncName(eSym, funcName()))
+                    .cons(new Call(eSym, eSym, args.toJavaList())));
         }
 
         @Override
@@ -244,10 +241,10 @@ class Method extends Named {
                 List<Identifier> args,
                 Identifier eSym,
                 TransEnv env) {
-            return new T2<>(eSym, env.join(List.<Instruction>nul()
-                    .cons(new Call(eSym, eSym, args.toJavaList()))
+            return new T2<>(eSym, env
+                    .cons(new Load(eSym, thisSym, c.ownObjOffset.get()))
                     .cons(new Load(eSym, eSym, offset.get()))
-                    .cons(new Load(eSym, thisSym, c.ownObjOffset.get()))));
+                    .cons(new Call(eSym, eSym, args.toJavaList())));
         }
     }
 
@@ -299,7 +296,7 @@ class Method extends Named {
 
         return new FunctionDecl(funcName(),
                 params.map(s -> s.sym).cons(TransEnv.thisSym).cons(TransEnv.statSym).toJavaList(),
-                new cs132.IR.sparrow.Block(retExpr.c.code.toJavaList(), retExpr.a));
+                new cs132.IR.sparrow.Block(retExpr.c.revCode.reverse().toJavaList(), retExpr.a));
     }
 
     T2<Identifier, TransEnv> call(Identifier thisSym, List<Identifier> args, TransEnv env) {
@@ -349,16 +346,16 @@ public class TypeEnv {
 }
 
 class TransEnv {
-    final List<Instruction> code;
+    final List<Instruction> revCode;
     private final int k;
 
     TransEnv(List<Instruction> code, int k) {
-        this.code = code;
+        this.revCode = code;
         this.k = k;
     }
 
     TransEnv inc() {
-        return new TransEnv(code, k + 1);
+        return new TransEnv(revCode, k + 1);
     }
 
     <T> T genSym(BiFunction<Identifier, TransEnv, T> cont) {
@@ -369,31 +366,29 @@ class TransEnv {
         return cont.apply(new Label("L" + k), inc());
     }
 
-    TransEnv join(List<Instruction> c) {
-        return new TransEnv(code.join(c), k);
+    TransEnv cons(Instruction i) {
+        return new TransEnv(revCode.cons(i), k);
     }
 
     TransEnv nullCheck(Identifier obj) {
         return genLabel((err, env1) -> env1.genLabel((end, env2) -> {
-            return env2.join(List.<Instruction>nul()
-                    .cons(new LabelInstr(end))
-                    .cons(new ErrorMessage("\"null pointer\""))
-                    .cons(new LabelInstr(err))
+            return env2.cons(new IfGoto(obj, err))
                     .cons(new Goto(end))
-                    .cons(new IfGoto(obj, err)));
+                    .cons(new LabelInstr(err))
+                    .cons(new ErrorMessage("\"null pointer\""))
+                    .cons(new LabelInstr(end));
         }));
     }
 
     TransEnv idxCheck(Identifier arr, Identifier idx) {
         return genSym((tmp, env1) -> env1.genLabel((err, env2) -> env2.genLabel((end, env3) -> {
-            return env3.join(List.<Instruction>nul()
-                    .cons(new LabelInstr(end))
-                    .cons(new ErrorMessage("\"array index out of bounds\""))
-                    .cons(new LabelInstr(err))
-                    .cons(new Goto(end))
-                    .cons(new IfGoto(tmp, err))
+            return env3.cons(new Load(tmp, arr, 0))
                     .cons(new LessThan(tmp, idx, tmp))
-                    .cons(new Load(tmp, arr, 0)));
+                    .cons(new IfGoto(tmp, err))
+                    .cons(new Goto(end))
+                    .cons(new LabelInstr(err))
+                    .cons(new ErrorMessage("\"array index out of bounds\""))
+                    .cons(new LabelInstr(end));
         })));
     }
 
