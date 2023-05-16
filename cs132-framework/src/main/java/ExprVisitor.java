@@ -97,40 +97,27 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
     public T3<Identifier, Type, TransEnv> visit(ArrayLookup n, T2<TypeEnv, TransEnv> argu) {
         final var typeEnv = argu.a;
         final var transEnv = argu.b;
-        final var t1 = transEnv.genSym();
-        final var eSym = t1.a;
-        final var t2 = t1.b.genLabel();
-        final var nullLabel = t2.a;
-        final var t3 = t2.b.genLabel();
-        final var oobLabel = t3.a;
-        final var t4 = t3.b.genLabel();
-        final var endLabel = t4.a;
-        final var env = t4.b;
+        final var u = transEnv.genSym();
+        final var eSym = u.a;
+        final var env = u.b;
 
         final var arrExpr = n.f0.accept(this, new T2<>(typeEnv, env));
         final var arrSym = arrExpr.a;
         final var arrEnv = arrExpr.c;
 
-        final var arrChkEnv = arrEnv.join(List.of(new IfGoto(arrSym, nullLabel)));
+        final var arrChkEnv = arrEnv.nullCheck(arrSym);
 
         final var idxExpr = n.f2.accept(this, new T2<>(typeEnv, arrChkEnv));
         final var idxSym = idxExpr.a;
         final var idxEnv = idxExpr.c;
 
-        final var zEnv = idxEnv.join(List.<Instruction>nul()
-                .cons(new LabelInstr(endLabel))
-                .cons(new ErrorMessage("\"array index out of bounds\""))
-                .cons(new LabelInstr(oobLabel))
-                .cons(new ErrorMessage("\"null pointer\""))
-                .cons(new LabelInstr(nullLabel))
-                .cons(new Goto(endLabel))
+        final var idxChkEnv = idxEnv.idxCheck(arrSym, idxSym);
+
+        final var zEnv = idxChkEnv.join(List.<Instruction>nul()
                 .cons(new Load(eSym, arrSym, 4))
                 .cons(new Add(arrSym, arrSym, idxSym))
                 .cons(new Multiply(idxSym, idxSym, eSym))
-                .cons(new Move_Id_Integer(eSym, 4))
-                .cons(new IfGoto(eSym, oobLabel))
-                .cons(new LessThan(eSym, idxSym, eSym))
-                .cons(new Load(eSym, arrSym, 0)));
+                .cons(new Move_Id_Integer(eSym, 4)));
 
         return new T3<>(eSym, Prim.INT, zEnv);
     }
@@ -139,25 +126,18 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
     public T3<Identifier, Type, TransEnv> visit(ArrayLength n, T2<TypeEnv, TransEnv> argu) {
         final var typeEnv = argu.a;
         final var transEnv = argu.b;
-        final var u1 = transEnv.genSym();
-        final var eSym = u1.a;
-        final var u2 = u1.b.genLabel();
-        final var nullLabel = u2.a;
-        final var u3 = u2.b.genLabel();
-        final var endLabel = u3.a;
-        final var env = u3.b;
+        final var u = transEnv.genSym();
+        final var eSym = u.a;
+        final var env = u.b;
 
         final var arrExpr = n.f0.accept(this, new T2<>(typeEnv, env));
         final var arrSym = arrExpr.a;
         final var arrEnv = arrExpr.c;
 
-        final var zEnv = arrEnv.join(List.<Instruction>nul()
-                .cons(new LabelInstr(endLabel))
-                .cons(new ErrorMessage("\"null pointer\""))
-                .cons(new LabelInstr(nullLabel))
-                .cons(new Goto(endLabel))
-                .cons(new Load(eSym, arrSym, 0))
-                .cons(new IfGoto(arrSym, nullLabel)));
+        final var arrChkEnv = arrEnv.nullCheck(arrSym);
+
+        final var zEnv = arrChkEnv.join(List.of(new Load(eSym, arrSym, 0)));
+
         return new T3<>(eSym, Prim.INT, zEnv);
     }
 
@@ -169,20 +149,20 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
         final var objClass = (Class) objExpr.b;
         final var objEnv = objExpr.c;
 
-        return objEnv.nullCheck(objSym, (chkEnv) -> {
-            final var t1 = n.f4.accept(new FoldVisitor<>(new ExprVisitor(),
-                    (acc, exprRet) -> new T3<>(typeEnv, exprRet.c, acc.c.cons(exprRet.a))),
-                    new T3<>(typeEnv, chkEnv, List.<Identifier>nul()));
+        final var objChkEnv = objEnv.nullCheck(objSym);
 
-            final var args = t1.c.reverse().cons(objSym).cons(TransEnv.statSym);
-            final var argsEnv = t1.b;
+        final var t1 = n.f4.accept(new FoldVisitor<>(new ExprVisitor(),
+                (acc, exprRet) -> new T3<>(typeEnv, exprRet.c, acc.c.cons(exprRet.a))),
+                new T3<>(typeEnv, objChkEnv, List.<Identifier>nul()));
 
-            final var m = objClass.methodLookup(n.f2.f0.tokenImage).get();
+        final var args = t1.c.reverse().cons(objSym).cons(TransEnv.statSym);
+        final var argsEnv = t1.b;
 
-            final var t2 = m.call(objSym, args, argsEnv);
+        final var m = objClass.methodLookup(n.f2.f0.tokenImage).get();
 
-            return new T3<>(t2.a, m.retType, t2.b);
-        });
+        final var t2 = m.call(objSym, args, argsEnv);
+
+        return new T3<>(t2.a, m.retType, t2.b);
     }
 
     @Override

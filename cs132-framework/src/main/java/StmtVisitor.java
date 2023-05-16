@@ -31,36 +31,28 @@ public class StmtVisitor extends GJDepthFirst<TransEnv, T2<TypeEnv, TransEnv>> {
     public TransEnv visit(ArrayAssignmentStatement n, T2<TypeEnv, TransEnv> argu) {
         final var typeEnv = argu.a;
         final var transEnv = argu.b;
-        final var t1 = transEnv.genLabel();
-        final var errLabel = t1.a;
-        final var t2 = t1.b.genLabel();
-        final var endLabel = t2.a;
-        final var t3 = t2.b.genSym();
-        final var tSym = t3.a;
-        final var env = t3.b;
+        final var u = transEnv.genSym();
+        final var tSym = u.a;
+        final var env = u.b;
 
         final var arrExpr = n.f0.accept(new ExprVisitor(), new T2<>(typeEnv, env));
         final var arrSym = arrExpr.a;
         final var arrEnv = arrExpr.c;
-        final var idxExpr = n.f2.accept(new ExprVisitor(), new T2<>(typeEnv, arrEnv));
+
+        final var arrChkEnv = arrEnv.nullCheck(arrSym);
+
+        final var idxExpr = n.f2.accept(new ExprVisitor(), new T2<>(typeEnv, arrChkEnv));
         final var idxSym = idxExpr.a;
         final var idxEnv = idxExpr.c;
 
         // Index check
-        final var idxChkEnv = idxEnv.join(List.<Instruction>nul()
-                .cons(new IfGoto(tSym, errLabel))
-                .cons(new LessThan(tSym, idxSym, tSym))
-                .cons(new Load(tSym, arrSym, 0)));
+        final var idxChkEnv = idxEnv.idxCheck(arrSym, idxSym);
 
         final var rExpr = n.f5.accept(new ExprVisitor(), new T2<>(typeEnv, idxChkEnv));
         final var rSym = rExpr.a;
         final var rEnv = rExpr.c;
 
         return rEnv.join(List.<Instruction>nul()
-                .cons(new LabelInstr(endLabel))
-                .cons(new ErrorMessage("\"array index out of bounds\""))
-                .cons(new LabelInstr(errLabel))
-                .cons(new Goto(endLabel))
                 .cons(new Store(arrSym, 4, rSym))
                 .cons(new Add(arrSym, arrSym, idxSym))
                 .cons(new Multiply(idxSym, idxSym, tSym))

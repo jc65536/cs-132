@@ -397,19 +397,38 @@ class TransEnv {
         return new TransEnv(code.join(c), k);
     }
 
-    <T> T nullCheck(Identifier obj, Function<TransEnv, T> cont) {
+    TransEnv nullCheck(Identifier obj) {
         final var u1 = genLabel();
         final var nullLabel = u1.a;
         final var u2 = u1.b.genLabel();
         final var endLabel = u2.a;
         final var env = u2.b;
 
-        return cont.apply(env.join(List.<Instruction>nul()
+        return env.join(List.<Instruction>nul()
                 .cons(new LabelInstr(endLabel))
                 .cons(new ErrorMessage("\"null pointer\""))
                 .cons(new LabelInstr(nullLabel))
                 .cons(new Goto(endLabel))
-                .cons(new IfGoto(obj, nullLabel))));
+                .cons(new IfGoto(obj, nullLabel)));
+    }
+
+    TransEnv idxCheck(Identifier arr, Identifier idx) {
+        final var u1 = genSym();
+        final var tmp = u1.a;
+        final var u2 = u1.b.genLabel();
+        final var oobLabel = u2.a;
+        final var u3 = u2.b.genLabel();
+        final var endLabel = u3.a;
+        final var env = u3.b;
+
+        return env.join(List.<Instruction>nul()
+            .cons(new LabelInstr(endLabel))
+            .cons(new ErrorMessage("\"array index out of bounds\""))
+            .cons(new LabelInstr(oobLabel))
+            .cons(new Goto(endLabel))
+            .cons(new IfGoto(tmp, oobLabel))
+            .cons(new LessThan(tmp, idx, tmp))
+            .cons(new Load(tmp, arr, 0)));
     }
 
     static final Identifier thisSym = new Identifier("this");
