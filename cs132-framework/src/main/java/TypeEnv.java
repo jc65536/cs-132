@@ -192,7 +192,8 @@ class Field extends Variable {
         final var u = env.genSym();
         final var tSym = u.a;
         final var env1 = u.b;
-        return new T2<>(tSym, env1.join(List.of(new Load(tSym, TransEnv.thisSym, offset))));
+        return new T2<>(tSym, env1.join(List.<Instruction>nul()
+                .cons(new Load(tSym, TransEnv.thisSym, offset))));
     }
 
     @Override
@@ -394,6 +395,21 @@ class TransEnv {
 
     TransEnv join(List<Instruction> c) {
         return new TransEnv(code.join(c), k);
+    }
+
+    <T> T nullCheck(Identifier obj, Function<TransEnv, T> cont) {
+        final var u1 = genLabel();
+        final var nullLabel = u1.a;
+        final var u2 = u1.b.genLabel();
+        final var endLabel = u2.a;
+        final var env = u2.b;
+
+        return cont.apply(env.join(List.<Instruction>nul()
+                .cons(new LabelInstr(endLabel))
+                .cons(new ErrorMessage("\"null pointer\""))
+                .cons(new LabelInstr(nullLabel))
+                .cons(new Goto(endLabel))
+                .cons(new IfGoto(obj, nullLabel))));
     }
 
     static final Identifier thisSym = new Identifier("this");
