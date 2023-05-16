@@ -1,25 +1,12 @@
 import java.util.*;
 
-import cs132.IR.sparrow.Alloc;
-import cs132.IR.sparrow.Block;
-import cs132.IR.sparrow.FunctionDecl;
-import cs132.IR.sparrow.Instruction;
-import cs132.IR.sparrow.Move_Id_Integer;
-import cs132.IR.sparrow.Program;
-import cs132.IR.token.FunctionName;
+import cs132.IR.sparrow.*;
+import cs132.IR.token.*;
 import cs132.IR.token.Identifier;
 import cs132.minijava.*;
 import cs132.minijava.syntaxtree.MainClass;
 
 public class J2S {
-    static final boolean DEBUG = true;
-
-    static <T> Optional<T> error(String s) {
-        System.out.println(DEBUG ? s : "Type error");
-        System.exit(1);
-        return Optional.empty();
-    }
-
     static Instruction comment(String s) {
         return new Move_Id_Integer(new Identifier("__COMMENT__" + s), 0);
     }

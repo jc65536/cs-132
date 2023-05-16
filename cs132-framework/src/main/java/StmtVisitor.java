@@ -58,7 +58,7 @@ public class StmtVisitor extends GJDepthFirst<TransEnv, T2<TypeEnv, TransEnv>> {
 
         return rEnv.join(List.<Instruction>nul()
                 .cons(new LabelInstr(endLabel))
-                .cons(new ErrorMessage("\"array index out of bounds\""))
+                .cons(new ErrorMessage("\"array index out of bounds (" + errLabel.toString() + ")\""))
                 .cons(new LabelInstr(errLabel))
                 .cons(new Goto(endLabel))
                 .cons(new Store(arrSym, 4, rSym))

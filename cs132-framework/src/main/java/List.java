@@ -1,11 +1,6 @@
 import java.util.*;
 import java.util.function.*;
 
-@FunctionalInterface
-interface F3<A, B, C, R> {
-    R apply(A a, B b, C c);
-}
-
 class T2<A, B> {
     final A a;
     final B b;
@@ -61,10 +56,6 @@ interface ListInt<T> {
 
     <U> boolean equals(List<U> other, BiFunction<T, U, Boolean> f);
 
-    <U> Optional<List<U>> mapFalliable(Function<T, Optional<U>> f);
-
-    <U> Optional<U> foldFalliable(U acc, BiFunction<U, T, Optional<U>> f);
-
     List<T> join(List<T> other);
 
     int count();
@@ -119,11 +110,6 @@ public class List<T> extends Lazy<ListElem<T>> implements ListInt<T> {
     }
 
     @Override
-    public <U> Optional<U> foldFalliable(U acc, BiFunction<U, T, Optional<U>> f) {
-        return get().foldFalliable(acc, f);
-    }
-
-    @Override
     public <U> U fold(U acc, BiFunction<U, T, U> f) {
         return get().fold(acc, f);
     }
@@ -148,11 +134,6 @@ public class List<T> extends Lazy<ListElem<T>> implements ListInt<T> {
     @Override
     public List<T> filter(Predicate<? super T> p) {
         return new List<>(bind(l -> l.filter(p)));
-    }
-
-    @Override
-    public <U> Optional<List<U>> mapFalliable(Function<T, Optional<U>> f) {
-        return get().mapFalliable(f);
     }
 
     private final Lazy<Integer> count = new Lazy<>(() -> get().count());
@@ -215,11 +196,6 @@ class Null<T> extends ListElem<T> {
     }
 
     @Override
-    public <U> Optional<U> foldFalliable(U acc, BiFunction<U, T, Optional<U>> f) {
-        return Optional.of(acc);
-    }
-
-    @Override
     public <U> U fold(U acc, BiFunction<U, T, U> f) {
         return acc;
     }
@@ -237,11 +213,6 @@ class Null<T> extends ListElem<T> {
     @Override
     public List<T> filter(Predicate<? super T> p) {
         return List.nul();
-    }
-
-    @Override
-    public <U> Optional<List<U>> mapFalliable(Function<T, Optional<U>> f) {
-        return Optional.of(List.nul());
     }
 
     @Override
@@ -269,7 +240,7 @@ class Null<T> extends ListElem<T> {
         return List.nul();
     }
 }
-    
+
 class Pair<T> extends ListElem<T> {
     final T val;
     final List<T> next;
@@ -299,11 +270,6 @@ class Pair<T> extends ListElem<T> {
     }
 
     @Override
-    public <U> Optional<U> foldFalliable(U acc, BiFunction<U, T, Optional<U>> f) {
-        return f.apply(acc, val).flatMap(v -> next.foldFalliable(v, f));
-    }
-
-    @Override
     public <U> U fold(U acc, BiFunction<U, T, U> f) {
         return next.fold(f.apply(acc, val), f);
     }
@@ -324,11 +290,6 @@ class Pair<T> extends ListElem<T> {
             return next.filter(p).cons(val);
         else
             return next.filter(p);
-    }
-
-    @Override
-    public <U> Optional<List<U>> mapFalliable(Function<T, Optional<U>> f) {
-        return f.apply(val).flatMap(v -> next.mapFalliable(f).map(l -> l.cons(v)));
     }
 
     @Override

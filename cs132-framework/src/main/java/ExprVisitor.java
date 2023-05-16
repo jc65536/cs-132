@@ -147,7 +147,7 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
         final var t = n.f4.accept(new FoldVisitor<>(new ExprVisitor(),
                 (u, ret) -> new T3<>(typeEnv, ret.c, u.c.cons(ret.a))),
                 new T3<>(typeEnv, objEnv, List.<Identifier>nul()));
-        final var args = t.c.cons(TransEnv.thisSym()).cons(TransEnv.statSym);
+        final var args = t.c.reverse().cons(objSym).cons(TransEnv.statSym);
         final var argsEnv = t.b;
 
         final var m = objClass.methodLookup(n.f2.f0.tokenImage).get();

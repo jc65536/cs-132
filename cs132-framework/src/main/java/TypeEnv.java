@@ -1,19 +1,9 @@
 import java.util.*;
 import java.util.function.*;
 
-import cs132.IR.sparrow.Add;
-import cs132.IR.sparrow.Alloc;
-import cs132.IR.sparrow.Call;
-import cs132.IR.sparrow.FunctionDecl;
-import cs132.IR.sparrow.Instruction;
-import cs132.IR.sparrow.Load;
-import cs132.IR.sparrow.Move_Id_FuncName;
-import cs132.IR.sparrow.Move_Id_Id;
-import cs132.IR.sparrow.Move_Id_Integer;
-import cs132.IR.sparrow.Store;
-import cs132.IR.token.FunctionName;
+import cs132.IR.sparrow.*;
+import cs132.IR.token.*;
 import cs132.IR.token.Identifier;
-import cs132.IR.token.Label;
 import cs132.minijava.syntaxtree.*;
 
 interface Type {
@@ -69,7 +59,7 @@ class Vtable {
     }
 
     TransEnv write(Identifier stat, Identifier tSym, TransEnv env) {
-        env = env.join(List.of(J2S.comment("Vtable_for_" + target.name)));
+        env = env.join(List.of(J2S.comment(String.format("Vtable_for_%s_offset_%d", target.name, offset.get()))));
 
         return overrides.fold(new T2<>(offset.get(), env), (acc, m) -> {
             final var offset = acc.a;
@@ -177,23 +167,28 @@ class Class extends Named implements Type {
         final var t1 = argu.genSym();
         final var obj = t1.a;
         final var t2 = t1.b.genSym();
-        final var tSym = t2.a;
-        final var env = t2.b;
-        return new T2<>(obj, initialize(obj, tSym,
-                env.join(List.<Instruction>of(new Alloc(obj, tSym))
-                        .cons(new Move_Id_Integer(tSym, objSize.get())))));
+        final var tObj = t2.a;
+        final var t3 = t2.b.genSym();
+        final var tSym = t3.a;
+        final var env = t3.b;
+        return new T2<>(obj, initialize(tObj, tSym,
+                env.join(List.<Instruction>nul()
+                        .cons(new Move_Id_Id(tObj, obj))
+                        .cons(new Alloc(obj, tSym))
+                        .cons(new Move_Id_Integer(tSym, objSize.get()))),
+                vtables.get()));
     }
 
-    TransEnv initialize(Identifier obj, Identifier tSym, TransEnv argu) {
-        final var env = superClass().map(sc -> sc.initialize(obj, tSym, argu)).orElse(argu);
+    TransEnv initialize(Identifier obj, Identifier tSym, TransEnv argu, List<Vtable> vtables) {
+        final var env = superClass().map(sc -> sc.initialize(obj, tSym, argu, vtables)).orElse(argu);
 
-        return vtables.get()
-                .find(vt -> vt.target.equals(this))
+        return vtables.find(vt -> vt.target.equals(this))
                 .map(vt -> env.join(List.<Instruction>nul()
                         .cons(new Add(obj, obj, tSym))
                         .cons(new Move_Id_Integer(tSym, ownObjSize.get()))
                         .cons(new Store(obj, 0, tSym))
-                        .cons(new Load(tSym, TransEnv.statSym, vt.offset.get()))))
+                        .cons(new Add(tSym, TransEnv.statSym, tSym))
+                        .cons(new Move_Id_Integer(tSym, vt.offset.get()))))
                 .orElse(env);
     }
 }
@@ -243,7 +238,10 @@ class Local extends Variable {
 
     @Override
     T2<Identifier, TransEnv> toTemp(TransEnv argu) {
-        return new T2<>(sym, argu);
+        final var t = argu.genSym();
+        final var sym = t.a;
+        final var env = t.b;
+        return new T2<>(sym, env.join(List.of(new Move_Id_Id(sym, this.sym))));
     }
 
     @Override
@@ -320,7 +318,8 @@ class Method extends Named {
             case OVERRIDES:
                 return new T2<>(eSym, env.join(List.<Instruction>nul()
                         .cons(new Call(eSym, eSym, args.toJavaList()))
-                        .cons(new Load(eSym, eSym, 0))
+                        .cons(new Load(eSym, eSym,
+                                c.vtables.get().head().get().overrides.firstIndex(this::equals).get()))
                         .cons(new Load(eSym, thisSym, c.ownObjOffset.get()))));
             case UNIQUE:
             default:
@@ -365,9 +364,7 @@ public class TypeEnv {
     }
 
     Class classLookup(String name) {
-        return classes.find(c -> c.name.equals(name))
-                .or(() -> J2S.error("Unknown class " + name))
-                .get();
+        return classes.find(c -> c.name.equals(name)).get();
     }
 
     TypeEnv addLocals(List<Local> locals) {
@@ -377,8 +374,7 @@ public class TypeEnv {
     Optional<Variable> symLookup(String name) {
         return locals.find(s -> s.name.equals(name))
                 .<Variable>map(x -> x)
-                .or(() -> currClass.flatMap(c -> c.fieldLookup(name)))
-                .or(() -> J2S.error("Unknown symbol " + name));
+                .or(() -> currClass.flatMap(c -> c.fieldLookup(name)));
     }
 }
 
