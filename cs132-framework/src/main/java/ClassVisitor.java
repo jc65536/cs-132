@@ -13,7 +13,7 @@ class MethodVisitor extends GJDepthFirst<Method, T2<Class, TypeEnv>> {
         final var name = n.f2.f0.tokenImage;
         final var locals = n.f7.accept(new ListVisitor<>(new LocalVisitor()), typeEnv);
         final var retType = n.f1.accept(new TypeVisitor(), typeEnv);
-        return new Method(name, params, locals, retType, n,
+        return new Method(name, params, locals, retType, n, c,
                 (m) -> c.superClass()
                         .flatMap(sc -> sc.methodLookup(name))
                         .<OverrideStatus>map(sm -> m.new Overrides(sm.status.get().origClass()))
@@ -21,8 +21,7 @@ class MethodVisitor extends GJDepthFirst<Method, T2<Class, TypeEnv>> {
                                 .flatMap(cls -> cls.methods.get())
                                 .find(m::nameEquals)
                                 .<OverrideStatus>map(u -> m.new Overridden())
-                                .orElseGet(() -> m.new Unique())),
-                c);
+                                .orElseGet(() -> m.new Unique())));
     }
 }
 
@@ -76,7 +75,7 @@ public class ClassVisitor extends GJDepthFirst<Function<Lazy<Integer>, Class>, L
 
                     return overridingMethods.head()
                             .map(u -> new Vtable(vt.target, vt.overrides
-                                    .map(tu -> overridingMethods.find(tu.a::nameEquals).orElse(tu.a)),
+                                    .map(m -> overridingMethods.find(m::nameEquals).orElse(m)),
                                     offset))
                             .map(newVt -> new T2<>(offset + newVt.size, list.cons(newVt)))
                             .orElse(new T2<>(offset, list.cons(vt)));

@@ -1,5 +1,10 @@
 class M {
     public static void main(String[] args) {
+        A a;
+        a = new B();
+        System.out.println(a.a1());
+        a = new C();
+        System.out.println(a.a1());
     }
 }
 
@@ -30,12 +35,6 @@ class C extends B {
 
     public int b1() {
         return 1;
-    }
-}
-
-class D extends B {
-    public int d1() {
-        return 0;
     }
 }
 

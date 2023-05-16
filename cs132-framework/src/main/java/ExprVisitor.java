@@ -1,5 +1,3 @@
-import java.util.function.*;
-
 import cs132.IR.sparrow.*;
 import cs132.IR.token.Identifier;
 import cs132.minijava.syntaxtree.*;
@@ -16,129 +14,91 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
     public T3<Identifier, Type, TransEnv> visit(AndExpression n, T2<TypeEnv, TransEnv> argu) {
         final var typeEnv = argu.a;
         final var transEnv = argu.b;
+        return transEnv.genSym((res, env1) -> env1.genLabel((end, env2) -> {
+            final var lExpr = n.f0.accept(this, new T2<>(typeEnv, env2));
+            final var lSym = lExpr.a;
+            final var lEnv = lExpr.c;
 
-        final var t1 = transEnv.genSym();
-        final var eSym = t1.a;
-        final var t2 = t1.b.genLabel();
-        final var endLabel = t2.a;
-        final var env = t2.b;
+            // Short circuit
+            final var scEnv = lEnv.join(List.<Instruction>nul()
+                    .cons(new IfGoto(lSym, end))
+                    .cons(new Move_Id_Id(res, lSym)));
 
-        final var lExpr = n.f0.accept(this, new T2<>(typeEnv, env));
-        final var lSym = lExpr.a;
-        final var lEnv = lExpr.c;
+            final var rExpr = n.f2.accept(this, new T2<>(typeEnv, scEnv));
+            final var rSym = rExpr.a;
+            final var rEnv = rExpr.c;
 
-        // Short circuit
-        final var scEnv = lEnv.join(List.<Instruction>nul()
-                .cons(new IfGoto(lSym, endLabel))
-                .cons(new Move_Id_Id(eSym, lSym)));
+            final var zEnv = rEnv.join(List.<Instruction>nul()
+                    .cons(new LabelInstr(end))
+                    .cons(new Move_Id_Id(res, rSym)));
 
-        final var rExpr = n.f2.accept(this, new T2<>(typeEnv, scEnv));
-        final var rSym = rExpr.a;
-        final var rEnv = rExpr.c;
-
-        final var zEnv = rEnv.join(List.<Instruction>nul()
-                .cons(new LabelInstr(endLabel))
-                .cons(new Move_Id_Id(eSym, rSym)));
-
-        return new T3<>(eSym, Prim.BOOL, zEnv);
+            return new T3<>(res, Prim.BOOL, zEnv);
+        }));
     }
 
     @Override
     public T3<Identifier, Type, TransEnv> visit(CompareExpression n, T2<TypeEnv, TransEnv> argu) {
-        final var typeEnv = argu.a;
-        final var transEnv = argu.b;
-
-        final var t = transEnv.genSym();
-        final var eSym = t.a;
-        final var env = t.b;
-        final var zEnv = visitBinOp(n.f0, n.f2, new T2<>(typeEnv, env),
-                (lSym, rSym) -> List.of(new LessThan(eSym, lSym, rSym)));
-
-        return new T3<>(eSym, Prim.BOOL, zEnv);
+        return visitBinOp(n.f0, n.f2, argu, LessThan::new);
     }
 
     @Override
     public T3<Identifier, Type, TransEnv> visit(PlusExpression n, T2<TypeEnv, TransEnv> argu) {
-        final var typeEnv = argu.a;
-        final var transEnv = argu.b;
-        final var t = transEnv.genSym();
-        final var eSym = t.a;
-        final var env = t.b;
-        final var zEnv = visitBinOp(n.f0, n.f2, new T2<>(typeEnv, env),
-                (lSym, rSym) -> List.of(new Add(eSym, lSym, rSym)));
-        return new T3<>(eSym, Prim.INT, zEnv);
+        return visitBinOp(n.f0, n.f2, argu, Add::new);
     }
 
     @Override
     public T3<Identifier, Type, TransEnv> visit(MinusExpression n, T2<TypeEnv, TransEnv> argu) {
-        final var typeEnv = argu.a;
-        final var transEnv = argu.b;
-        final var t = transEnv.genSym();
-        final var eSym = t.a;
-        final var env = t.b;
-        final var zEnv = visitBinOp(n.f0, n.f2, new T2<>(typeEnv, env),
-                (lSym, rSym) -> List.of(new Subtract(eSym, lSym, rSym)));
-        return new T3<>(eSym, Prim.INT, zEnv);
+        return visitBinOp(n.f0, n.f2, argu, Subtract::new);
     }
 
     @Override
     public T3<Identifier, Type, TransEnv> visit(TimesExpression n, T2<TypeEnv, TransEnv> argu) {
-        final var typeEnv = argu.a;
-        final var transEnv = argu.b;
-        final var t = transEnv.genSym();
-        final var eSym = t.a;
-        final var env = t.b;
-        final var zEnv = visitBinOp(n.f0, n.f2, new T2<>(typeEnv, env),
-                (lSym, rSym) -> List.of(new Multiply(eSym, lSym, rSym)));
-        return new T3<>(eSym, Prim.INT, zEnv);
+        return visitBinOp(n.f0, n.f2, argu, Multiply::new);
     }
 
     @Override
     public T3<Identifier, Type, TransEnv> visit(ArrayLookup n, T2<TypeEnv, TransEnv> argu) {
         final var typeEnv = argu.a;
         final var transEnv = argu.b;
-        final var u = transEnv.genSym();
-        final var eSym = u.a;
-        final var env = u.b;
+        return transEnv.genSym((res, env) -> {
+            final var arrExpr = n.f0.accept(this, new T2<>(typeEnv, env));
+            final var arrSym = arrExpr.a;
+            final var arrEnv = arrExpr.c;
 
-        final var arrExpr = n.f0.accept(this, new T2<>(typeEnv, env));
-        final var arrSym = arrExpr.a;
-        final var arrEnv = arrExpr.c;
+            final var arrChkEnv = arrEnv.nullCheck(arrSym);
 
-        final var arrChkEnv = arrEnv.nullCheck(arrSym);
+            final var idxExpr = n.f2.accept(this, new T2<>(typeEnv, arrChkEnv));
+            final var idxSym = idxExpr.a;
+            final var idxEnv = idxExpr.c;
 
-        final var idxExpr = n.f2.accept(this, new T2<>(typeEnv, arrChkEnv));
-        final var idxSym = idxExpr.a;
-        final var idxEnv = idxExpr.c;
+            final var idxChkEnv = idxEnv.idxCheck(arrSym, idxSym);
 
-        final var idxChkEnv = idxEnv.idxCheck(arrSym, idxSym);
+            final var zEnv = idxChkEnv.join(List.<Instruction>nul()
+                    .cons(new Load(res, arrSym, 4))
+                    .cons(new Add(arrSym, arrSym, idxSym))
+                    .cons(new Multiply(idxSym, idxSym, res))
+                    .cons(new Move_Id_Integer(res, 4)));
 
-        final var zEnv = idxChkEnv.join(List.<Instruction>nul()
-                .cons(new Load(eSym, arrSym, 4))
-                .cons(new Add(arrSym, arrSym, idxSym))
-                .cons(new Multiply(idxSym, idxSym, eSym))
-                .cons(new Move_Id_Integer(eSym, 4)));
+            return new T3<>(res, Prim.INT, zEnv);
+        });
 
-        return new T3<>(eSym, Prim.INT, zEnv);
     }
 
     @Override
     public T3<Identifier, Type, TransEnv> visit(ArrayLength n, T2<TypeEnv, TransEnv> argu) {
         final var typeEnv = argu.a;
         final var transEnv = argu.b;
-        final var u = transEnv.genSym();
-        final var eSym = u.a;
-        final var env = u.b;
+        return transEnv.genSym((res, env) -> {
+            final var arrExpr = n.f0.accept(this, new T2<>(typeEnv, env));
+            final var arrSym = arrExpr.a;
+            final var arrEnv = arrExpr.c;
 
-        final var arrExpr = n.f0.accept(this, new T2<>(typeEnv, env));
-        final var arrSym = arrExpr.a;
-        final var arrEnv = arrExpr.c;
+            final var arrChkEnv = arrEnv.nullCheck(arrSym);
 
-        final var arrChkEnv = arrEnv.nullCheck(arrSym);
+            final var zEnv = arrChkEnv.join(List.of(new Load(res, arrSym, 0)));
 
-        final var zEnv = arrChkEnv.join(List.of(new Load(eSym, arrSym, 0)));
-
-        return new T3<>(eSym, Prim.INT, zEnv);
+            return new T3<>(res, Prim.INT, zEnv);
+        });
     }
 
     @Override
@@ -172,27 +132,17 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
 
     @Override
     public T3<Identifier, Type, TransEnv> visit(IntegerLiteral n, T2<TypeEnv, TransEnv> argu) {
-        final var num = Integer.parseInt(n.f0.tokenImage);
-        final var t = argu.b.genSym();
-        final var eSym = t.a;
-        final var env = t.b;
-        return new T3<>(eSym, Prim.BOOL, env.join(List.of(new Move_Id_Integer(eSym, num))));
+        return visitLiteral(Integer.parseInt(n.f0.tokenImage), argu);
     }
 
     @Override
     public T3<Identifier, Type, TransEnv> visit(TrueLiteral n, T2<TypeEnv, TransEnv> argu) {
-        final var t = argu.b.genSym();
-        final var eSym = t.a;
-        final var env = t.b;
-        return new T3<>(eSym, Prim.BOOL, env.join(List.of(new Move_Id_Integer(eSym, 1))));
+        return visitLiteral(1, argu);
     }
 
     @Override
     public T3<Identifier, Type, TransEnv> visit(FalseLiteral n, T2<TypeEnv, TransEnv> argu) {
-        final var t = argu.b.genSym();
-        final var eSym = t.a;
-        final var env = t.b;
-        return new T3<>(eSym, Prim.BOOL, env.join(List.of(new Move_Id_Integer(eSym, 0))));
+        return visitLiteral(0, argu);
     }
 
     @Override
@@ -217,40 +167,32 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
     public T3<Identifier, Type, TransEnv> visit(ArrayAllocationExpression n, T2<TypeEnv, TransEnv> argu) {
         final var typeEnv = argu.a;
         final var transEnv = argu.b;
-        final var u1 = transEnv.genSym();
-        final var eSym = u1.a;
-        final var u2 = u1.b.genSym();
-        final var sizeSym = u2.a;
-        final var u3 = u2.b.genLabel();
-        final var goodLabel = u3.a;
-        final var env = u3.b;
-        final var lenExpr = n.f3.accept(this, new T2<>(typeEnv, env));
-        final var lenSym = lenExpr.a;
-        final var lenEnv = lenExpr.c;
-        final var zEnv = lenEnv.join(List.<Instruction>nul()
-                .cons(new Store(eSym, 0, lenSym))
-                .cons(new Alloc(eSym, sizeSym))
-                .cons(new Multiply(sizeSym, sizeSym, eSym))
-                .cons(new Move_Id_Integer(eSym, 4))
-                .cons(new Add(sizeSym, lenSym, eSym))
-                .cons(new Move_Id_Integer(eSym, 1))
-                .cons(new LabelInstr(goodLabel))
-                .cons(new ErrorMessage("\"array index out of bounds\""))
-                .cons(new IfGoto(eSym, goodLabel))
-                .cons(new LessThan(eSym, lenSym, eSym))
-                .cons(new Move_Id_Integer(eSym, 0)));
-        return new T3<>(eSym, Prim.ARR, zEnv);
+        return transEnv.genSym((res, env1) -> env1.genSym((size, env2) -> env2.genLabel((ok, env3) -> {
+            final var lenExpr = n.f3.accept(this, new T2<>(typeEnv, env3));
+            final var lenSym = lenExpr.a;
+            final var lenEnv = lenExpr.c;
+            final var zEnv = lenEnv.join(List.<Instruction>nul()
+                    .cons(new Store(res, 0, lenSym))
+                    .cons(new Alloc(res, size))
+                    .cons(new Multiply(size, size, res))
+                    .cons(new Move_Id_Integer(res, 4))
+                    .cons(new Add(size, lenSym, res))
+                    .cons(new Move_Id_Integer(res, 1))
+                    .cons(new LabelInstr(ok))
+                    .cons(new ErrorMessage("\"array index out of bounds\""))
+                    .cons(new IfGoto(res, ok))
+                    .cons(new LessThan(res, lenSym, res))
+                    .cons(new Move_Id_Integer(res, 0)));
+            return new T3<>(res, Prim.ARR, zEnv);
+        })));
     }
 
     @Override
     public T3<Identifier, Type, TransEnv> visit(AllocationExpression n, T2<TypeEnv, TransEnv> argu) {
         final var typeEnv = argu.a;
         final var transEnv = argu.b;
-
         final var className = n.f1.f0.tokenImage;
-
         final var cls = typeEnv.classLookup(className);
-
         final var t = cls.alloc(transEnv);
         return new T3<>(t.a, cls, t.b);
     }
@@ -259,16 +201,15 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
     public T3<Identifier, Type, TransEnv> visit(NotExpression n, T2<TypeEnv, TransEnv> argu) {
         final var typeEnv = argu.a;
         final var transEnv = argu.b;
-        final var t = transEnv.genSym();
-        final var eSym = t.a;
-        final var env = t.b;
-        final var opdExpr = n.f1.accept(this, new T2<>(typeEnv, env));
-        final var opdSym = opdExpr.a;
-        final var opdEnv = opdExpr.c;
-        final var zEnv = opdEnv.join(List.<Instruction>nul()
-                .cons(new Subtract(eSym, eSym, opdSym))
-                .cons(new Move_Id_Integer(eSym, 1)));
-        return new T3<>(eSym, Prim.BOOL, zEnv);
+        return transEnv.genSym((res, env) -> {
+            final var opdExpr = n.f1.accept(this, new T2<>(typeEnv, env));
+            final var opdSym = opdExpr.a;
+            final var opdEnv = opdExpr.c;
+            final var zEnv = opdEnv.join(List.<Instruction>nul()
+                    .cons(new Subtract(res, res, opdSym))
+                    .cons(new Move_Id_Integer(res, 1)));
+            return new T3<>(res, Prim.BOOL, zEnv);
+        });
     }
 
     @Override
@@ -281,15 +222,23 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
         return n.f1.accept(this, argu);
     }
 
-    TransEnv visitBinOp(Node lhs, Node rhs, T2<TypeEnv, TransEnv> argu,
-            BiFunction<Identifier, Identifier, List<Instruction>> cont) {
+    T3<Identifier, Type, TransEnv> visitBinOp(Node lhs, Node rhs, T2<TypeEnv, TransEnv> argu,
+            F3<Identifier, Identifier, Identifier, Instruction> mkInstr) {
         final var typeEnv = argu.a;
-        final var lExpr = lhs.accept(this, argu);
-        final var lSym = lExpr.a;
-        final var lEnv = lExpr.c;
-        final var rExpr = rhs.accept(this, new T2<>(typeEnv, lEnv));
-        final var rSym = rExpr.a;
-        final var rEnv = rExpr.c;
-        return rEnv.join(cont.apply(lSym, rSym));
+        final var transEnv = argu.b;
+        return transEnv.genSym((res, env) -> {
+            final var lExpr = lhs.accept(this, argu);
+            final var lSym = lExpr.a;
+            final var lEnv = lExpr.c;
+            final var rExpr = rhs.accept(this, new T2<>(typeEnv, lEnv));
+            final var rSym = rExpr.a;
+            final var rEnv = rExpr.c;
+            return new T3<>(res, Prim.INT, rEnv.join(List.of(mkInstr.apply(res, lSym, rSym))));
+        });
+    }
+
+    T3<Identifier, Type, TransEnv> visitLiteral(int num, T2<TypeEnv, TransEnv> argu) {
+        return argu.b.genSym((res, env) -> new T3<>(res, Prim.INT,
+                env.join(List.of(new Move_Id_Integer(res, num)))));
     }
 }

@@ -31,79 +31,69 @@ public class StmtVisitor extends GJDepthFirst<TransEnv, T2<TypeEnv, TransEnv>> {
     public TransEnv visit(ArrayAssignmentStatement n, T2<TypeEnv, TransEnv> argu) {
         final var typeEnv = argu.a;
         final var transEnv = argu.b;
-        final var u = transEnv.genSym();
-        final var tSym = u.a;
-        final var env = u.b;
+        return transEnv.genSym((tmp, env) -> {
+            final var arrExpr = n.f0.accept(new ExprVisitor(), new T2<>(typeEnv, env));
+            final var arrSym = arrExpr.a;
+            final var arrEnv = arrExpr.c;
 
-        final var arrExpr = n.f0.accept(new ExprVisitor(), new T2<>(typeEnv, env));
-        final var arrSym = arrExpr.a;
-        final var arrEnv = arrExpr.c;
+            final var arrChkEnv = arrEnv.nullCheck(arrSym);
 
-        final var arrChkEnv = arrEnv.nullCheck(arrSym);
+            final var idxExpr = n.f2.accept(new ExprVisitor(), new T2<>(typeEnv, arrChkEnv));
+            final var idxSym = idxExpr.a;
+            final var idxEnv = idxExpr.c;
 
-        final var idxExpr = n.f2.accept(new ExprVisitor(), new T2<>(typeEnv, arrChkEnv));
-        final var idxSym = idxExpr.a;
-        final var idxEnv = idxExpr.c;
+            // Index check
+            final var idxChkEnv = idxEnv.idxCheck(arrSym, idxSym);
 
-        // Index check
-        final var idxChkEnv = idxEnv.idxCheck(arrSym, idxSym);
+            final var rExpr = n.f5.accept(new ExprVisitor(), new T2<>(typeEnv, idxChkEnv));
+            final var rSym = rExpr.a;
+            final var rEnv = rExpr.c;
 
-        final var rExpr = n.f5.accept(new ExprVisitor(), new T2<>(typeEnv, idxChkEnv));
-        final var rSym = rExpr.a;
-        final var rEnv = rExpr.c;
-
-        return rEnv.join(List.<Instruction>nul()
-                .cons(new Store(arrSym, 4, rSym))
-                .cons(new Add(arrSym, arrSym, idxSym))
-                .cons(new Multiply(idxSym, idxSym, tSym))
-                .cons(new Move_Id_Integer(tSym, 4)));
+            return rEnv.join(List.<Instruction>nul()
+                    .cons(new Store(arrSym, 4, rSym))
+                    .cons(new Add(arrSym, arrSym, idxSym))
+                    .cons(new Multiply(idxSym, idxSym, tmp))
+                    .cons(new Move_Id_Integer(tmp, 4)));
+        });
     }
 
     @Override
     public TransEnv visit(IfStatement n, T2<TypeEnv, TransEnv> argu) {
         final var typeEnv = argu.a;
         final var transEnv = argu.b;
-        final var t1 = transEnv.genLabel();
-        final var elseLabel = t1.a;
-        final var t2 = t1.b.genLabel();
-        final var endLabel = t2.a;
-        final var env = t2.b;
+        return transEnv.genLabel((fail, env1) -> env1.genLabel((end, env2) -> {
+            final var condExpr = n.f2.accept(new ExprVisitor(), new T2<>(typeEnv, env2));
+            final var condSym = condExpr.a;
+            final var condEnv = condExpr.c;
 
-        final var condExpr = n.f2.accept(new ExprVisitor(), new T2<>(typeEnv, env));
-        final var condSym = condExpr.a;
-        final var condEnv = condExpr.c;
+            final var jmpEnv = condEnv.join(List.of(new IfGoto(condSym, fail)));
 
-        final var jmpEnv = condEnv.join(List.of(new IfGoto(condSym, elseLabel)));
+            final var ifEnv = n.f4.accept(this, new T2<>(typeEnv, jmpEnv))
+                    .join(List.<Instruction>nul()
+                            .cons(new LabelInstr(fail))
+                            .cons(new Goto(end)));
 
-        final var ifEnv = n.f4.accept(this, new T2<>(typeEnv, jmpEnv))
-                .join(List.<Instruction>nul()
-                        .cons(new LabelInstr(elseLabel))
-                        .cons(new Goto(endLabel)));
-
-        return n.f6.accept(this, new T2<>(typeEnv, ifEnv))
-                .join(List.of(new LabelInstr(endLabel)));
+            return n.f6.accept(this, new T2<>(typeEnv, ifEnv))
+                    .join(List.of(new LabelInstr(end)));
+        }));
     }
 
     @Override
     public TransEnv visit(WhileStatement n, T2<TypeEnv, TransEnv> argu) {
         final var typeEnv = argu.a;
         final var transEnv = argu.b;
-        final var t1 = transEnv.genLabel();
-        final var loopLabel = t1.a;
-        final var t2 = t1.b.genLabel();
-        final var endLabel = t2.a;
-        final var env = t2.b;
+        return transEnv.genLabel((start, env1) -> env1.genLabel((end, env2) -> {
+            final var condExpr = n.f2.accept(new ExprVisitor(),
+                    new T2<>(typeEnv, env2.join(List.of(new LabelInstr(start)))));
+            final var condSym = condExpr.a;
+            final var condEnv = condExpr.c;
 
-        final var condExpr = n.f2.accept(new ExprVisitor(),
-                new T2<>(typeEnv, env.join(List.of(new LabelInstr(loopLabel)))));
-        final var condSym = condExpr.a;
-        final var condEnv = condExpr.c;
+            final var jmpEnv = condEnv.join(List.of(new IfGoto(condSym, end)));
 
-        final var jmpEnv = condEnv.join(List.of(new IfGoto(condSym, endLabel)));
-
-        return n.f4.accept(this, new T2<>(typeEnv, jmpEnv))
-                .join(List.<Instruction>of(new LabelInstr(endLabel))
-                        .cons(new Goto(loopLabel)));
+            return n.f4.accept(this, new T2<>(typeEnv, jmpEnv))
+                    .join(List.<Instruction>of(new LabelInstr(end))
+                            .cons(new Goto(start)));
+        }));
     }
 
     @Override

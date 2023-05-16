@@ -19,28 +19,26 @@ public class J2S {
                 .map(vt -> vt.offset + vt.size)
                 .orElse(0);
 
-        final var t1 = new TransEnv(List.nul(), 0).genSym();
-        final var tSym = t1.a;
-        final var transEnv = t1.b;
+        return new TransEnv(List.nul(), 0).genSym((tmp, transEnv) -> {
+            final var statEnv = transEnv.join(List.<Instruction>nul()
+                    .cons(new Alloc(TransEnv.statSym, tmp))
+                    .cons(new Move_Id_Integer(tmp, statSize)));
 
-        final var statEnv = transEnv.join(List.<Instruction>nul()
-                .cons(new Alloc(TransEnv.statSym, tSym))
-                .cons(new Move_Id_Integer(tSym, statSize)));
+            final var vtableEnv = typeEnv.vtables.get().fold(statEnv,
+                    (acc, vt) -> vt.write(TransEnv.statSym, tmp, acc));
 
-        final var vtableEnv = typeEnv.vtables.get().fold(statEnv,
-                (acc, vt) -> vt.write(TransEnv.statSym, tSym, acc));
+            final var locals = main.f14.accept(new ListVisitor<>(new LocalVisitor()), typeEnv);
 
-        final var locals = main.f14.accept(new ListVisitor<>(new LocalVisitor()), typeEnv);
+            final var newTypeEnv = typeEnv.addLocals(locals);
 
-        final var newTypeEnv = typeEnv.addLocals(locals);
+            final var bodyEnv = main.f15.accept(new FoldVisitor<>(new StmtVisitor(),
+                    (acc, env) -> new T2<>(newTypeEnv, env)),
+                    new T2<>(newTypeEnv, vtableEnv)).b;
 
-        final var bodyEnv = main.f15.accept(new FoldVisitor<>(new StmtVisitor(),
-                (acc, env) -> new T2<>(newTypeEnv, env)),
-                new T2<>(newTypeEnv, vtableEnv)).b;
-
-        return new FunctionDecl(new FunctionName("main"),
-                List.<Identifier>nul().toJavaList(),
-                new Block(bodyEnv.code.toJavaList(), TransEnv.statSym));
+            return new FunctionDecl(new FunctionName("main"),
+                    List.<Identifier>nul().toJavaList(),
+                    new Block(bodyEnv.code.toJavaList(), TransEnv.statSym));
+        });
     }
 
     public static void main(String[] args) throws Exception {
@@ -62,16 +60,16 @@ public class J2S {
         }).get();
 
         // env.classes.map(c -> {
-        //     System.out.printf("Class %s; %d overridden; %d overriding\n", c.name,
-        //             c.overriddenMethods.get().count(),
-        //             c.overridingMethods.get().count());
+        // System.out.printf("Class %s; %d overridden; %d overriding\n", c.name,
+        // c.overriddenMethods.get().count(),
+        // c.overridingMethods.get().count());
 
-        //     c.methods.get().map(m -> {
-        //         System.out.printf("  Method %s\tstatus %s\n", m, m.status.get());
-        //         return 0;
-        //     }).count();
-        
-        //     return 0;
+        // c.methods.get().map(m -> {
+        // System.out.printf(" Method %s\tstatus %s\n", m, m.status.get());
+        // return 0;
+        // }).count();
+
+        // return 0;
         // }).count();
 
         final var funs = env.classes.flatMap(c -> c.methods.get()

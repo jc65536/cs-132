@@ -1,6 +1,11 @@
 import java.util.*;
 import java.util.function.*;
 
+@FunctionalInterface
+interface F3<A, B, C, R> {
+    R apply(A a, B b, C c);
+}
+
 class T2<A, B> {
     final A a;
     final B b;
