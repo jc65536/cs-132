@@ -59,7 +59,7 @@ public class J2S {
             return new TypeEnv(List.nul(), classes, Optional.empty());
         }).get();
 
-        final var funs = env.classes.flatMap(c -> c.methods.get()
+        final var funs = env.classes.flatMap(c -> c.methods
                 .map(m -> m.translate(env.enterClass(c))))
                 .cons(transMain(root.f0, env));
 

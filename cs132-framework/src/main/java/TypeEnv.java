@@ -55,8 +55,8 @@ class Vtable {
 
 class Class extends Named implements Type {
     private final Optional<Lazy<Class>> superClass;
-    final Lazy<List<Field>> fields;
-    final Lazy<List<Method>> methods;
+    final List<Field> fields;
+    final List<Method> methods;
     final Lazy<List<Method>> overriddenMethods;
     final Lazy<List<Method>> overridingMethods;
 
@@ -78,14 +78,12 @@ class Class extends Named implements Type {
             Function<Class, List<Vtable>> mkVtables) {
         super(name);
         this.superClass = superClass.map(Lazy::new);
-        fields = new Lazy<>(() -> mkFields.apply(this));
-        methods = new Lazy<>(() -> mkMethods.apply(this));
+        fields = new List<>(() -> mkFields.apply(this).get());
+        methods = new List<>(() -> mkMethods.apply(this).get());
 
-        overriddenMethods = new Lazy<>(() -> methods.get()
-                .filter(m -> m.status.get() instanceof Method.Overridden));
+        overriddenMethods = new Lazy<>(() -> methods.filter(m -> m.status.get() instanceof Method.Overridden));
 
-        overridingMethods = new Lazy<>(() -> methods.get()
-                .filter(m -> m.status.get() instanceof Method.Overrides));
+        overridingMethods = new Lazy<>(() -> methods.filter(m -> m.status.get() instanceof Method.Overrides));
 
         vtableSize = new Lazy<>(() -> superClass().map(sc -> sc.vtableSize.get()).orElse(0)
                 + overriddenMethods.get().count() * 4);
@@ -94,7 +92,7 @@ class Class extends Named implements Type {
 
         objSize = new Lazy<>(() -> ownObjOffset.get()
                 + overriddenMethods.get().head().map(u -> 4).orElse(0)
-                + fields.get().count() * 4);
+                + fields.count() * 4);
 
         vtables = new Lazy<>(() -> mkVtables.apply(this));
     }
@@ -109,14 +107,12 @@ class Class extends Named implements Type {
     }
 
     Optional<Field> fieldLookup(String name) {
-        return fields.get()
-                .find(s -> s.name.equals(name))
+        return fields.find(s -> s.name.equals(name))
                 .or(() -> superClass().flatMap(sc -> sc.fieldLookup(name)));
     }
 
     Optional<Method> methodLookup(String name) {
-        return methods.get()
-                .find(m -> m.name.equals(name))
+        return methods.find(m -> m.name.equals(name))
                 .or(() -> superClass().flatMap(sc -> sc.methodLookup(name)));
     }
 

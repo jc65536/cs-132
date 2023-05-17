@@ -19,7 +19,7 @@ class MethodVisitor extends GJDepthFirst<Method, T2<Class, TypeEnv>> {
                         .<OverrideStatus>map(sm -> m.new Overrides(sm.status.get().origClass()))
                         .orElseGet(() -> typeEnv.classes
                                 .filter(cls -> cls != c && cls.subtypes(c))
-                                .flatMap(cls -> cls.methods.get())
+                                .flatMap(cls -> cls.methods)
                                 .find(m::nameEquals)
                                 .<OverrideStatus>map(u -> m.new Overridden())
                                 .orElseGet(() -> m.new Unique())));
