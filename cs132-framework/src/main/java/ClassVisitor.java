@@ -17,7 +17,8 @@ class MethodVisitor extends GJDepthFirst<Method, T2<Class, TypeEnv>> {
                 (m) -> c.superClass()
                         .flatMap(sc -> sc.methodLookup(name))
                         .<OverrideStatus>map(sm -> m.new Overrides(sm.status.get().origClass()))
-                        .orElseGet(() -> typeEnv.classes.filter(cls -> cls != c && cls.subtypes(c))
+                        .orElseGet(() -> typeEnv.classes
+                                .filter(cls -> cls != c && cls.subtypes(c))
                                 .flatMap(cls -> cls.methods.get())
                                 .find(m::nameEquals)
                                 .<OverrideStatus>map(u -> m.new Overridden())
@@ -60,6 +61,20 @@ public class ClassVisitor extends GJDepthFirst<Function<Lazy<Integer>, Class>, L
 
     static List<Method> mkMethods(Class c, NodeListOptional methodNodes, TypeEnv argu) {
         return methodNodes.accept(new ListVisitor<>(new MethodVisitor()), new T2<>(c, argu));
+    }
+
+    static T3<Lazy<List<OverridingMethod>>, Lazy<List<OverriddenMethod>>, Lazy<List<UniqueMethod>>> mkMethods(Class c,
+            NodeListOptional methodNodes, TypeEnv argu, int u) {
+        return methodNodes.accept(new ListVisitor<>(new MethodVisitor()), new T2<>(c, argu))
+                .fold(new T3<>(new Lazy<>(() -> List.<OverridingMethod>nul()),
+                        new Lazy<>(() -> List.<OverriddenMethod>nul()),
+                        new Lazy<>(() -> List.<UniqueMethod>nul())),
+                        (acc, m) -> {
+                            final var overriding = acc.a;
+                            final var overridden = acc.b;
+                            final var unique = acc.c;
+                            return null;
+                        });
     }
 
     static List<Vtable> mkVtables(Class c, TypeEnv env, int vtableOffset) {

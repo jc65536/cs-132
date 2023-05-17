@@ -26,7 +26,7 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
             final var rSym = rExpr.a;
             final var rEnv = rExpr.c;
 
-            return new T3<>(res, Prim.BOOL, rEnv
+            return new T3<>(res, Prim.PRIMITIVE, rEnv
                     .cons(new Move_Id_Id(res, rSym))
                     .cons(new LabelInstr(end)));
         }));
@@ -69,7 +69,7 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
 
             final var idxChkEnv = idxEnv.idxCheck(arrSym, idxSym);
 
-            return new T3<>(res, Prim.INT, idxChkEnv
+            return new T3<>(res, Prim.PRIMITIVE, idxChkEnv
                     .cons(new Move_Id_Integer(res, 4))
                     .cons(new Multiply(idxSym, idxSym, res))
                     .cons(new Add(arrSym, arrSym, idxSym))
@@ -89,7 +89,7 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
 
             final var arrChkEnv = arrEnv.nullCheck(arrSym);
 
-            return new T3<>(res, Prim.INT, arrChkEnv
+            return new T3<>(res, Prim.PRIMITIVE, arrChkEnv
                     .cons(new Load(res, arrSym, 0)));
         });
     }
@@ -164,7 +164,7 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
             final var lenExpr = n.f3.accept(this, new T2<>(typeEnv, env3));
             final var lenSym = lenExpr.a;
             final var lenEnv = lenExpr.c;
-            return new T3<>(res, Prim.ARR, lenEnv
+            return new T3<>(res, Prim.PRIMITIVE, lenEnv
                     .cons(new Move_Id_Integer(res, 0))
                     .cons(new LessThan(res, lenSym, res))
                     .cons(new IfGoto(res, ok))
@@ -197,7 +197,7 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
             final var opdExpr = n.f1.accept(this, new T2<>(typeEnv, env));
             final var opdSym = opdExpr.a;
             final var opdEnv = opdExpr.c;
-            return new T3<>(res, Prim.BOOL, opdEnv
+            return new T3<>(res, Prim.PRIMITIVE, opdEnv
                     .cons(new Move_Id_Integer(res, 1))
                     .cons(new Subtract(res, res, opdSym)));
         });
@@ -224,12 +224,12 @@ public class ExprVisitor extends GJDepthFirst<T3<Identifier, Type, TransEnv>, T2
             final var rExpr = rhs.accept(this, new T2<>(typeEnv, lEnv));
             final var rSym = rExpr.a;
             final var rEnv = rExpr.c;
-            return new T3<>(res, Prim.INT, rEnv.cons(mkInstr.apply(res, lSym, rSym)));
+            return new T3<>(res, Prim.PRIMITIVE, rEnv.cons(mkInstr.apply(res, lSym, rSym)));
         });
     }
 
     T3<Identifier, Type, TransEnv> visitLiteral(int num, T2<TypeEnv, TransEnv> argu) {
-        return argu.b.genSym((res, env) -> new T3<>(res, Prim.INT,
+        return argu.b.genSym((res, env) -> new T3<>(res, Prim.PRIMITIVE,
                 env.cons(new Move_Id_Integer(res, num))));
     }
 }

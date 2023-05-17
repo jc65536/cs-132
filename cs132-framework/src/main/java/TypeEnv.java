@@ -23,7 +23,7 @@ abstract class Named {
 }
 
 enum Prim implements Type {
-    INT, BOOL, ARR;
+    PRIMITIVE;
 
     @Override
     public boolean subtypes(Type other) {
@@ -35,7 +35,7 @@ class Vtable {
     final Class target;
     final List<Method> overrides;
     final int size;
-    final Integer offset;
+    final int offset;
 
     Vtable(Class target, List<Method> overrides, int offset) {
         this.target = target;
@@ -202,6 +202,62 @@ interface OverrideStatus {
     Class origClass();
 }
 
+abstract class VtabledMethod extends Method {
+    final Lazy<Integer> offset;
+
+    public VtabledMethod(String name, List<Local> params, List<Local> locals, Type retType, MethodDeclaration body,
+            Class c, Function<Method, OverrideStatus> mkStatus) {
+        super(name, params, locals, retType, body, c, mkStatus);
+        this.offset = new Lazy<>(() -> c.vtables.get()
+                .find(vt -> origClass() == vt.target).get().overrides
+                .firstIndex(this::equals).get() * 4);
+    }
+
+    @Override
+    public T2<Identifier, TransEnv> call(Identifier thisSym, List<Identifier> args, TransEnv env) {
+        return env.genSym((eSym, env1) -> new T2<>(eSym, env1
+                .cons(new Load(eSym, thisSym, c.ownObjOffset.get()))
+                .cons(new Load(eSym, eSym, offset.get()))
+                .cons(new Call(eSym, eSym, args.toJavaList()))));
+    }
+}
+
+class OverridingMethod extends VtabledMethod {
+    final Class target;
+
+    OverridingMethod(String name, List<Local> params, List<Local> locals, Type retType, MethodDeclaration body, Class c,
+            Function<Method, OverrideStatus> mkStatus, Class target) {
+        super(name, params, locals, retType, body, c, mkStatus);
+        this.target = target;
+    }
+
+    @Override
+    Class origClass() {
+        return target;
+    }
+}
+
+class OverriddenMethod extends VtabledMethod {
+    OverriddenMethod(String name, List<Local> params, List<Local> locals, Type retType, MethodDeclaration body, Class c,
+            Function<Method, OverrideStatus> mkStatus) {
+        super(name, params, locals, retType, body, c, mkStatus);
+    }
+}
+
+class UniqueMethod extends Method {
+    UniqueMethod(String name, List<Local> params, List<Local> locals, Type retType, MethodDeclaration body, Class c,
+            Function<Method, OverrideStatus> mkStatus) {
+        super(name, params, locals, retType, body, c, mkStatus);
+    }
+
+    @Override
+    public T2<Identifier, TransEnv> call(Identifier thisSym, List<Identifier> args, TransEnv env) {
+        return env.genSym((eSym, env1) -> new T2<>(eSym, env1
+                .cons(new Move_Id_FuncName(eSym, funcName()))
+                .cons(new Call(eSym, eSym, args.toJavaList()))));
+    }
+}
+
 class Method extends Named {
     final List<Local> params;
     final List<Local> locals;
@@ -305,6 +361,10 @@ class Method extends Named {
 
     FunctionName funcName() {
         return new FunctionName(toString());
+    }
+
+    Class origClass() {
+        return c;
     }
 
     @Override
