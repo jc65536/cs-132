@@ -63,7 +63,7 @@ interface ListInt<T> {
 
     <U> List<U> flatMap(Function<T, List<U>> f);
 
-    List<T> join(List<T> other);
+    List<T> join(List<? extends T> other);
 
     int count();
 
@@ -113,8 +113,8 @@ public class List<T> extends Lazy<Optional<Pair<T>>> implements ListInt<T> {
     }
 
     @Override
-    public List<T> join(List<T> other) {
-        return new List<>(bind(opt -> opt.map(n -> n.join(other)).orElse(other)));
+    public List<T> join(List<? extends T> other) {
+        return new List<>(bind(opt -> opt.map(n -> n.join(other)).orElse(other.map(x -> x))));
     }
 
     @Override
@@ -186,7 +186,7 @@ class Pair<T> implements ListInt<T> {
     }
 
     @Override
-    public List<T> join(List<T> other) {
+    public List<T> join(List<? extends T> other) {
         return next.join(other).cons(val);
     }
 

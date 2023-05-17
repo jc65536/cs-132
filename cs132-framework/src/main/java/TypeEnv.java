@@ -18,7 +18,7 @@ interface Type {
 }
 
 abstract class Named {
-    protected final String name;
+    final String name;
 
     Named(String name) {
         this.name = name;
@@ -31,11 +31,11 @@ abstract class Named {
 
 class Vtable {
     final Class target;
-    final List<Method> overrides;
+    final List<? extends VtabledMethod> overrides;
     final int size;
     final int offset;
 
-    Vtable(Class target, List<Method> overrides, int offset) {
+    Vtable(Class target, List<? extends VtabledMethod> overrides, int offset) {
         this.target = target;
         this.overrides = overrides;
         this.size = overrides.count() * 4;
@@ -43,9 +43,10 @@ class Vtable {
     }
 
     TransEnv write(Identifier stat, Identifier tmp, TransEnv env) {
-        return overrides.fold(env, (acc, m) -> acc
-                .cons(new Move_Id_FuncName(tmp, m.funcName()))
-                .cons(new Store(stat, offset + m.status.get().offset(), tmp)));
+        env = env.cons(J2S.comment(String.format("Vtable_for_%s", target.name)));
+        return overrides.fold(env, (acc, cm) -> acc
+                .cons(new Move_Id_FuncName(tmp, cm.m.funcName()))
+                .cons(new Store(stat, offset + cm.offset.get(), tmp)));
     }
 }
 
@@ -53,8 +54,6 @@ class Class extends Named implements Type {
     private final Optional<Lazy<Class>> superClass;
     final List<Field> fields;
     final List<Method> methods;
-    final List<Method> overriddenMethods;
-    final List<Method> overridingMethods;
 
     final Lazy<Integer> nextVtableOffset;
 
@@ -66,11 +65,14 @@ class Class extends Named implements Type {
 
     final List<Vtable> vtables;
 
+    final MethodStruct classified;
+
     Class(String name,
             Optional<? extends Supplier<Class>> superClass,
             Function<Class, List<Field>> mkFields,
             Function<Class, List<Method>> mkMethods,
-            Function<Class, T2<Integer, List<Vtable>>> mkVtables) {
+            Function<Class, T2<Integer, List<Vtable>>> mkVtables,
+            Function<List<Method>, MethodStruct> mkStruct) {
         super(name);
         this.superClass = superClass.map(Lazy::new);
         fields = new List<>(() -> mkFields.apply(this).get());
@@ -80,14 +82,16 @@ class Class extends Named implements Type {
         vtables = new List<>(() -> lazyVtable.get().b.get());
         nextVtableOffset = new Lazy<>(() -> lazyVtable.get().a);
 
-        overriddenMethods = methods.filter(m -> m.status.get() instanceof Method.Overridden);
-
-        overridingMethods = methods.filter(m -> m.status.get() instanceof Method.Overriding);
+        final var lazyStruct = new Lazy<>(() -> mkStruct.apply(methods));
+        classified = new MethodStruct(
+                new List<>(() -> lazyStruct.get().overriding.get()),
+                new List<>(() -> lazyStruct.get().overridden.get()),
+                new List<>(() -> lazyStruct.get().unique.get()));
 
         ownObjOffset = new Lazy<>(() -> superClass().map(sc -> sc.objSize.get()).orElse(0));
 
         objSize = new Lazy<>(() -> ownObjOffset.get()
-                + overriddenMethods.head().map(u -> 4).orElse(0)
+                + classified.overridden.head().map(u -> 4).orElse(0)
                 + fields.count() * 4);
     }
 
@@ -108,6 +112,11 @@ class Class extends Named implements Type {
     Optional<Method> methodLookup(String name) {
         return methods.find(m -> m.name.equals(name))
                 .or(() -> superClass().flatMap(sc -> sc.methodLookup(name)));
+    }
+
+    Optional<ClassifiedMethod> classifiedLookup(String name) {
+        return classified.all.find(cm -> cm.m.name.equals(name))
+                .or(() -> superClass().flatMap(sc -> sc.classifiedLookup(name)));
     }
 
     T2<Identifier, TransEnv> alloc(TransEnv argu) {
@@ -184,95 +193,123 @@ class Local extends Variable {
     }
 }
 
+class MethodStruct {
+    final List<OverridingMethod> overriding;
+    final List<OverriddenMethod> overridden;
+    final List<UniqueMethod> unique;
+    final List<ClassifiedMethod> all;
+
+    MethodStruct(List<OverridingMethod> overriding, List<OverriddenMethod> overridden, List<UniqueMethod> unique) {
+        this.overriding = overriding;
+        this.overridden = overridden;
+        this.unique = unique;
+        all = List.<ClassifiedMethod>nul().join(overriding).join(overridden).join(unique);
+    }
+
+    MethodStruct cons(OverridingMethod m) {
+        return new MethodStruct(overriding.cons(m), overridden, unique);
+    }
+
+    MethodStruct cons(OverriddenMethod m) {
+        return new MethodStruct(overriding, overridden.cons(m), unique);
+    }
+
+    MethodStruct cons(UniqueMethod m) {
+        return new MethodStruct(overriding, overridden, unique.cons(m));
+    }
+}
+
+abstract class ClassifiedMethod {
+    final Method m;
+
+    ClassifiedMethod(Method m) {
+        this.m = m;
+    }
+
+    abstract T2<Identifier, TransEnv> call(Identifier self, List<Identifier> args, TransEnv env);
+
+    abstract Class origClass();
+}
+
+class UniqueMethod extends ClassifiedMethod {
+    UniqueMethod(Method m) {
+        super(m);
+    }
+
+    @Override
+    T2<Identifier, TransEnv> call(Identifier self, List<Identifier> args, TransEnv env) {
+        return env.genSym((res, env1) -> new T2<>(res, env1
+                .cons(new Move_Id_FuncName(res, m.funcName()))
+                .cons(new Call(res, res, args.toJavaList()))));
+    }
+
+    @Override
+    Class origClass() {
+        return m.c;
+    }
+}
+
+abstract class VtabledMethod extends ClassifiedMethod {
+    final Lazy<Integer> offset;
+
+    VtabledMethod(Method m) {
+        super(m);
+        this.offset = new Lazy<>(() -> origClass().vtables.head()
+                .get().overrides.firstIndex(cm -> m.nameEquals(cm.m)).get() * 4);
+    }
+
+    @Override
+    T2<Identifier, TransEnv> call(Identifier self, List<Identifier> args, TransEnv env) {
+        return env.genSym((res, env1) -> new T2<>(res, env1
+                .cons(new Load(res, self, origClass().ownObjOffset.get()))
+                .cons(new Load(res, res, offset.get()))
+                .cons(new Call(res, res, args.toJavaList()))));
+    }
+}
+
+class OverriddenMethod extends VtabledMethod {
+    OverriddenMethod(Method m) {
+        super(m);
+    }
+
+    @Override
+    public Class origClass() {
+        return m.c;
+    }
+}
+
+class OverridingMethod extends VtabledMethod {
+    final Class target;
+
+    OverridingMethod(Method m, Class target) {
+        super(m);
+        this.target = target;
+    }
+
+    @Override
+    public Class origClass() {
+        return target;
+    }
+}
+
 class Method extends Named {
     final List<Local> params;
     final List<Local> locals;
     final Type retType;
     final MethodDeclaration body;
-    final Lazy<OverrideStatus> status;
     final Class c;
-
-    abstract class OverrideStatus {
-        abstract T2<Identifier, TransEnv> call(Identifier self,
-                List<Identifier> args,
-                TransEnv env);
-
-        abstract Class origClass();
-
-        int offset() {
-            return 0;
-        }
-    }
-
-    class Unique extends OverrideStatus {
-        @Override
-        T2<Identifier, TransEnv> call(Identifier self, List<Identifier> args, TransEnv env) {
-            return env.genSym((res, env1) -> new T2<>(res, env1
-                    .cons(new Move_Id_FuncName(res, funcName()))
-                    .cons(new Call(res, res, args.toJavaList()))));
-        }
-
-        @Override
-        Class origClass() {
-            return c;
-        }
-    }
-
-    abstract class Vtabled extends OverrideStatus {
-        private final Lazy<Integer> offset;
-
-        Vtabled() {
-            this.offset = new Lazy<>(() -> origClass().vtables.head()
-                    .get().overrides.firstIndex(Method.this::nameEquals).get() * 4);
-        }
-
-        @Override
-        T2<Identifier, TransEnv> call(Identifier self, List<Identifier> args, TransEnv env) {
-            return env.genSym((res, env1) -> new T2<>(res, env1
-                    .cons(new Load(res, self, origClass().ownObjOffset.get()))
-                    .cons(new Load(res, res, offset()))
-                    .cons(new Call(res, res, args.toJavaList()))));
-        }
-
-        @Override
-        int offset() {
-            return offset.get();
-        }
-    }
-
-    class Overridden extends Vtabled {
-        @Override
-        public Class origClass() {
-            return c;
-        }
-    }
-
-    class Overriding extends Vtabled {
-        final Class target;
-
-        Overriding(Class target) {
-            this.target = target;
-        }
-
-        @Override
-        public Class origClass() {
-            return target;
-        }
-    }
 
     Method(String name,
             List<Local> params,
             List<Local> locals,
             Type retType,
             MethodDeclaration body,
-            Class c,
-            Function<Method, OverrideStatus> mkStatus) {
+            Class c) {
         super(name);
         this.params = params;
         this.locals = locals;
         this.retType = retType;
         this.body = body;
-        this.status = new Lazy<>(() -> mkStatus.apply(this));
         this.c = c;
     }
 

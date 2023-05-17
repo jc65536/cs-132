@@ -8,7 +8,7 @@ import cs132.minijava.syntaxtree.MainClass;
 
 public class J2S {
     static Instruction comment(String s) {
-        return new Move_Id_Integer(new Identifier("__COMMENT__" + s), 0);
+        return new Move_Id_Integer(new Identifier("________________________" + s), 0);
     }
 
     static FunctionDecl transMain(MainClass main, TypeEnv typeEnv) {
@@ -25,7 +25,8 @@ public class J2S {
                     .cons(new Alloc(TransEnv.stat, tmp));
 
             final var writeVtables = typeEnv.vtables.fold(allocStat,
-                    (acc, vt) -> vt.write(TransEnv.stat, tmp, acc));
+                    (acc, vt) -> vt.write(TransEnv.stat, tmp, acc))
+                    .cons(comment("End_vtables"));
 
             final var locals = main.f14.accept(new ListVisitor<>(new LocalVisitor()), typeEnv);
             final var localsEnv = typeEnv.addLocals(locals);
