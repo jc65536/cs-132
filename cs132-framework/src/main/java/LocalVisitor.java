@@ -11,17 +11,17 @@ class TypeVisitor extends GJDepthFirst<Type, TypeEnv> {
 
     @Override
     public Type visit(ArrayType n, TypeEnv argu) {
-        return Prim.PRIMITIVE;
+        return Type.PRIM;
     }
 
     @Override
     public Type visit(BooleanType n, TypeEnv argu) {
-        return Prim.PRIMITIVE;
+        return Type.PRIM;
     }
 
     @Override
     public Type visit(IntegerType n, TypeEnv argu) {
-        return Prim.PRIMITIVE;
+        return Type.PRIM;
     }
 
     @Override

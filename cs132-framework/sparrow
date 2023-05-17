@@ -1,0 +1,15 @@
+#!/bin/bash
+
+case $1 in
+    vb)
+        args="s verbose"
+        ;;
+    v)
+        args="sv"
+        ;;
+    *)
+        args="s"
+        ;;
+esac
+
+java -jar misc/sparrow.jar $args

@@ -20,23 +20,22 @@ public class J2S {
                 .orElse(0);
 
         return new TransEnv(List.nul(), 0).genSym((tmp, transEnv) -> {
-            final var statEnv = transEnv
+            final var allocStat = transEnv
                     .cons(new Move_Id_Integer(tmp, statSize))
                     .cons(new Alloc(TransEnv.stat, tmp));
 
-            final var vtableEnv = typeEnv.vtables.fold(statEnv,
+            final var writeVtables = typeEnv.vtables.fold(allocStat,
                     (acc, vt) -> vt.write(TransEnv.stat, tmp, acc));
 
             final var locals = main.f14.accept(new ListVisitor<>(new LocalVisitor()), typeEnv);
+            final var localsEnv = typeEnv.addLocals(locals);
 
-            final var newTypeEnv = typeEnv.addLocals(locals);
-
-            final var bodyEnv = main.f15.nodes.stream().reduce(vtableEnv,
-                    (acc, n) -> n.accept(new StmtVisitor(), new T2<>(newTypeEnv, acc)),
+            final var bodyEnv = main.f15.nodes.stream().reduce(writeVtables.initLocals(locals),
+                    (acc, n) -> n.accept(new StmtVisitor(), new T2<>(localsEnv, acc)),
                     (u, v) -> v);
 
             return new FunctionDecl(new FunctionName("main"), java.util.List.of(),
-                    new Block(bodyEnv.revCode.reverse().toJavaList(), TransEnv.stat));
+                    new Block(bodyEnv.codeRev.reverse().toJavaList(), TransEnv.stat));
         });
     }
 
@@ -52,7 +51,8 @@ public class J2S {
                                 final var vtableOffset = acc.a;
                                 final var classAcc = acc.b;
                                 final var cls = mkClass.apply(vtableOffset);
-                                return new T2<>(new Lazy<>(() -> vtableOffset.get() + cls.vtableSize.get()),
+                                return new T2<>(new Lazy<>(() -> vtableOffset.get()
+                                        + cls.vtables.fold(0, (sz, vt) -> sz + vt.size)),
                                         classAcc.cons(cls));
                             }).b;
             return new TypeEnv(List.nul(), classes, Optional.empty());

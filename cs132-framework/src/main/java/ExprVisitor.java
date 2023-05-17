@@ -29,8 +29,8 @@ public class ExprVisitor extends GJDepthFirst<ExprVisitor.Ret, T2<TypeEnv, Trans
             final var lhs = n.f0.accept(this, new T2<>(typeEnv, env2));
             final var rhs = n.f2.accept(this, new T2<>(typeEnv, lhs.env
                     .cons(new Move_Id_Id(res, lhs.sym))
-                    .cons(new IfGoto(lhs.sym, end))));
-            return new Ret(res, Prim.PRIMITIVE, rhs.env
+                    .cons(new IfGoto(res, end))));
+            return new Ret(res, Type.PRIM, rhs.env
                     .cons(new Move_Id_Id(res, rhs.sym))
                     .cons(new LabelInstr(end)));
         }));
@@ -63,7 +63,7 @@ public class ExprVisitor extends GJDepthFirst<ExprVisitor.Ret, T2<TypeEnv, Trans
         return transEnv.genSym((res, env) -> {
             final var arr = n.f0.accept(this, new T2<>(typeEnv, env));
             final var idx = n.f2.accept(this, new T2<>(typeEnv, arr.env.nullCheck(arr.sym)));
-            return new Ret(res, Prim.PRIMITIVE, idx.env
+            return new Ret(res, Type.PRIM, idx.env
                     .idxCheck(arr.sym, idx.sym)
                     .cons(new Move_Id_Integer(res, 4))
                     .cons(new Multiply(idx.sym, idx.sym, res))
@@ -79,7 +79,7 @@ public class ExprVisitor extends GJDepthFirst<ExprVisitor.Ret, T2<TypeEnv, Trans
         final var transEnv = argu.b;
         return transEnv.genSym((res, env) -> {
             final var arr = n.f0.accept(this, new T2<>(typeEnv, env));
-            return new Ret(res, Prim.PRIMITIVE, arr.env
+            return new Ret(res, Type.PRIM, arr.env
                     .nullCheck(arr.sym)
                     .cons(new Load(res, arr.sym, 0)));
         });
@@ -149,7 +149,7 @@ public class ExprVisitor extends GJDepthFirst<ExprVisitor.Ret, T2<TypeEnv, Trans
         final var transEnv = argu.b;
         return transEnv.genSym((res, env1) -> env1.genSym((size, env2) -> env2.genLabel((ok, env3) -> {
             final var len = n.f3.accept(this, new T2<>(typeEnv, env3));
-            return new Ret(res, Prim.PRIMITIVE, len.env
+            return new Ret(res, Type.PRIM, len.env
                     .cons(new Move_Id_Integer(res, 0))
                     .cons(new LessThan(res, len.sym, res))
                     .cons(new IfGoto(res, ok))
@@ -180,7 +180,7 @@ public class ExprVisitor extends GJDepthFirst<ExprVisitor.Ret, T2<TypeEnv, Trans
         final var transEnv = argu.b;
         return transEnv.genSym((res, env) -> {
             final var opd = n.f1.accept(this, new T2<>(typeEnv, env));
-            return new Ret(res, Prim.PRIMITIVE, opd.env
+            return new Ret(res, Type.PRIM, opd.env
                     .cons(new Move_Id_Integer(res, 1))
                     .cons(new Subtract(res, res, opd.sym)));
         });
@@ -203,12 +203,12 @@ public class ExprVisitor extends GJDepthFirst<ExprVisitor.Ret, T2<TypeEnv, Trans
         return transEnv.genSym((res, env) -> {
             final var lhs = lNode.accept(this, argu);
             final var rhs = rNode.accept(this, new T2<>(typeEnv, lhs.env));
-            return new Ret(res, Prim.PRIMITIVE, rhs.env.cons(mkInstr.apply(res, lhs.sym, rhs.sym)));
+            return new Ret(res, Type.PRIM, rhs.env.cons(mkInstr.apply(res, lhs.sym, rhs.sym)));
         });
     }
 
     Ret literal(int num, T2<TypeEnv, TransEnv> argu) {
-        return argu.b.genSym((res, env) -> new Ret(res, Prim.PRIMITIVE,
+        return argu.b.genSym((res, env) -> new Ret(res, Type.PRIM,
                 env.cons(new Move_Id_Integer(res, num))));
     }
 }

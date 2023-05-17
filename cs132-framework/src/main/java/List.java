@@ -90,10 +90,6 @@ public class List<T> extends Lazy<Optional<Pair<T>>> implements ListInt<T> {
         return new List<>(() -> Optional.of(new Pair<>(val, this)));
     }
 
-    static <T> List<T> of(T val) {
-        return List.<T>nul().cons(val);
-    }
-
     @Override
     public <U> List<U> map(Function<T, U> f) {
         return new List<>(bind(opt -> opt.map(n -> n.map(f)).orElse(List.nul())));
@@ -126,7 +122,7 @@ public class List<T> extends Lazy<Optional<Pair<T>>> implements ListInt<T> {
         return new List<>(bind(opt -> opt.map(n -> n.filter(p)).orElse(List.nul())));
     }
 
-    private final Lazy<Integer> count = new Lazy<>(() -> get().map(ListInt::count).orElse(0));
+    private final Lazy<Integer> count = new Lazy<>(() -> get().map(Pair::count).orElse(0));
 
     @Override
     public int count() {

@@ -1,11 +1,12 @@
 class Z {
-    public static void main(String[] args) {}
+    public static void main(String[] args) {
+        B myB;
+        System.out.println(myB.f(3));
+    }
 }
 
-class A extends A_ {
-    public int _AA() { return 1; }
-}
-
-class A_ {
-    public int AA() { return 0; }
+class B {
+    public int f(int k) {
+        return 1;
+    }
 }
