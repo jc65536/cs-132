@@ -15,13 +15,12 @@ class MethodVisitor extends GJDepthFirst<Method, T2<Class, TypeEnv>> {
         final var retType = n.f1.accept(new TypeVisitor(), typeEnv);
         return new Method(name, params, locals, retType, n, c,
                 (m) -> c.superClass()
-                        .flatMap(sc -> sc.methodLookup(name))
-                        .<OverrideStatus>map(sm -> m.new Overriding(sm.status.get().origClass()))
+                        .flatMap(sc -> sc.methodLookup(name)).<Method.OverrideStatus>map(
+                                sm -> m.new Overriding(sm.status.get().origClass()))
                         .orElseGet(() -> typeEnv.classes
                                 .filter(cls -> cls != c && cls.subtypes(c))
                                 .flatMap(cls -> cls.methods)
-                                .find(m::nameEquals)
-                                .<OverrideStatus>map(u -> m.new Overridden())
+                                .find(m::nameEquals).<Method.OverrideStatus>map(u -> m.new Overridden())
                                 .orElseGet(() -> m.new Unique())));
     }
 }
@@ -63,7 +62,7 @@ public class ClassVisitor extends GJDepthFirst<Function<Lazy<Integer>, Class>, L
         return methodNodes.accept(new ListVisitor<>(new MethodVisitor()), new T2<>(c, argu));
     }
 
-    static List<Vtable> mkVtables(Class c, TypeEnv env, int vtableOffset) {
+    static T2<Integer, List<Vtable>> mkVtables(Class c, TypeEnv env, int vtableOffset) {
         return c.superClass()
                 .map(sc -> sc.vtables)
                 .orElse(List.nul())
@@ -81,8 +80,9 @@ public class ClassVisitor extends GJDepthFirst<Function<Lazy<Integer>, Class>, L
                             .map(newVt -> new T2<>(offset + newVt.size, list.cons(newVt)))
                             .orElse(new T2<>(offset, list.cons(vt)));
                 })
-                .consume((nextVtableOffset, overriddenVtables) -> c.overriddenMethods.head()
-                        .map(u -> overriddenVtables.cons(new Vtable(c, c.overriddenMethods, nextVtableOffset)))
-                        .orElse(overriddenVtables));
+                .consume((nextOffset, overriddenVtables) -> c.overriddenMethods.head()
+                        .map(u -> new Vtable(c, c.overriddenMethods, nextOffset))
+                        .map(newVt -> new T2<>(nextOffset + newVt.size, overriddenVtables.cons(newVt)))
+                        .orElse(new T2<>(nextOffset, overriddenVtables)));
     }
 }

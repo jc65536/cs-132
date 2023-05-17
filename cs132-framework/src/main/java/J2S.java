@@ -51,9 +51,7 @@ public class J2S {
                                 final var vtableOffset = acc.a;
                                 final var classAcc = acc.b;
                                 final var cls = mkClass.apply(vtableOffset);
-                                return new T2<>(new Lazy<>(() -> vtableOffset.get()
-                                        + cls.vtables.fold(0, (sz, vt) -> sz + vt.size)),
-                                        classAcc.cons(cls));
+                                return new T2<>(cls.nextVtableOffset, classAcc.cons(cls));
                             }).b;
             return new TypeEnv(List.nul(), classes, Optional.empty());
         }).get();
