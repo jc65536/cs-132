@@ -22,22 +22,22 @@ public class J2S {
         return new TransEnv(List.nul(), 0).genSym((tmp, transEnv) -> {
             final var statEnv = transEnv
                     .cons(new Move_Id_Integer(tmp, statSize))
-                    .cons(new Alloc(TransEnv.statSym, tmp));
+                    .cons(new Alloc(TransEnv.stat, tmp));
 
             final var vtableEnv = typeEnv.vtables.get().fold(statEnv,
-                    (acc, vt) -> vt.write(TransEnv.statSym, tmp, acc));
+                    (acc, vt) -> vt.write(TransEnv.stat, tmp, acc));
 
             final var locals = main.f14.accept(new ListVisitor<>(new LocalVisitor()), typeEnv);
 
             final var newTypeEnv = typeEnv.addLocals(locals);
 
-            final var bodyEnv = main.f15.accept(new FoldVisitor<>(new StmtVisitor(),
-                    (acc, env) -> new T2<>(newTypeEnv, env)),
-                    new T2<>(newTypeEnv, vtableEnv)).b;
+            final var bodyEnv = main.f15.nodes.stream().reduce(vtableEnv,
+                    (acc, n) -> n.accept(new StmtVisitor(), new T2<>(newTypeEnv, acc)),
+                    (u, v) -> v);
 
             return new FunctionDecl(new FunctionName("main"),
                     List.<Identifier>nul().toJavaList(),
-                    new Block(bodyEnv.revCode.reverse().toJavaList(), TransEnv.statSym));
+                    new Block(bodyEnv.revCode.reverse().toJavaList(), TransEnv.stat));
         });
     }
 
