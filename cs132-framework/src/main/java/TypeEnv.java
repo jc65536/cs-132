@@ -45,11 +45,9 @@ class Vtable {
     }
 
     TransEnv write(Identifier stat, Identifier tmp, TransEnv env) {
-        env = env.cons(J2S.comment(String.format("vtable_for_%s", target.name)));
-        return overrides.fold(env, (acc, m) -> {
-            return acc.cons(new Move_Id_FuncName(tmp, m.funcName()))
-                    .cons(new Store(stat, offset + ((Method.Vtabled) m.status.get()).offset.get(), tmp));
-        });
+        return overrides.fold(env, (acc, m) -> acc
+                .cons(new Move_Id_FuncName(tmp, m.funcName()))
+                .cons(new Store(stat, offset + ((Method.Vtabled) m.status.get()).offset.get(), tmp)));
     }
 }
 
@@ -69,7 +67,7 @@ class Class extends Named implements Type {
     // Offset into object to own data
     final Lazy<Integer> ownObjOffset;
 
-    final Lazy<List<Vtable>> vtables;
+    final List<Vtable> vtables;
 
     Class(String name,
             Optional<? extends Supplier<Class>> superClass,
@@ -94,7 +92,7 @@ class Class extends Named implements Type {
                 + overriddenMethods.head().map(u -> 4).orElse(0)
                 + fields.count() * 4);
 
-        vtables = new Lazy<>(() -> mkVtables.apply(this));
+        vtables = new List<>(() -> mkVtables.apply(this).get());
     }
 
     Optional<Class> superClass() {
@@ -118,14 +116,15 @@ class Class extends Named implements Type {
 
     T2<Identifier, TransEnv> alloc(TransEnv argu) {
         return argu.genSym((obj, env1) -> env1.genSym((tmp, env2) -> {
-            return new T2<>(obj, initialize(obj, tmp,
-                    env2.cons(new Move_Id_Integer(tmp, objSize.get())).cons(new Alloc(obj, tmp)),
-                    vtables.get()));
+            return new T2<>(obj, init(obj, tmp, env2
+                    .cons(new Move_Id_Integer(tmp, objSize.get()))
+                    .cons(new Alloc(obj, tmp)),
+                    vtables));
         }));
     }
 
-    TransEnv initialize(Identifier obj, Identifier tmp, TransEnv argu, List<Vtable> vtables) {
-        final var env = superClass().map(sc -> sc.initialize(obj, tmp, argu, vtables)).orElse(argu);
+    TransEnv init(Identifier obj, Identifier tmp, TransEnv argu, List<Vtable> vtables) {
+        final var env = superClass().map(sc -> sc.init(obj, tmp, argu, vtables)).orElse(argu);
 
         return vtables.find(vt -> vt.target.equals(this))
                 .map(vt -> env
@@ -223,7 +222,7 @@ class Method extends Named {
         final Lazy<Integer> offset;
 
         public Vtabled() {
-            this.offset = new Lazy<>(() -> c.vtables.get()
+            this.offset = new Lazy<>(() -> c.vtables
                     .find(vt -> origClass() == vt.target).get().overrides
                     .firstIndex(Method.this::equals).get() * 4);
         }
@@ -302,13 +301,13 @@ public class TypeEnv {
     final List<Local> locals;
     final List<Class> classes;
     final Optional<Class> currClass;
-    final Lazy<List<Vtable>> vtables;
+    final List<Vtable> vtables;
 
     TypeEnv(List<Local> locals, List<Class> classes, Optional<Class> currClass) {
         this.locals = locals;
         this.classes = classes;
         this.currClass = currClass;
-        this.vtables = new Lazy<>(() -> classes.flatMap(c -> c.vtables.get()).unique(Object::equals));
+        this.vtables = classes.flatMap(c -> c.vtables).unique(Object::equals);
     }
 
     TypeEnv enterClass(Class c) {

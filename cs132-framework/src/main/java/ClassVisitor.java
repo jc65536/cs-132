@@ -65,7 +65,7 @@ public class ClassVisitor extends GJDepthFirst<Function<Lazy<Integer>, Class>, L
 
     static List<Vtable> mkVtables(Class c, TypeEnv env, int vtableOffset) {
         return c.superClass()
-                .map(sc -> sc.vtables.get())
+                .map(sc -> sc.vtables)
                 .orElse(List.nul())
                 .fold(new T2<>(vtableOffset, List.<Vtable>nul()), (acc, vt) -> {
                     final var offset = acc.a;

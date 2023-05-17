@@ -21,12 +21,12 @@ public class ListVisitor<R, A> extends GJDepthFirst<List<R>, A> {
 
     @Override
     public List<R> visit(ExpressionList n, A argu) {
-        return new List<>(() -> new Pair<>(n.f0.accept(v, argu), n.f1.accept(this, argu)));
+        return new List<>(() -> Optional.of(new Pair<>(n.f0.accept(v, argu), n.f1.accept(this, argu))));
     }
 
     @Override
     public List<R> visit(FormalParameterList n, A argu) {
-        return new List<>(() -> new Pair<>(n.f0.accept(v, argu), n.f1.accept(this, argu)));
+        return new List<>(() -> Optional.of(new Pair<>(n.f0.accept(v, argu), n.f1.accept(this, argu))));
     }
 
     @Override
@@ -36,7 +36,7 @@ public class ListVisitor<R, A> extends GJDepthFirst<List<R>, A> {
 
     List<R> mkList(Iterator<Node> it, A argu) {
         if (it.hasNext())
-            return new List<>(() -> new Pair<>(it.next().accept(v, argu), mkList(it, argu)));
+            return new List<>(() -> Optional.of(new Pair<>(it.next().accept(v, argu), mkList(it, argu))));
         else
             return List.nul();
     }

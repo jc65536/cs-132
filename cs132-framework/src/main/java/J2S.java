@@ -12,7 +12,7 @@ public class J2S {
     }
 
     static FunctionDecl transMain(MainClass main, TypeEnv typeEnv) {
-        final var statSize = typeEnv.vtables.get()
+        final var statSize = typeEnv.vtables
                 .fold(Optional.<Vtable>empty(), (mvtOpt, vt) -> mvtOpt
                         .filter(mvt -> mvt.offset > vt.offset)
                         .or(() -> Optional.of(vt)))
@@ -24,7 +24,7 @@ public class J2S {
                     .cons(new Move_Id_Integer(tmp, statSize))
                     .cons(new Alloc(TransEnv.stat, tmp));
 
-            final var vtableEnv = typeEnv.vtables.get().fold(statEnv,
+            final var vtableEnv = typeEnv.vtables.fold(statEnv,
                     (acc, vt) -> vt.write(TransEnv.stat, tmp, acc));
 
             final var locals = main.f14.accept(new ListVisitor<>(new LocalVisitor()), typeEnv);
@@ -35,8 +35,7 @@ public class J2S {
                     (acc, n) -> n.accept(new StmtVisitor(), new T2<>(newTypeEnv, acc)),
                     (u, v) -> v);
 
-            return new FunctionDecl(new FunctionName("main"),
-                    List.<Identifier>nul().toJavaList(),
+            return new FunctionDecl(new FunctionName("main"), java.util.List.of(),
                     new Block(bodyEnv.revCode.reverse().toJavaList(), TransEnv.stat));
         });
     }

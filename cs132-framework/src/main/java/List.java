@@ -69,27 +69,25 @@ interface ListInt<T> {
 
     Optional<Integer> firstIndex(int i, Predicate<? super T> p);
 
-    Optional<T> head();
-
     List<T> unique(List<T> hist, BiPredicate<T, T> eq);
 }
 
-public class List<T> extends Lazy<ListElem<T>> implements ListInt<T> {
-    List(Supplier<ListElem<T>> s) {
+public class List<T> extends Lazy<Optional<Pair<T>>> implements ListInt<T> {
+    List(Supplier<Optional<Pair<T>>> s) {
         super(s);
     }
 
     @Override
     public Optional<T> find(Predicate<? super T> p) {
-        return get().find(p);
+        return get().flatMap(n -> n.find(p));
     }
 
     static <T> List<T> nul() {
-        return new List<>(Null::new);
+        return new List<>(Optional::empty);
     }
 
     List<T> cons(T val) {
-        return new List<>(() -> new Pair<>(val, this));
+        return new List<>(() -> Optional.of(new Pair<>(val, this)));
     }
 
     static <T> List<T> of(T val) {
@@ -98,12 +96,12 @@ public class List<T> extends Lazy<ListElem<T>> implements ListInt<T> {
 
     @Override
     public <U> List<U> map(Function<T, U> f) {
-        return new List<>(bind(l -> l.map(f)));
+        return new List<>(bind(opt -> opt.map(n -> n.map(f)).orElse(List.nul())));
     }
 
     @Override
     public <U> U fold(U acc, BiFunction<U, T, U> f) {
-        return get().fold(acc, f);
+        return get().map(n -> n.fold(acc, f)).orElse(acc);
     }
 
     java.util.List<T> toJavaList() {
@@ -115,20 +113,20 @@ public class List<T> extends Lazy<ListElem<T>> implements ListInt<T> {
 
     @Override
     public <U> List<U> flatMap(Function<T, List<U>> f) {
-        return new List<>(bind(l -> l.flatMap(f)));
+        return new List<>(bind(opt -> opt.map(n -> n.flatMap(f)).orElse(List.nul())));
     }
 
     @Override
     public List<T> join(List<T> other) {
-        return new List<>(bind(l -> l.join(other)));
+        return new List<>(bind(opt -> opt.map(n -> n.join(other)).orElse(other)));
     }
 
     @Override
     public List<T> filter(Predicate<? super T> p) {
-        return new List<>(bind(l -> l.filter(p)));
+        return new List<>(bind(opt -> opt.map(n -> n.filter(p)).orElse(List.nul())));
     }
 
-    private final Lazy<Integer> count = new Lazy<>(() -> get().count());
+    private final Lazy<Integer> count = new Lazy<>(() -> get().map(ListInt::count).orElse(0));
 
     @Override
     public int count() {
@@ -141,21 +139,20 @@ public class List<T> extends Lazy<ListElem<T>> implements ListInt<T> {
 
     @Override
     public Optional<Integer> firstIndex(int i, Predicate<? super T> p) {
-        return get().firstIndex(i, p);
+        return get().flatMap(n -> n.firstIndex(i, p));
     }
 
     Optional<Integer> firstIndex(Predicate<? super T> p) {
         return firstIndex(0, p);
     }
 
-    @Override
-    public Optional<T> head() {
-        return get().head();
+    Optional<T> head() {
+        return get().map(n -> n.val);
     }
 
     @Override
     public List<T> unique(List<T> hist, BiPredicate<T, T> eq) {
-        return new List<>(bind(l -> l.unique(hist, eq)));
+        return new List<>(bind(opt -> opt.map(n -> n.unique(hist, eq)).orElse(List.nul())));
     }
 
     List<T> unique(BiPredicate<T, T> eq) {
@@ -163,66 +160,11 @@ public class List<T> extends Lazy<ListElem<T>> implements ListInt<T> {
     }
 }
 
-abstract class ListElem<T> implements ListInt<T> {
-}
-
-class Null<T> extends ListElem<T> {
-    @Override
-    public Optional<T> find(Predicate<? super T> p) {
-        return Optional.empty();
-    }
-
-    @Override
-    public <U> List<U> map(Function<T, U> f) {
-        return List.nul();
-    }
-
-    @Override
-    public <U> U fold(U acc, BiFunction<U, T, U> f) {
-        return acc;
-    }
-
-    @Override
-    public <U> List<U> flatMap(Function<T, List<U>> f) {
-        return List.nul();
-    }
-
-    @Override
-    public List<T> join(List<T> other) {
-        return other;
-    }
-
-    @Override
-    public List<T> filter(Predicate<? super T> p) {
-        return List.nul();
-    }
-
-    @Override
-    public int count() {
-        return 0;
-    }
-
-    @Override
-    public Optional<Integer> firstIndex(int i, Predicate<? super T> p) {
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<T> head() {
-        return Optional.empty();
-    }
-
-    @Override
-    public List<T> unique(List<T> hist, BiPredicate<T, T> eq) {
-        return List.nul();
-    }
-}
-
-class Pair<T> extends ListElem<T> {
+class Pair<T> implements ListInt<T> {
     final T val;
     final List<T> next;
 
-    Pair(T val, Supplier<ListElem<T>> next) {
+    Pair(T val, Supplier<Optional<Pair<T>>> next) {
         this.val = val;
         this.next = new List<>(next);
     }
@@ -268,11 +210,6 @@ class Pair<T> extends ListElem<T> {
     @Override
     public Optional<Integer> firstIndex(int i, Predicate<? super T> p) {
         return Optional.of(i).filter(u -> p.test(val)).or(() -> next.firstIndex(i + 1, p));
-    }
-
-    @Override
-    public Optional<T> head() {
-        return Optional.of(val);
     }
 
     @Override
