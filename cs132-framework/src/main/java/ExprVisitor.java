@@ -98,11 +98,9 @@ public class ExprVisitor extends GJDepthFirst<ExprVisitor.Ret, T2<TypeEnv, Trans
         final var args = t1.c.reverse().cons(obj.sym).cons(TransEnv.stat);
         final var argsEnv = t1.b;
 
-        final var cm = objClass.classifiedLookup(n.f2.f0.tokenImage).get();
-
-        final var t2 = cm.call(obj.sym, args, argsEnv);
-
-        return new Ret(t2.a, cm.m.retType, t2.b);
+        final var m = objClass.classifiedLookup(n.f2.f0.tokenImage).get();
+        final var t2 = m.call(obj.sym, args, argsEnv);
+        return new Ret(t2.a, m.retType, t2.b);
     }
 
     @Override
