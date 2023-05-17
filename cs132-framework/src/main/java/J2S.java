@@ -31,12 +31,12 @@ public class J2S {
             final var locals = main.f14.accept(new ListVisitor<>(new LocalVisitor()), typeEnv);
             final var localsEnv = typeEnv.addLocals(locals);
 
-            final var bodyEnv = main.f15.nodes.stream().reduce(writeVtables.initLocals(locals),
+            final var body = main.f15.nodes.stream().reduce(writeVtables.initLocals(locals),
                     (acc, n) -> n.accept(new StmtVisitor(), new T2<>(localsEnv, acc)),
                     (u, v) -> v);
 
             return new FunctionDecl(new FunctionName("main"), java.util.List.of(),
-                    new Block(bodyEnv.codeRev.reverse().toJavaList(), TransEnv.stat));
+                    new Block(body.codeRev.reverse().toJavaList(), TransEnv.stat));
         });
     }
 
@@ -44,18 +44,14 @@ public class J2S {
         new MiniJavaParser(System.in);
         final var root = MiniJavaParser.Goal();
 
-        final var env = new Lazy<TypeEnv>(z -> {
-            final var classes = root.f1
-                    .accept(new ListVisitor<>(new ClassVisitor()), z)
-                    .fold(new T2<>(new Lazy<>(() -> 0), List.<Class>nul()),
-                            (acc, mkClass) -> {
-                                final var vtableOffset = acc.a;
-                                final var classAcc = acc.b;
-                                final var cls = mkClass.apply(vtableOffset);
-                                return new T2<>(cls.nextVtableOffset, classAcc.cons(cls));
-                            }).b;
-            return new TypeEnv(List.nul(), classes, Optional.empty());
-        }).get();
+        final var env = new Lazy<TypeEnv>(z -> root.f1
+                .accept(new ListVisitor<>(new ClassVisitor()), z)
+                .fold(new T2<>(new Lazy<>(() -> 0), List.<Class>nul()),
+                        (acc, mkClass) -> acc.consume((vtableOffset, classAcc) -> {
+                            final var cls = mkClass.apply(vtableOffset);
+                            return new T2<>(cls.nextVtableOffset, classAcc.cons(cls));
+                        }))
+                .consume((u, classes) -> new TypeEnv(List.nul(), classes, Optional.empty()))).get();
 
         final var funs = env.classes.flatMap(c -> c.methods.all
                 .map(m -> m.translate(env.enterClass(c))))

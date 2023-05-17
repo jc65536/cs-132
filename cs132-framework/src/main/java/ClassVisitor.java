@@ -7,13 +7,13 @@ import cs132.minijava.visitor.*;
 class MethodVisitor extends GJDepthFirst<Method, T2<Class, TypeEnv>> {
     @Override
     public Method visit(MethodDeclaration n, T2<Class, TypeEnv> argu) {
-        final var c = argu.a;
-        final var typeEnv = argu.b;
-        final var params = n.f4.accept(new ListVisitor<>(new LocalVisitor()), typeEnv);
-        final var name = n.f2.f0.tokenImage;
-        final var locals = n.f7.accept(new ListVisitor<>(new LocalVisitor()), typeEnv);
-        final var retType = n.f1.accept(new TypeVisitor(), typeEnv);
-        return new Method(name, params, locals, retType, n, c);
+        return argu.consume((c, env) -> {
+            final var params = n.f4.accept(new ListVisitor<>(new LocalVisitor()), env);
+            final var name = n.f2.f0.tokenImage;
+            final var locals = n.f7.accept(new ListVisitor<>(new LocalVisitor()), env);
+            final var retType = n.f1.accept(new TypeVisitor(), env);
+            return new Method(name, params, locals, retType, n, c);
+        });
     }
 }
 
@@ -57,23 +57,19 @@ public class ClassVisitor extends GJDepthFirst<Function<Lazy<Integer>, Class>, L
     }
 
     static T2<Integer, List<Vtable>> mkVtables(Class c, TypeEnv env, int vtableOffset) {
-        return c.superClass()
-                .map(sc -> sc.vtables)
-                .orElse(List.nul())
-                .fold(new T2<>(vtableOffset, List.<Vtable>nul()), (acc, vt) -> {
-                    final var offset = acc.a;
-                    final var list = acc.b;
+        return c.superClass().map(sc -> sc.vtables).orElse(List.nul())
+                .fold(new T2<>(vtableOffset, List.<Vtable>nul()),
+                        (acc, vt) -> acc.consume((offset, list) -> {
+                            final var overridingMethods = c.methods.overriding
+                                    .filter(m -> m.origClass() == vt.target);
 
-                    final var overridingMethods = c.methods.overriding
-                            .filter(m -> m.origClass() == vt.target);
-
-                    return overridingMethods.head()
-                            .map(u -> vt.overrides.map(m -> overridingMethods
-                                    .find(m::nameEquals).<VtabledMethod>map(x -> x).orElse(m)))
-                            .map(overrides -> new Vtable(vt.target, overrides, offset))
-                            .map(newVt -> new T2<>(offset + newVt.size, list.cons(newVt)))
-                            .orElse(new T2<>(offset, list.cons(vt)));
-                })
+                            return overridingMethods.head()
+                                    .map(u -> vt.overrides.map(m -> overridingMethods
+                                            .find(m::nameEquals).<VtabledMethod>map(x -> x).orElse(m)))
+                                    .map(overrides -> new Vtable(vt.target, overrides, offset))
+                                    .map(newVt -> new T2<>(offset + newVt.size, list.cons(newVt)))
+                                    .orElse(acc.setB(list.cons(vt)));
+                        }))
                 .consume((nextOffset, overriddenVtables) -> c.methods.overridden.head()
                         .map(u -> new Vtable(c, c.methods.overridden, nextOffset))
                         .map(newVt -> new T2<>(nextOffset + newVt.size, overriddenVtables.cons(newVt)))
