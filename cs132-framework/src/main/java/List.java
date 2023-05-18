@@ -22,23 +22,6 @@ class T2<A, B> {
     <T> T consume(BiFunction<A, B, T> f) {
         return f.apply(a, b);
     }
-
-    T2<A, B> setB(B b) {
-        return new T2<>(a, b);
-    }
-}
-
-class T3<A, B, C> extends T2<A, B> {
-    final C c;
-
-    T3(A a, B b, C c) {
-        super(a, b);
-        this.c = c;
-    }
-
-    <T> T consume(F3<A, B, C, T> f) {
-        return f.apply(a, b, c);
-    }
 }
 
 class Lazy<T> implements Supplier<T> {

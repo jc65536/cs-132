@@ -19,13 +19,13 @@ public class J2S {
                 .map(vt -> vt.offset + vt.size)
                 .orElse(0);
 
-        return new TransEnv(List.nul(), 0).genSym((tmp, transEnv) -> {
-            final var allocStat = transEnv
+        return new Translation(List.nul(), 0).genSym(tmp -> tr -> {
+            final var allocStat = tr
                     .cons(new Move_Id_Integer(tmp, statSize))
-                    .cons(new Alloc(TransEnv.stat, tmp));
+                    .cons(new Alloc(Translation.stat, tmp));
 
             final var writeVtables = typeEnv.vtables.fold(allocStat,
-                    (acc, vt) -> vt.write(TransEnv.stat, tmp, acc))
+                    (acc, vt) -> vt.write(Translation.stat, tmp, acc))
                     .cons(comment("End_vtables"));
 
             final var locals = main.f14.accept(new ListVisitor<>(new LocalVisitor()), typeEnv);
@@ -35,7 +35,7 @@ public class J2S {
                     .fold(writeVtables.initLocals(locals), (acc, mkTrans) -> mkTrans.apply(acc));
 
             return new FunctionDecl(new FunctionName("main"), java.util.List.of(),
-                    new Block(body.codeRev.reverse().toJavaList(), TransEnv.stat));
+                    new Block(body.codeRev.reverse().toJavaList(), Translation.stat));
         });
     }
 

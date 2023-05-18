@@ -68,7 +68,7 @@ public class ClassVisitor extends GJDepthFirst<Function<Lazy<Integer>, Class>, L
                                             .find(m::nameEquals).<VtabledMethod>map(x -> x).orElse(m)))
                                     .map(overrides -> new Vtable(vt.target, overrides, offset))
                                     .map(newVt -> new T2<>(offset + newVt.size, list.cons(newVt)))
-                                    .orElse(acc.setB(list.cons(vt)));
+                                    .orElse(new T2<>(offset, list.cons(vt)));
                         }))
                 .consume((nextOffset, overriddenVtables) -> c.methods.overridden.head()
                         .map(u -> new Vtable(c, c.methods.overridden, nextOffset))

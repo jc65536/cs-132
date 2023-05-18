@@ -9,16 +9,16 @@ import cs132.minijava.syntaxtree.*;
 class Expr {
     final Identifier sym;
     final Type type;
-    final TransEnv env;
+    final Translation tr;
 
-    Expr(Identifier sym, Type type, TransEnv env) {
+    Expr(Identifier sym, Type type, Translation tr) {
         this.sym = sym;
         this.type = type;
-        this.env = env;
+        this.tr = tr;
     }
 
     Expr nullCheck() {
-        return new Expr(sym, type, env.genLabel(err -> env1 -> env1.genLabel(end -> env2 -> env2
+        return new Expr(sym, type, tr.genLabel(err -> tr1 -> tr1.genLabel(end -> tr2 -> tr2
                 .cons(new IfGoto(sym, err))
                 .cons(new Goto(end))
                 .cons(new LabelInstr(err))
@@ -28,7 +28,7 @@ class Expr {
 
     Expr idxCheck(Identifier arr) {
         return new Expr(sym, type,
-                env.genSym((len, env1) -> env1.genLabel((err, env2) -> env2.genLabel((end, env3) -> env3
+                tr.genSym(len -> tr1 -> tr1.genLabel(err -> tr2 -> tr2.genLabel(end -> tr3 -> tr3
                         .cons(new Load(len, arr, 0))
                         .cons(new LessThan(len, sym, len))
                         .cons(new IfGoto(len, err))
@@ -75,7 +75,7 @@ class Vtable {
         this.offset = offset;
     }
 
-    TransEnv write(Identifier stat, Identifier tmp, TransEnv env) {
+    Translation write(Identifier stat, Identifier tmp, Translation env) {
         env = env.cons(J2S.comment(String.format("Vtable_for_%s", target.name)));
         return overrides.fold(env, (acc, m) -> acc
                 .cons(new Move_Id_FuncName(tmp, m.funcName()))
@@ -144,22 +144,21 @@ class Class extends Named implements Type {
                 .or(() -> superClass().flatMap(sc -> sc.classifiedLookup(name)));
     }
 
-    Expr alloc(TransEnv argu) {
-        return argu.genSym((obj, env1) -> env1.genSym((tmp, env2) -> {
-            return new Expr(obj, this, init(obj, tmp, env2
-                    .cons(new Move_Id_Integer(tmp, objSize.get()))
-                    .cons(new Alloc(obj, tmp)),
-                    vtables));
-        }));
+    Expr alloc(Translation tr) {
+        return tr.genSym(obj -> tr1 -> tr1.genSym(tmp -> tr2 -> new Expr(obj, this,
+                init(obj, tmp, tr2
+                        .cons(new Move_Id_Integer(tmp, objSize.get()))
+                        .cons(new Alloc(obj, tmp)),
+                        vtables))));
     }
 
-    TransEnv init(Identifier obj, Identifier tmp, TransEnv argu, List<Vtable> vtables) {
+    Translation init(Identifier obj, Identifier tmp, Translation argu, List<Vtable> vtables) {
         final var env = superClass().map(sc -> sc.init(obj, tmp, argu, vtables)).orElse(argu);
 
         return vtables.find(vt -> vt.target.equals(this))
                 .map(vt -> env
                         .cons(new Move_Id_Integer(tmp, vt.offset))
-                        .cons(new Add(tmp, TransEnv.stat, tmp))
+                        .cons(new Add(tmp, Translation.stat, tmp))
                         .cons(new Store(obj, ownObjOffset.get(), tmp)))
                 .orElse(env);
     }
@@ -173,9 +172,9 @@ abstract class Variable extends Named {
         this.type = type;
     }
 
-    abstract Expr toTemp(TransEnv env);
+    abstract Expr toTemp(Translation env);
 
-    abstract TransEnv assign(Identifier src, TransEnv env);
+    abstract Translation assign(Identifier src, Translation env);
 }
 
 class Field extends Variable {
@@ -187,14 +186,14 @@ class Field extends Variable {
     }
 
     @Override
-    Expr toTemp(TransEnv env) {
-        return env.genSym((tmp, env1) -> new Expr(tmp, type,
-                env1.cons(new Load(tmp, TransEnv.self, offset))));
+    Expr toTemp(Translation tr) {
+        return tr.genSym(tmp -> tr1 -> new Expr(tmp, type,
+                tr1.cons(new Load(tmp, Translation.self, offset))));
     }
 
     @Override
-    TransEnv assign(Identifier src, TransEnv env) {
-        return env.cons(new Store(TransEnv.self, offset, src));
+    Translation assign(Identifier src, Translation env) {
+        return env.cons(new Store(Translation.self, offset, src));
     }
 }
 
@@ -207,13 +206,13 @@ class Local extends Variable {
     }
 
     @Override
-    Expr toTemp(TransEnv env) {
-        return env.genSym((tmp, env1) -> new Expr(tmp, type,
-                env1.cons(new Move_Id_Id(tmp, sym))));
+    Expr toTemp(Translation tr) {
+        return tr.genSym(tmp -> tr1 -> new Expr(tmp, type,
+                tr1.cons(new Move_Id_Id(tmp, sym))));
     }
 
     @Override
-    TransEnv assign(Identifier src, TransEnv env) {
+    Translation assign(Identifier src, Translation env) {
         return env.cons(new Move_Id_Id(sym, src));
     }
 }
@@ -254,7 +253,7 @@ abstract class ClassifiedMethod extends Method {
         super(m.name, m.params, m.locals, m.retType, m.body, m.c);
     }
 
-    abstract Expr call(Identifier self, List<Identifier> args, TransEnv env);
+    abstract Expr call(Identifier self, List<Identifier> args, Translation env);
 
     abstract Class origClass();
 }
@@ -265,8 +264,8 @@ class UniqueMethod extends ClassifiedMethod {
     }
 
     @Override
-    Expr call(Identifier self, List<Identifier> args, TransEnv env) {
-        return env.genSym((res, env1) -> new Expr(res, retType, env1
+    Expr call(Identifier self, List<Identifier> args, Translation tr) {
+        return tr.genSym(res -> tr1 -> new Expr(res, retType, tr1
                 .cons(new Move_Id_FuncName(res, funcName()))
                 .cons(new Call(res, res, args.toJavaList()))));
     }
@@ -287,8 +286,8 @@ abstract class VtabledMethod extends ClassifiedMethod {
     }
 
     @Override
-    Expr call(Identifier self, List<Identifier> args, TransEnv env) {
-        return env.genSym((res, env1) -> new Expr(res, retType, env1
+    Expr call(Identifier self, List<Identifier> args, Translation tr) {
+        return tr.genSym(res -> tr1 -> new Expr(res, retType, tr1
                 .cons(new Load(res, self, origClass().ownObjOffset.get()))
                 .cons(new Load(res, res, offset.get()))
                 .cons(new Call(res, res, args.toJavaList()))));
@@ -343,7 +342,7 @@ class Method extends Named {
 
     FunctionDecl translate(TypeEnv typeEnv) {
         final var localsEnv = typeEnv.addLocals(params).addLocals(locals);
-        final var transEnv = new TransEnv(List.nul(), 0).initLocals(locals);
+        final var transEnv = new Translation(List.nul(), 0).initLocals(locals);
 
         final var bodyEnv = body.f8.accept(new ListVisitor<>(new StmtVisitor()), localsEnv)
                 .fold(transEnv, (acc, mkTrans) -> mkTrans.apply(acc));
@@ -351,8 +350,8 @@ class Method extends Named {
         final var ret = body.f10.accept(new ExprVisitor(), localsEnv).apply(bodyEnv);
 
         return new FunctionDecl(funcName(),
-                params.map(s -> s.sym).cons(TransEnv.self).cons(TransEnv.stat).toJavaList(),
-                new cs132.IR.sparrow.Block(ret.env.codeRev.reverse().toJavaList(), ret.sym));
+                params.map(s -> s.sym).cons(Translation.self).cons(Translation.stat).toJavaList(),
+                new cs132.IR.sparrow.Block(ret.tr.codeRev.reverse().toJavaList(), ret.sym));
     }
 
     FunctionName funcName() {
@@ -396,40 +395,36 @@ public class TypeEnv {
     }
 }
 
-class TransEnv {
+class Translation {
     final List<Instruction> codeRev;
     private final int k;
 
-    TransEnv(List<Instruction> code, int k) {
+    Translation(List<Instruction> code, int k) {
         this.codeRev = code;
         this.k = k;
     }
 
-    TransEnv inc() {
-        return new TransEnv(codeRev, k + 1);
+    <T> T genSym(Function<Identifier, Function<Translation, T>> cont) {
+        return cont.apply(new Identifier("v" + k)).apply(new Translation(codeRev, k + 1));
     }
 
-    <T> T genSym(BiFunction<Identifier, TransEnv, T> cont) {
-        return cont.apply(new Identifier("v" + k), inc());
+    static <T> Function<Translation, T> gens(Function<Identifier, Function<Translation, T>> cont) {
+        return tr -> cont.apply(new Identifier("v" + tr.k)).apply(new Translation(tr.codeRev, tr.k + 1));
     }
 
-    <T> T genSym(Function<Identifier, Function<TransEnv, T>> cont) {
-        return cont.apply(new Identifier("v" + k)).apply(inc());
+    <T> T genLabel(Function<Label, Function<Translation, T>> cont) {
+        return cont.apply(new Label("L" + k)).apply(new Translation(codeRev, k + 1));
     }
 
-    <T> T genLabel(BiFunction<Label, TransEnv, T> cont) {
-        return cont.apply(new Label("L" + k), inc());
+    static <T> Function<Translation, T> genl(Function<Label, Function<Translation, T>> cont) {
+        return tr -> cont.apply(new Label("L" + tr.k)).apply(new Translation(tr.codeRev, tr.k + 1));
     }
 
-    <T> T genLabel(Function<Label, Function<TransEnv, T>> cont) {
-        return cont.apply(new Label("L" + k)).apply(inc());
+    Translation cons(Instruction i) {
+        return new Translation(codeRev.cons(i), k);
     }
 
-    TransEnv cons(Instruction i) {
-        return new TransEnv(codeRev.cons(i), k);
-    }
-
-    TransEnv initLocals(List<Local> locals) {
+    Translation initLocals(List<Local> locals) {
         return locals.fold(this, (acc, lc) -> acc.cons(new Move_Id_Integer(lc.sym, 0)));
     }
 
