@@ -41,36 +41,3 @@ public class ListVisitor<R, A> extends GJDepthFirst<List<R>, A> {
             return List.nul();
     }
 }
-
-class FoldVisitor<R, M, A> extends GJDepthFirst<R, R> {
-    final GJDepthFirst<M, ? super R> v;
-    final BiFunction<R, M, R> f;
-
-    FoldVisitor(GJDepthFirst<M, ? super R> v, BiFunction<R, M, R> f) {
-        this.v = v;
-        this.f = f;
-    }
-
-    @Override
-    public R visit(NodeOptional n, R argu) {
-        if (n.present())
-            return n.node.accept(this, argu);
-        else
-            return argu;
-    }
-
-    @Override
-    public R visit(ExpressionList n, R argu) {
-        return n.f1.accept(this, f.apply(argu, n.f0.accept(v, argu)));
-    }
-
-    @Override
-    public R visit(FormalParameterList n, R argu) {
-        return n.f1.accept(this, f.apply(argu, n.f0.accept(v, argu)));
-    }
-
-    @Override
-    public R visit(NodeListOptional n, R argu) {
-        return n.nodes.stream().reduce(argu, (r, node) -> f.apply(r, node.accept(v, r)), (u, v) -> v);
-    }
-}

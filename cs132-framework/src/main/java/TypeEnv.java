@@ -6,6 +6,39 @@ import cs132.IR.token.*;
 import cs132.IR.token.Identifier;
 import cs132.minijava.syntaxtree.*;
 
+class Expr {
+    final Identifier sym;
+    final Type type;
+    final TransEnv env;
+
+    Expr(Identifier sym, Type type, TransEnv env) {
+        this.sym = sym;
+        this.type = type;
+        this.env = env;
+    }
+
+    Expr nullCheck() {
+        return new Expr(sym, type, env.genLabel(err -> env1 -> env1.genLabel(end -> env2 -> env2
+                .cons(new IfGoto(sym, err))
+                .cons(new Goto(end))
+                .cons(new LabelInstr(err))
+                .cons(new ErrorMessage("\"null pointer\""))
+                .cons(new LabelInstr(end)))));
+    }
+
+    Expr idxCheck(Identifier arr) {
+        return new Expr(sym, type,
+                env.genSym((len, env1) -> env1.genLabel((err, env2) -> env2.genLabel((end, env3) -> env3
+                        .cons(new Load(len, arr, 0))
+                        .cons(new LessThan(len, sym, len))
+                        .cons(new IfGoto(len, err))
+                        .cons(new Goto(end))
+                        .cons(new LabelInstr(err))
+                        .cons(new ErrorMessage("\"array index out of bounds\""))
+                        .cons(new LabelInstr(end))))));
+    }
+}
+
 interface Type {
     boolean subtypes(Type other);
 
@@ -312,14 +345,14 @@ class Method extends Named {
         final var localsEnv = typeEnv.addLocals(params).addLocals(locals);
         final var transEnv = new TransEnv(List.nul(), 0).initLocals(locals);
 
-        return body.f8.accept(new FoldVisitor<>(new StmtVisitor(), T2::setB),
-                new T2<>(localsEnv, transEnv))
-                .consume((u, bodyEnv) -> {
-                    final var ret = body.f10.accept(new ExprVisitor(), new T2<>(localsEnv, bodyEnv));
-                    return new FunctionDecl(funcName(),
-                            params.map(s -> s.sym).cons(TransEnv.self).cons(TransEnv.stat).toJavaList(),
-                            new cs132.IR.sparrow.Block(ret.env.codeRev.reverse().toJavaList(), ret.sym));
-                });
+        final var bodyEnv = body.f8.accept(new ListVisitor<>(new StmtVisitor()), localsEnv)
+                .fold(transEnv, (acc, mkTrans) -> mkTrans.apply(acc));
+
+        final var ret = body.f10.accept(new ExprVisitor(), localsEnv).apply(bodyEnv);
+
+        return new FunctionDecl(funcName(),
+                params.map(s -> s.sym).cons(TransEnv.self).cons(TransEnv.stat).toJavaList(),
+                new cs132.IR.sparrow.Block(ret.env.codeRev.reverse().toJavaList(), ret.sym));
     }
 
     FunctionName funcName() {
@@ -358,10 +391,8 @@ public class TypeEnv {
     }
 
     Variable symLookup(String name) {
-        return locals.find(s -> s.name.equals(name))
-                .<Variable>map(x -> x)
-                .or(() -> currClass.flatMap(c -> c.fieldLookup(name)))
-                .get();
+        return locals.find(s -> s.name.equals(name)).<Variable>map(x -> x)
+                .or(() -> currClass.flatMap(c -> c.fieldLookup(name))).get();
     }
 }
 
@@ -382,34 +413,20 @@ class TransEnv {
         return cont.apply(new Identifier("v" + k), inc());
     }
 
+    <T> T genSym(Function<Identifier, Function<TransEnv, T>> cont) {
+        return cont.apply(new Identifier("v" + k)).apply(inc());
+    }
+
     <T> T genLabel(BiFunction<Label, TransEnv, T> cont) {
         return cont.apply(new Label("L" + k), inc());
     }
 
+    <T> T genLabel(Function<Label, Function<TransEnv, T>> cont) {
+        return cont.apply(new Label("L" + k)).apply(inc());
+    }
+
     TransEnv cons(Instruction i) {
         return new TransEnv(codeRev.cons(i), k);
-    }
-
-    TransEnv nullCheck(Identifier obj) {
-        return genLabel((err, env1) -> env1.genLabel((end, env2) -> {
-            return env2.cons(new IfGoto(obj, err))
-                    .cons(new Goto(end))
-                    .cons(new LabelInstr(err))
-                    .cons(new ErrorMessage("\"null pointer\""))
-                    .cons(new LabelInstr(end));
-        }));
-    }
-
-    TransEnv idxCheck(Identifier arr, Identifier idx) {
-        return genSym((len, env1) -> env1.genLabel((err, env2) -> env2.genLabel((end, env3) -> {
-            return env3.cons(new Load(len, arr, 0))
-                    .cons(new LessThan(len, idx, len))
-                    .cons(new IfGoto(len, err))
-                    .cons(new Goto(end))
-                    .cons(new LabelInstr(err))
-                    .cons(new ErrorMessage("\"array index out of bounds\""))
-                    .cons(new LabelInstr(end));
-        })));
     }
 
     TransEnv initLocals(List<Local> locals) {

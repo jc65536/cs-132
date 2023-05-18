@@ -4,6 +4,10 @@ import java.util.function.*;
 @FunctionalInterface
 interface F3<A, B, C, R> {
     R apply(A a, B b, C c);
+
+    default <T> F3<A, B, C, T> then(Function<? super R, ? extends T> f) {
+        return (a, b, c) -> f.apply(apply(a, b, c));
+    }
 }
 
 class T2<A, B> {

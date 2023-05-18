@@ -1,180 +1,167 @@
+import java.util.function.*;
+
 import cs132.IR.sparrow.*;
 import cs132.IR.token.Identifier;
 import cs132.minijava.syntaxtree.*;
 import cs132.minijava.visitor.*;
 
-class Expr {
-    final Identifier sym;
-    final Type type;
-    final TransEnv env;
-
-    Expr(Identifier sym, Type type, TransEnv env) {
-        this.sym = sym;
-        this.type = type;
-        this.env = env;
-    }
-}
-
-public class ExprVisitor extends GJDepthFirst<Expr, T2<TypeEnv, TransEnv>> {
+public class ExprVisitor extends GJDepthFirst<Function<TransEnv, Expr>, TypeEnv> {
     @Override
-    public Expr visit(Expression n, T2<TypeEnv, TransEnv> argu) {
+    public Function<TransEnv, Expr> visit(Expression n, TypeEnv argu) {
         return n.f0.choice.accept(this, argu);
     }
 
     @Override
-    public Expr visit(AndExpression n, T2<TypeEnv, TransEnv> argu) {
-        return argu.b.genSym((res, env1) -> env1.genLabel((end, env2) -> {
-            final var lhs = n.f0.accept(this, argu.setB(env2));
-            final var rhs = n.f2.accept(this, argu.setB(lhs.env
-                    .cons(new Move_Id_Id(res, lhs.sym))
-                    .cons(new IfGoto(res, end))));
-            return new Expr(res, Type.PRIM, rhs.env
-                    .cons(new Move_Id_Id(res, rhs.sym))
-                    .cons(new LabelInstr(end)));
-        }));
+    public Function<TransEnv, Expr> visit(AndExpression n, TypeEnv argu) {
+        return tr -> tr.genSym(res -> tr1 -> tr1.genLabel(end -> n.f0.accept(this, argu)
+                .andThen(lhs -> lhs.env
+                        .cons(new Move_Id_Id(res, lhs.sym))
+                        .cons(new IfGoto(res, end)))
+                .andThen(n.f2.accept(this, argu))
+                .andThen(rhs -> rhs.env
+                        .cons(new Move_Id_Id(res, rhs.sym))
+                        .cons(new LabelInstr(end)))
+                .andThen(env -> new Expr(res, Type.PRIM, env))));
     }
 
     @Override
-    public Expr visit(CompareExpression n, T2<TypeEnv, TransEnv> argu) {
+    public Function<TransEnv, Expr> visit(CompareExpression n, TypeEnv argu) {
         return binOp(n.f0, n.f2, argu, LessThan::new);
     }
 
     @Override
-    public Expr visit(PlusExpression n, T2<TypeEnv, TransEnv> argu) {
+    public Function<TransEnv, Expr> visit(PlusExpression n, TypeEnv argu) {
         return binOp(n.f0, n.f2, argu, Add::new);
     }
 
     @Override
-    public Expr visit(MinusExpression n, T2<TypeEnv, TransEnv> argu) {
+    public Function<TransEnv, Expr> visit(MinusExpression n, TypeEnv argu) {
         return binOp(n.f0, n.f2, argu, Subtract::new);
     }
 
     @Override
-    public Expr visit(TimesExpression n, T2<TypeEnv, TransEnv> argu) {
+    public Function<TransEnv, Expr> visit(TimesExpression n, TypeEnv argu) {
         return binOp(n.f0, n.f2, argu, Multiply::new);
     }
 
     @Override
-    public Expr visit(ArrayLookup n, T2<TypeEnv, TransEnv> argu) {
-        return argu.b.genSym((res, env) -> {
-            final var arr = n.f0.accept(this, argu.setB(env));
-            final var idx = n.f2.accept(this, argu.setB(arr.env.nullCheck(arr.sym)));
-            return new Expr(res, Type.PRIM, idx.env.idxCheck(arr.sym, idx.sym)
-                    .cons(new Move_Id_Integer(res, 4))
-                    .cons(new Multiply(idx.sym, idx.sym, res))
-                    .cons(new Add(arr.sym, arr.sym, idx.sym))
-                    .cons(new Load(res, arr.sym, 4)));
-        });
+    public Function<TransEnv, Expr> visit(ArrayLookup n, TypeEnv argu) {
+        return tr -> tr.genSym(res -> n.f0.accept(this, argu)
+                .andThen(arr -> n.f2.accept(this, argu)
+                        .andThen(idx -> idx.idxCheck(arr.sym))
+                        .andThen(idx -> idx.env
+                                .cons(new Move_Id_Integer(res, 4))
+                                .cons(new Multiply(idx.sym, idx.sym, res))
+                                .cons(new Add(arr.sym, arr.sym, idx.sym))
+                                .cons(new Load(res, arr.sym, 4)))
+                        .andThen(env -> new Expr(res, Type.PRIM, env))
+                        .apply(arr.env)));
     }
 
     @Override
-    public Expr visit(ArrayLength n, T2<TypeEnv, TransEnv> argu) {
-        return argu.b.genSym((res, env) -> {
-            final var arr = n.f0.accept(this, argu.setB(env));
-            return new Expr(res, Type.PRIM, arr.env.nullCheck(arr.sym)
-                    .cons(new Load(res, arr.sym, 0)));
-        });
+    public Function<TransEnv, Expr> visit(ArrayLength n, TypeEnv argu) {
+        return tr -> tr.genSym(res -> n.f0.accept(this, argu)
+                .andThen(Expr::nullCheck)
+                .andThen(arr -> new Expr(res, Type.PRIM,
+                        arr.env.cons(new Load(res, arr.sym, 0)))));
     }
 
     @Override
-    public Expr visit(MessageSend n, T2<TypeEnv, TransEnv> argu) {
-        final var typeEnv = argu.a;
-        final var obj = n.f0.accept(this, argu);
-        final var objClass = (Class) obj.type;
-
-        return n.f4.accept(new FoldVisitor<>(new ExprVisitor(),
-                (acc, exprRet) -> new T3<>(typeEnv, exprRet.env, acc.c.cons(exprRet.sym))),
-                new T3<>(typeEnv, obj.env.nullCheck(obj.sym), List.<Identifier>nul()))
-                .consume((u, evalArgs, args) -> objClass
+    public Function<TransEnv, Expr> visit(MessageSend n, TypeEnv argu) {
+        return n.f0.accept(this, argu).andThen(obj -> n.f4
+                .accept(new ListVisitor<>(new ExprVisitor()), argu)
+                .fold(new T2<>(obj.nullCheck().env, List.<Identifier>nul()),
+                        (acc, mkExpr) -> acc.consume((tr, list) -> mkExpr
+                                .andThen(arg -> new T2<>(arg.env, list.cons(arg.sym))).apply(tr)))
+                .consume((evalArgs, args) -> ((Class) obj.type)
                         .classifiedLookup(n.f2.f0.tokenImage).get()
-                        .call(obj.sym, args, evalArgs));
+                        .call(obj.sym, args.reverse().cons(obj.sym).cons(TransEnv.stat), evalArgs)));
     }
 
     @Override
-    public Expr visit(PrimaryExpression n, T2<TypeEnv, TransEnv> argu) {
+    public Function<TransEnv, Expr> visit(PrimaryExpression n, TypeEnv argu) {
         return n.f0.choice.accept(this, argu);
     }
 
     @Override
-    public Expr visit(IntegerLiteral n, T2<TypeEnv, TransEnv> argu) {
-        return literal(Integer.parseInt(n.f0.tokenImage), argu.b);
+    public Function<TransEnv, Expr> visit(IntegerLiteral n, TypeEnv argu) {
+        return literal(Integer.parseInt(n.f0.tokenImage));
     }
 
     @Override
-    public Expr visit(TrueLiteral n, T2<TypeEnv, TransEnv> argu) {
-        return literal(1, argu.b);
+    public Function<TransEnv, Expr> visit(TrueLiteral n, TypeEnv argu) {
+        return literal(1);
     }
 
     @Override
-    public Expr visit(FalseLiteral n, T2<TypeEnv, TransEnv> argu) {
-        return literal(0, argu.b);
+    public Function<TransEnv, Expr> visit(FalseLiteral n, TypeEnv argu) {
+        return literal(0);
     }
 
     @Override
-    public Expr visit(cs132.minijava.syntaxtree.Identifier n, T2<TypeEnv, TransEnv> argu) {
-        return argu.a.symLookup(n.f0.tokenImage).toTemp(argu.b);
+    public Function<TransEnv, Expr> visit(cs132.minijava.syntaxtree.Identifier n, TypeEnv argu) {
+        return argu.symLookup(n.f0.tokenImage)::toTemp;
     }
 
     @Override
-    public Expr visit(ThisExpression n, T2<TypeEnv, TransEnv> argu) {
-        return new Expr(TransEnv.self, argu.a.currClass.get(), argu.b);
+    public Function<TransEnv, Expr> visit(ThisExpression n, TypeEnv argu) {
+        return tr -> tr.genSym(tmp -> tr1 -> new Expr(tmp, argu.currClass.get(),
+                tr1.cons(new Move_Id_Id(tmp, TransEnv.self))));
     }
 
     @Override
-    public Expr visit(ArrayAllocationExpression n, T2<TypeEnv, TransEnv> argu) {
-        return argu.b.genSym((res, env1) -> env1.genSym((size, env2) -> env2.genLabel((ok, env3) -> {
-            final var len = n.f3.accept(this, argu.setB(env3));
-            return new Expr(res, Type.PRIM, len.env
-                    .cons(new Move_Id_Integer(res, 0))
-                    .cons(new LessThan(res, len.sym, res))
-                    .cons(new IfGoto(res, ok))
-                    .cons(new ErrorMessage("\"array index out of bounds\""))
-                    .cons(new LabelInstr(ok))
-                    .cons(new Move_Id_Integer(res, 1))
-                    .cons(new Add(size, len.sym, res))
-                    .cons(new Move_Id_Integer(res, 4))
-                    .cons(new Multiply(size, size, res))
-                    .cons(new Alloc(res, size))
-                    .cons(new Store(res, 0, len.sym)));
-        })));
+    public Function<TransEnv, Expr> visit(ArrayAllocationExpression n, TypeEnv argu) {
+        return tr -> tr.genSym(res -> tr1 -> tr1.genSym(size -> tr2 -> tr2.genLabel(ok -> n.f3.accept(this, argu)
+                .andThen(len -> len.env
+                        .cons(new Move_Id_Integer(res, 0))
+                        .cons(new LessThan(res, len.sym, res))
+                        .cons(new IfGoto(res, ok))
+                        .cons(new ErrorMessage("\"array index out of bounds\""))
+                        .cons(new LabelInstr(ok))
+                        .cons(new Move_Id_Integer(res, 1))
+                        .cons(new Add(size, len.sym, res))
+                        .cons(new Move_Id_Integer(res, 4))
+                        .cons(new Multiply(size, size, res))
+                        .cons(new Alloc(res, size))
+                        .cons(new Store(res, 0, len.sym)))
+                .andThen(env -> new Expr(res, Type.PRIM, env)))));
     }
 
     @Override
-    public Expr visit(AllocationExpression n, T2<TypeEnv, TransEnv> argu) {
-        return argu.a.classLookup(n.f1.f0.tokenImage).alloc(argu.b);
+    public Function<TransEnv, Expr> visit(AllocationExpression n, TypeEnv argu) {
+        return argu.classLookup(n.f1.f0.tokenImage)::alloc;
     }
 
     @Override
-    public Expr visit(NotExpression n, T2<TypeEnv, TransEnv> argu) {
-        return argu.b.genSym((res, env) -> {
-            final var opd = n.f1.accept(this, argu.setB(env));
-            return new Expr(res, Type.PRIM, opd.env
-                    .cons(new Move_Id_Integer(res, 1))
-                    .cons(new Subtract(res, res, opd.sym)));
-        });
+    public Function<TransEnv, Expr> visit(NotExpression n, TypeEnv argu) {
+        return tr -> tr.genSym(res -> n.f1.accept(this, argu)
+                .andThen(opd -> opd.env
+                        .cons(new Move_Id_Integer(res, 1))
+                        .cons(new Subtract(res, res, opd.sym)))
+                .andThen(env -> new Expr(res, Type.PRIM, env)));
     }
 
     @Override
-    public Expr visit(BracketExpression n, T2<TypeEnv, TransEnv> argu) {
+    public Function<TransEnv, Expr> visit(BracketExpression n, TypeEnv argu) {
         return n.f1.accept(this, argu);
     }
 
     @Override
-    public Expr visit(ExpressionRest n, T2<TypeEnv, TransEnv> argu) {
+    public Function<TransEnv, Expr> visit(ExpressionRest n, TypeEnv argu) {
         return n.f1.accept(this, argu);
     }
 
-    Expr binOp(Node lNode, Node rNode, T2<TypeEnv, TransEnv> argu,
+    Function<TransEnv, Expr> binOp(Node lNode, Node rNode, TypeEnv argu,
             F3<Identifier, Identifier, Identifier, Instruction> mkInstr) {
-        return argu.b.genSym((res, env) -> {
-            final var lhs = lNode.accept(this, argu.setB(env));
-            final var rhs = rNode.accept(this, argu.setB(lhs.env));
-            return new Expr(res, Type.PRIM, rhs.env.cons(mkInstr.apply(res, lhs.sym, rhs.sym)));
-        });
+        return tr -> tr.genSym(res -> lNode.accept(this, argu)
+                .andThen(lhs -> rNode.accept(this, argu)
+                        .andThen(rhs -> rhs.env.cons(mkInstr.apply(res, lhs.sym, rhs.sym)))
+                        .andThen(env -> new Expr(res, Type.PRIM, env))
+                        .apply(lhs.env)));
     }
 
-    Expr literal(int num, TransEnv env) {
-        return env.genSym((res, env1) -> new Expr(res, Type.PRIM,
-                env1.cons(new Move_Id_Integer(res, num))));
+    Function<TransEnv, Expr> literal(int num) {
+        return tr -> tr.genSym((res, tr1) -> new Expr(res, Type.PRIM,
+                tr1.cons(new Move_Id_Integer(res, num))));
     }
 }
