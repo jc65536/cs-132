@@ -46,20 +46,21 @@ public class ClassVisitor extends GJDepthFirst<Function<Lazy<Integer>, Class>, L
                 (c) -> mkVtables(c, argu.get(), vtableOffset.get()));
     }
 
-    static List<Field> mkFields(Class c, NodeListOptional fieldNodes, TypeEnv argu) {
-        int fieldOffset = c.ownObjOffset.get() + c.methods.overridden.head().map(u -> 4).orElse(0);
-        return fieldNodes.accept(new ListVisitor<>(new FieldVisitor()), argu).fold(List.<Field>nul(),
-                (fieldAcc, mkField) -> fieldAcc.cons(mkField.apply(fieldOffset + fieldAcc.count() * 4)));
+    static T2<List<Field>, Integer> mkFields(Class c, NodeListOptional fieldNodes, TypeEnv argu) {
+        final var fieldOffset = c.ownObjOffset.get() + c.methods.overridden.head().map(u -> 4).orElse(0);
+        return fieldNodes.accept(new ListVisitor<>(new FieldVisitor()), argu)
+                .fold(new T2<>(List.<Field>nul(), fieldOffset), (acc, mkField) -> acc
+                        .consume(fieldAcc -> mkField.andThen(f -> new T2<>(fieldAcc.cons(f), f.offset + 4))));
     }
 
     static List<Method> mkMethods(Class c, NodeListOptional methodNodes, TypeEnv argu) {
         return methodNodes.accept(new ListVisitor<>(new MethodVisitor()), new T2<>(c, argu));
     }
 
-    static T2<Integer, List<Vtable>> mkVtables(Class c, TypeEnv env, int vtableOffset) {
+    static T2<List<Vtable>, Integer> mkVtables(Class c, TypeEnv env, int vtableOffset) {
         return c.superClass().map(sc -> sc.vtables).orElse(List.nul())
-                .fold(new T2<>(vtableOffset, List.<Vtable>nul()),
-                        (acc, vt) -> acc.consume(offset -> list -> {
+                .fold(new T2<>(List.<Vtable>nul(), vtableOffset),
+                        (acc, vt) -> acc.consume(list -> offset -> {
                             final var overridingMethods = c.methods.overriding
                                     .filter(m -> m.origClass() == vt.target);
 
@@ -67,13 +68,13 @@ public class ClassVisitor extends GJDepthFirst<Function<Lazy<Integer>, Class>, L
                                     .map(u -> vt.overrides.map(m -> overridingMethods
                                             .find(m::nameEquals).<Virtual>map(x -> x).orElse(m)))
                                     .map(overrides -> new Vtable(vt.target, overrides, offset))
-                                    .map(newVt -> new T2<>(offset + newVt.size, list.cons(newVt)))
-                                    .orElse(new T2<>(offset, list.cons(vt)));
+                                    .map(newVt -> new T2<>(list.cons(newVt), offset + newVt.size))
+                                    .orElse(new T2<>(list.cons(vt), offset));
                         }))
-                .consume(nextOffset -> overriddenVtables -> c.methods.overridden.head()
+                .consume(overriddenVtables -> nextOffset -> c.methods.overridden.head()
                         .map(u -> new Vtable(c, c.methods.overridden, nextOffset))
-                        .map(newVt -> new T2<>(nextOffset + newVt.size, overriddenVtables.cons(newVt)))
-                        .orElse(new T2<>(nextOffset, overriddenVtables)));
+                        .map(newVt -> new T2<>(overriddenVtables.cons(newVt), nextOffset + newVt.size))
+                        .orElse(new T2<>(overriddenVtables, nextOffset)));
     }
 
     static MethodStruct mkStruct(List<Method> methods, TypeEnv env) {

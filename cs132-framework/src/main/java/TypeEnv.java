@@ -89,30 +89,33 @@ class Class extends Named {
 
     Class(String name,
             Optional<? extends Supplier<Class>> superClass,
-            Function<Class, List<Field>> mkFields,
+            Function<Class, T2<List<Field>, Integer>> mkFields,
             Function<Class, List<Method>> mkMethods,
             Function<List<Method>, MethodStruct> mkStruct,
-            Function<Class, T2<Integer, List<Vtable>>> mkVtables) {
+            Function<Class, T2<List<Vtable>, Integer>> mkVtables) {
         super(name);
         this.superClass = superClass.map(Lazy::new);
-        fields = new List<>(() -> mkFields.apply(this).get());
+
+        final var lazyFields = new Lazy<>(() -> mkFields.apply(this));
+        fields = new List<>(lazyFields.bind(z -> z.a));
+        final var fieldsSize = new Lazy<>(() -> lazyFields.get().b);
 
         final var all = new List<>(() -> mkMethods.apply(this).get());
         final var lazyStruct = new Lazy<>(() -> mkStruct.apply(all));
         methods = new MethodStruct(all,
-                new List<>(() -> lazyStruct.get().overriding.get()),
-                new List<>(() -> lazyStruct.get().overridden.get()),
-                new List<>(() -> lazyStruct.get().unique.get()));
+                new List<>(lazyStruct.bind(z -> z.overriding)),
+                new List<>(lazyStruct.bind(z -> z.overridden)),
+                new List<>(lazyStruct.bind(z -> z.unique)));
 
         final var lazyVtable = new Lazy<>(() -> mkVtables.apply(this));
-        vtables = new List<>(() -> lazyVtable.get().b.get());
-        nextVtableOffset = new Lazy<>(() -> lazyVtable.get().a);
+        vtables = new List<>(lazyVtable.bind(z -> z.a));
+        nextVtableOffset = new Lazy<>(() -> lazyVtable.get().b);
 
         ownObjOffset = new Lazy<>(() -> superClass().map(sc -> sc.objSize.get()).orElse(0));
 
         objSize = new Lazy<>(() -> ownObjOffset.get()
                 + methods.overridden.head().map(u -> 4).orElse(0)
-                + fields.count() * 4);
+                + fieldsSize.get());
     }
 
     Optional<Class> superClass() {
