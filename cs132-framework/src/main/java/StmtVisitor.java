@@ -11,9 +11,7 @@ public class StmtVisitor extends GJDepthFirst<TransEnv, T2<TypeEnv, TransEnv>> {
 
     @Override
     public TransEnv visit(Block n, T2<TypeEnv, TransEnv> argu) {
-        return n.f1.nodes.stream().reduce(argu,
-                (acc, node) -> acc.setB(node.accept(this, acc)),
-                (u, v) -> v).b;
+        return n.f1.accept(new FoldVisitor<>(this, T2::setB), argu).b;
     }
 
     @Override

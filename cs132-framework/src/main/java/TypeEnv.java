@@ -111,9 +111,9 @@ class Class extends Named implements Type {
                 .or(() -> superClass().flatMap(sc -> sc.classifiedLookup(name)));
     }
 
-    T2<Identifier, TransEnv> alloc(TransEnv argu) {
+    Expr alloc(TransEnv argu) {
         return argu.genSym((obj, env1) -> env1.genSym((tmp, env2) -> {
-            return new T2<>(obj, init(obj, tmp, env2
+            return new Expr(obj, this, init(obj, tmp, env2
                     .cons(new Move_Id_Integer(tmp, objSize.get()))
                     .cons(new Alloc(obj, tmp)),
                     vtables));
@@ -140,7 +140,7 @@ abstract class Variable extends Named {
         this.type = type;
     }
 
-    abstract T2<Identifier, TransEnv> toTemp(TransEnv env);
+    abstract Expr toTemp(TransEnv env);
 
     abstract TransEnv assign(Identifier src, TransEnv env);
 }
@@ -154,8 +154,8 @@ class Field extends Variable {
     }
 
     @Override
-    T2<Identifier, TransEnv> toTemp(TransEnv env) {
-        return env.genSym((tmp, env1) -> new T2<>(tmp,
+    Expr toTemp(TransEnv env) {
+        return env.genSym((tmp, env1) -> new Expr(tmp, type,
                 env1.cons(new Load(tmp, TransEnv.self, offset))));
     }
 
@@ -174,8 +174,8 @@ class Local extends Variable {
     }
 
     @Override
-    T2<Identifier, TransEnv> toTemp(TransEnv env) {
-        return env.genSym((tmp, env1) -> new T2<>(tmp,
+    Expr toTemp(TransEnv env) {
+        return env.genSym((tmp, env1) -> new Expr(tmp, type,
                 env1.cons(new Move_Id_Id(tmp, sym))));
     }
 
@@ -221,7 +221,7 @@ abstract class ClassifiedMethod extends Method {
         super(m.name, m.params, m.locals, m.retType, m.body, m.c);
     }
 
-    abstract T2<Identifier, TransEnv> call(Identifier self, List<Identifier> args, TransEnv env);
+    abstract Expr call(Identifier self, List<Identifier> args, TransEnv env);
 
     abstract Class origClass();
 }
@@ -232,8 +232,8 @@ class UniqueMethod extends ClassifiedMethod {
     }
 
     @Override
-    T2<Identifier, TransEnv> call(Identifier self, List<Identifier> args, TransEnv env) {
-        return env.genSym((res, env1) -> new T2<>(res, env1
+    Expr call(Identifier self, List<Identifier> args, TransEnv env) {
+        return env.genSym((res, env1) -> new Expr(res, retType, env1
                 .cons(new Move_Id_FuncName(res, funcName()))
                 .cons(new Call(res, res, args.toJavaList()))));
     }
@@ -254,8 +254,8 @@ abstract class VtabledMethod extends ClassifiedMethod {
     }
 
     @Override
-    T2<Identifier, TransEnv> call(Identifier self, List<Identifier> args, TransEnv env) {
-        return env.genSym((res, env1) -> new T2<>(res, env1
+    Expr call(Identifier self, List<Identifier> args, TransEnv env) {
+        return env.genSym((res, env1) -> new Expr(res, retType, env1
                 .cons(new Load(res, self, origClass().ownObjOffset.get()))
                 .cons(new Load(res, res, offset.get()))
                 .cons(new Call(res, res, args.toJavaList()))));
@@ -312,15 +312,14 @@ class Method extends Named {
         final var localsEnv = typeEnv.addLocals(params).addLocals(locals);
         final var transEnv = new TransEnv(List.nul(), 0).initLocals(locals);
 
-        final var bodyEnv = body.f8.nodes.stream().reduce(transEnv,
-                (acc, n) -> n.accept(new StmtVisitor(), new T2<>(localsEnv, acc)),
-                (u, v) -> v);
-
-        final var ret = body.f10.accept(new ExprVisitor(), new T2<>(localsEnv, bodyEnv));
-
-        return new FunctionDecl(funcName(),
-                params.map(s -> s.sym).cons(TransEnv.self).cons(TransEnv.stat).toJavaList(),
-                new cs132.IR.sparrow.Block(ret.env.codeRev.reverse().toJavaList(), ret.sym));
+        return body.f8.accept(new FoldVisitor<>(new StmtVisitor(), T2::setB),
+                new T2<>(localsEnv, transEnv))
+                .consume((u, bodyEnv) -> {
+                    final var ret = body.f10.accept(new ExprVisitor(), new T2<>(localsEnv, bodyEnv));
+                    return new FunctionDecl(funcName(),
+                            params.map(s -> s.sym).cons(TransEnv.self).cons(TransEnv.stat).toJavaList(),
+                            new cs132.IR.sparrow.Block(ret.env.codeRev.reverse().toJavaList(), ret.sym));
+                });
     }
 
     FunctionName funcName() {

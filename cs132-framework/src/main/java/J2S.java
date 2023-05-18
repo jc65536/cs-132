@@ -31,12 +31,10 @@ public class J2S {
             final var locals = main.f14.accept(new ListVisitor<>(new LocalVisitor()), typeEnv);
             final var localsEnv = typeEnv.addLocals(locals);
 
-            final var body = main.f15.nodes.stream().reduce(writeVtables.initLocals(locals),
-                    (acc, n) -> n.accept(new StmtVisitor(), new T2<>(localsEnv, acc)),
-                    (u, v) -> v);
-
-            return new FunctionDecl(new FunctionName("main"), java.util.List.of(),
-                    new Block(body.codeRev.reverse().toJavaList(), TransEnv.stat));
+            return main.f15.accept(new FoldVisitor<>(new StmtVisitor(), T2::setB),
+                    new T2<>(localsEnv, writeVtables.initLocals(locals)))
+                    .consume((u, body) -> new FunctionDecl(new FunctionName("main"), java.util.List.of(),
+                            new Block(body.codeRev.reverse().toJavaList(), TransEnv.stat)));
         });
     }
 
