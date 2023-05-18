@@ -13,7 +13,7 @@ public class ExprVisitor extends GJDepthFirst<Function<Translation, Expr>, TypeE
 
     @Override
     public Function<Translation, Expr> visit(AndExpression n, TypeEnv argu) {
-        return tr -> tr.genSym(res -> tr1 -> tr1.genLabel(end -> n.f0.accept(this, argu)
+        return Translation.genSym(res -> Translation.genLabel(end -> n.f0.accept(this, argu)
                 .andThen(lhs -> lhs.tr
                         .cons(new Move_Id_Id(res, lhs.sym))
                         .cons(new IfGoto(res, end)))
@@ -46,28 +46,23 @@ public class ExprVisitor extends GJDepthFirst<Function<Translation, Expr>, TypeE
 
     @Override
     public Function<Translation, Expr> visit(ArrayLookup n, TypeEnv argu) {
-        return tr -> tr.genSym(res -> n.f0.accept(this, argu)
-                .andThen(arr -> n.f2.accept(this, argu)
+        return Translation.genSym(res -> n.f0.accept(this, argu)
+                .andThen(arr -> arr.tr.applyTo(n.f2.accept(this, argu)
                         .andThen(idx -> idx.idxCheck(arr.sym))
                         .andThen(idx -> idx.tr
                                 .cons(new Move_Id_Integer(res, 4))
                                 .cons(new Multiply(idx.sym, idx.sym, res))
                                 .cons(new Add(arr.sym, arr.sym, idx.sym))
                                 .cons(new Load(res, arr.sym, 4)))
-                        .andThen(env -> new Expr(res, Type.PRIM, env))
-                        .apply(arr.tr)));
+                        .andThen(env -> new Expr(res, Type.PRIM, env)))));
     }
 
     @Override
     public Function<Translation, Expr> visit(ArrayLength n, TypeEnv argu) {
-        return Translation.gens(res -> n.f0.accept(this, argu)
+        return Translation.genSym(res -> n.f0.accept(this, argu)
                 .andThen(Expr::nullCheck)
                 .andThen(arr -> new Expr(res, Type.PRIM,
                         arr.tr.cons(new Load(res, arr.sym, 0)))));
-        // return tr -> tr.genSym(res -> n.f0.accept(this, argu)
-        // .andThen(Expr::nullCheck)
-        // .andThen(arr -> new Expr(res, Type.PRIM,
-        // arr.tr.cons(new Load(res, arr.sym, 0)))));
     }
 
     @Override
@@ -75,8 +70,8 @@ public class ExprVisitor extends GJDepthFirst<Function<Translation, Expr>, TypeE
         return n.f0.accept(this, argu).andThen(obj -> n.f4
                 .accept(new ListVisitor<>(new ExprVisitor()), argu)
                 .fold(new T2<>(obj.nullCheck().tr, List.<Identifier>nul()),
-                        (acc, mkExpr) -> acc.consume((tr, list) -> mkExpr
-                                .andThen(arg -> new T2<>(arg.tr, list.cons(arg.sym))).apply(tr)))
+                        (acc, mkExpr) -> acc.consume((tr, list) -> tr.applyTo(mkExpr
+                                .andThen(arg -> new T2<>(arg.tr, list.cons(arg.sym))))))
                 .consume((evalArgs, args) -> ((Class) obj.type)
                         .classifiedLookup(n.f2.f0.tokenImage).get()
                         .call(obj.sym, args.reverse().cons(obj.sym).cons(Translation.stat), evalArgs)));
@@ -104,18 +99,18 @@ public class ExprVisitor extends GJDepthFirst<Function<Translation, Expr>, TypeE
 
     @Override
     public Function<Translation, Expr> visit(cs132.minijava.syntaxtree.Identifier n, TypeEnv argu) {
-        return argu.symLookup(n.f0.tokenImage)::toTemp;
+        return argu.symLookup(n.f0.tokenImage).toTemp();
     }
 
     @Override
     public Function<Translation, Expr> visit(ThisExpression n, TypeEnv argu) {
-        return tr -> tr.genSym(tmp -> tr1 -> new Expr(tmp, argu.currClass.get(),
-                tr1.cons(new Move_Id_Id(tmp, Translation.self))));
+        return Translation.genSym(tmp -> tr -> new Expr(tmp, argu.currClass.get(),
+                tr.cons(new Move_Id_Id(tmp, Translation.self))));
     }
 
     @Override
     public Function<Translation, Expr> visit(ArrayAllocationExpression n, TypeEnv argu) {
-        return tr -> tr.genSym(res -> tr1 -> tr1.genSym(size -> tr2 -> tr2.genLabel(ok -> n.f3.accept(this, argu)
+        return Translation.genSym(res -> Translation.genSym(size -> Translation.genLabel(ok -> n.f3.accept(this, argu)
                 .andThen(len -> len.tr
                         .cons(new Move_Id_Integer(res, 0))
                         .cons(new LessThan(res, len.sym, res))
@@ -133,12 +128,12 @@ public class ExprVisitor extends GJDepthFirst<Function<Translation, Expr>, TypeE
 
     @Override
     public Function<Translation, Expr> visit(AllocationExpression n, TypeEnv argu) {
-        return argu.classLookup(n.f1.f0.tokenImage)::alloc;
+        return argu.classLookup(n.f1.f0.tokenImage).alloc();
     }
 
     @Override
     public Function<Translation, Expr> visit(NotExpression n, TypeEnv argu) {
-        return tr -> tr.genSym(res -> n.f1.accept(this, argu)
+        return Translation.genSym(res -> n.f1.accept(this, argu)
                 .andThen(opd -> opd.tr
                         .cons(new Move_Id_Integer(res, 1))
                         .cons(new Subtract(res, res, opd.sym)))
@@ -157,15 +152,14 @@ public class ExprVisitor extends GJDepthFirst<Function<Translation, Expr>, TypeE
 
     Function<Translation, Expr> binOp(Node lNode, Node rNode, TypeEnv argu,
             F3<Identifier, Identifier, Identifier, Instruction> mkInstr) {
-        return tr -> tr.genSym(res -> lNode.accept(this, argu)
-                .andThen(lhs -> rNode.accept(this, argu)
+        return Translation.genSym(res -> lNode.accept(this, argu)
+                .andThen(lhs -> lhs.tr.applyTo(rNode.accept(this, argu)
                         .andThen(rhs -> rhs.tr.cons(mkInstr.apply(res, lhs.sym, rhs.sym)))
-                        .andThen(env -> new Expr(res, Type.PRIM, env))
-                        .apply(lhs.tr)));
+                        .andThen(env -> new Expr(res, Type.PRIM, env)))));
     }
 
     Function<Translation, Expr> literal(int num) {
-        return tr -> tr.genSym(res -> tr1 -> new Expr(res, Type.PRIM,
-                tr1.cons(new Move_Id_Integer(res, num))));
+        return Translation.genSym(res -> tr -> new Expr(res, Type.PRIM,
+                tr.cons(new Move_Id_Integer(res, num))));
     }
 }

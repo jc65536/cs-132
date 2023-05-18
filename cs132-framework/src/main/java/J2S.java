@@ -19,7 +19,7 @@ public class J2S {
                 .map(vt -> vt.offset + vt.size)
                 .orElse(0);
 
-        return new Translation(List.nul(), 0).genSym(tmp -> tr -> {
+        return new Translation(List.nul(), 0).applyTo(Translation.genSym(tmp -> tr -> {
             final var allocStat = tr
                     .cons(new Move_Id_Integer(tmp, statSize))
                     .cons(new Alloc(Translation.stat, tmp));
@@ -32,11 +32,11 @@ public class J2S {
             final var localsEnv = typeEnv.addLocals(locals);
 
             final var body = main.f15.accept(new ListVisitor<>(new StmtVisitor()), localsEnv)
-                    .fold(writeVtables.initLocals(locals), (acc, mkTrans) -> mkTrans.apply(acc));
+                    .fold(writeVtables.initLocals(locals), Translation::applyTo);
 
             return new FunctionDecl(new FunctionName("main"), java.util.List.of(),
                     new Block(body.codeRev.reverse().toJavaList(), Translation.stat));
-        });
+        }));
     }
 
     public static void main(String[] args) throws Exception {
