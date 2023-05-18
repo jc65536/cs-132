@@ -8,47 +8,40 @@ import cs132.minijava.syntaxtree.*;
 
 class Expr {
     final Identifier sym;
-    final Type type;
+    final Optional<Class> type;
     final Trans tr;
 
-    Expr(Identifier sym, Type type, Trans tr) {
+    private Expr(Identifier sym, Optional<Class> type, Trans tr) {
         this.sym = sym;
         this.type = type;
         this.tr = tr;
     }
 
+    static Function<Trans, Expr> make(Identifier sym, Optional<Class> type) {
+        return tr -> new Expr(sym, type, tr);
+    }
+
     Expr nullCheck() {
-        return new Expr(sym, type, tr.applyTo(
-                Trans.genLabel(err -> Trans.genLabel(end -> tr -> tr
-                        .cons(new IfGoto(sym, err))
-                        .cons(new Goto(end))
-                        .cons(new LabelInstr(err))
-                        .cons(new ErrorMessage("\"null pointer\""))
-                        .cons(new LabelInstr(end))))));
+        return tr.applyTo(Trans.genLabel(err -> Trans.genLabel(end -> tr -> tr
+                .cons(new IfGoto(sym, err))
+                .cons(new Goto(end))
+                .cons(new LabelInstr(err))
+                .cons(new ErrorMessage("\"null pointer\""))
+                .cons(new LabelInstr(end)))))
+                .applyTo(Expr.make(sym, type));
     }
 
     Expr idxCheck(Identifier arr) {
-        return new Expr(sym, type, tr.applyTo(
-                Trans.genSym(len -> Trans.genLabel(err -> Trans.genLabel(end -> tr -> tr
-                        .cons(new Load(len, arr, 0))
-                        .cons(new LessThan(len, sym, len))
-                        .cons(new IfGoto(len, err))
-                        .cons(new Goto(end))
-                        .cons(new LabelInstr(err))
-                        .cons(new ErrorMessage("\"array index out of bounds\""))
-                        .cons(new LabelInstr(end)))))));
+        return tr.applyTo(Trans.genSym(len -> Trans.genLabel(err -> Trans.genLabel(end -> tr -> tr
+                .cons(new Load(len, arr, 0))
+                .cons(new LessThan(len, sym, len))
+                .cons(new IfGoto(len, err))
+                .cons(new Goto(end))
+                .cons(new LabelInstr(err))
+                .cons(new ErrorMessage("\"array index out of bounds\""))
+                .cons(new LabelInstr(end))))))
+                .applyTo(Expr.make(sym, type));
     }
-}
-
-interface Type {
-    boolean subtypes(Type other);
-
-    static final Type PRIM = new Type() {
-        @Override
-        public boolean subtypes(Type other) {
-            return this == other;
-        }
-    };
 }
 
 abstract class Named {
@@ -84,7 +77,7 @@ class Vtable {
     }
 }
 
-class Class extends Named implements Type {
+class Class extends Named {
     private final Optional<Lazy<Class>> superClass;
     final List<Field> fields;
     final MethodStruct methods;
@@ -127,8 +120,7 @@ class Class extends Named implements Type {
         return superClass.map(Lazy::get);
     }
 
-    @Override
-    public boolean subtypes(Type other) {
+    boolean subtypes(Class other) {
         return this == other || superClass().map(sc -> sc.subtypes(other)).orElse(false);
     }
 
@@ -143,10 +135,11 @@ class Class extends Named implements Type {
     }
 
     Function<Trans, Expr> alloc() {
-        return Trans.genSym(obj -> Trans.genSym(tmp -> tr -> new Expr(obj, this, tr
+        return Trans.genSym(obj -> Trans.genSym(tmp -> tr -> tr
                 .cons(new Move_Id_Integer(tmp, objSize.get()))
                 .cons(new Alloc(obj, tmp))
-                .applyTo(init(obj, tmp, vtables)))));
+                .applyTo(init(obj, tmp, vtables))
+                .applyTo(Expr.make(obj, Optional.of(this)))));
     }
 
     Function<Trans, Trans> init(Identifier obj, Identifier tmp, List<Vtable> vtables) {
@@ -164,9 +157,9 @@ class Class extends Named implements Type {
 }
 
 abstract class Variable extends Named {
-    final Type type;
+    final Optional<Class> type;
 
-    Variable(String name, Type type) {
+    Variable(String name, Optional<Class> type) {
         super(name);
         this.type = type;
     }
@@ -179,15 +172,15 @@ abstract class Variable extends Named {
 class Field extends Variable {
     final int offset;
 
-    Field(String name, Type type, int offset) {
+    Field(String name, Optional<Class> type, int offset) {
         super(name, type);
         this.offset = offset;
     }
 
     @Override
     Function<Trans, Expr> toTemp() {
-        return Trans.genSym(tmp -> tr -> new Expr(tmp, type,
-                tr.cons(new Load(tmp, Trans.self, offset))));
+        return Trans.genSym(res -> tr -> tr.cons(new Load(res, Trans.self, offset))
+                .applyTo(Expr.make(res, type)));
     }
 
     @Override
@@ -199,15 +192,15 @@ class Field extends Variable {
 class Local extends Variable {
     final Identifier sym;
 
-    Local(String name, Type type, Identifier sym) {
+    Local(String name, Optional<Class> type, Identifier sym) {
         super(name, type);
         this.sym = sym;
     }
 
     @Override
     Function<Trans, Expr> toTemp() {
-        return Trans.genSym(tmp -> tr -> new Expr(tmp, type,
-                tr.cons(new Move_Id_Id(tmp, sym))));
+        return Trans.genSym(res -> tr -> tr.cons(new Move_Id_Id(res, sym))
+                .applyTo(Expr.make(res, type)));
     }
 
     @Override
@@ -264,9 +257,10 @@ class Unique extends Classified {
 
     @Override
     Function<Trans, Expr> call(Identifier self, List<Identifier> args) {
-        return Trans.genSym(res -> tr -> new Expr(res, retType, tr
+        return Trans.genSym(res -> tr -> tr
                 .cons(new Move_Id_FuncName(res, funcName()))
-                .cons(new Call(res, res, args.toJavaList()))));
+                .cons(new Call(res, res, args.toJavaList()))
+                .applyTo(Expr.make(res, retType)));
     }
 
     @Override
@@ -286,10 +280,11 @@ abstract class Virtual extends Classified {
 
     @Override
     Function<Trans, Expr> call(Identifier self, List<Identifier> args) {
-        return Trans.genSym(res -> tr -> new Expr(res, retType, tr
+        return Trans.genSym(res -> tr -> tr
                 .cons(new Load(res, self, origClass().ownObjOffset.get()))
                 .cons(new Load(res, res, offset.get()))
-                .cons(new Call(res, res, args.toJavaList()))));
+                .cons(new Call(res, res, args.toJavaList()))
+                .applyTo(Expr.make(res, retType)));
     }
 }
 
@@ -321,14 +316,14 @@ class Overriding extends Virtual {
 class Method extends Named {
     final List<Local> params;
     final List<Local> locals;
-    final Type retType;
+    final Optional<Class> retType;
     final MethodDeclaration body;
     final Class c;
 
     Method(String name,
             List<Local> params,
             List<Local> locals,
-            Type retType,
+            Optional<Class> retType,
             MethodDeclaration body,
             Class c) {
         super(name);

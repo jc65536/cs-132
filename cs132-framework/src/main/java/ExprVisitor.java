@@ -1,3 +1,4 @@
+import java.util.*;
 import java.util.function.*;
 
 import cs132.IR.sparrow.*;
@@ -21,7 +22,7 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
                 .andThen(rhs -> rhs.tr
                         .cons(new Move_Id_Id(res, rhs.sym))
                         .cons(new LabelInstr(end)))
-                .andThen(env -> new Expr(res, Type.PRIM, env))));
+                .andThen(Expr.make(res, Optional.empty()))));
     }
 
     @Override
@@ -54,15 +55,15 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
                                 .cons(new Multiply(idx.sym, idx.sym, res))
                                 .cons(new Add(arr.sym, arr.sym, idx.sym))
                                 .cons(new Load(res, arr.sym, 4)))
-                        .andThen(env -> new Expr(res, Type.PRIM, env)))));
+                        .andThen(Expr.make(res, Optional.empty())))));
     }
 
     @Override
     public Function<Trans, Expr> visit(ArrayLength n, TypeEnv argu) {
         return Trans.genSym(res -> n.f0.accept(this, argu)
                 .andThen(Expr::nullCheck)
-                .andThen(arr -> new Expr(res, Type.PRIM,
-                        arr.tr.cons(new Load(res, arr.sym, 0)))));
+                .andThen(arr -> arr.tr.cons(new Load(res, arr.sym, 0)))
+                .andThen(Expr.make(res, Optional.empty())));
     }
 
     @Override
@@ -72,7 +73,7 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
                 .fold(new T2<>(List.<Identifier>nul(), obj.nullCheck().tr),
                         (acc, mkExpr) -> acc.consume(list -> mkExpr
                                 .andThen(arg -> new T2<>(list.cons(arg.sym), arg.tr))))
-                .consume(args -> ((Class) obj.type)
+                .consume(args -> obj.type.get()
                         .classifiedLookup(n.f2.f0.tokenImage).get()
                         .call(obj.sym, args.reverse().cons(obj.sym).cons(Trans.stat))));
     }
@@ -104,8 +105,8 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
 
     @Override
     public Function<Trans, Expr> visit(ThisExpression n, TypeEnv argu) {
-        return Trans.genSym(tmp -> tr -> new Expr(tmp, argu.currClass.get(),
-                tr.cons(new Move_Id_Id(tmp, Trans.self))));
+        return Trans.genSym(res -> tr -> tr.cons(new Move_Id_Id(res, Trans.self))
+                .applyTo(Expr.make(res, argu.currClass)));
     }
 
     @Override
@@ -123,7 +124,7 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
                         .cons(new Multiply(size, size, res))
                         .cons(new Alloc(res, size))
                         .cons(new Store(res, 0, len.sym)))
-                .andThen(env -> new Expr(res, Type.PRIM, env)))));
+                .andThen(Expr.make(res, Optional.empty())))));
     }
 
     @Override
@@ -137,7 +138,7 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
                 .andThen(opd -> opd.tr
                         .cons(new Move_Id_Integer(res, 1))
                         .cons(new Subtract(res, res, opd.sym)))
-                .andThen(env -> new Expr(res, Type.PRIM, env)));
+                .andThen(Expr.make(res, Optional.empty())));
     }
 
     @Override
@@ -155,11 +156,11 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
         return Trans.genSym(res -> lNode.accept(this, argu)
                 .andThen(lhs -> lhs.tr.applyTo(rNode.accept(this, argu)
                         .andThen(rhs -> rhs.tr.cons(mkInstr.apply(res, lhs.sym, rhs.sym)))
-                        .andThen(env -> new Expr(res, Type.PRIM, env)))));
+                        .andThen(Expr.make(res, Optional.empty())))));
     }
 
     Function<Trans, Expr> literal(int num) {
-        return Trans.genSym(res -> tr -> new Expr(res, Type.PRIM,
-                tr.cons(new Move_Id_Integer(res, num))));
+        return Trans.genSym(res -> tr -> tr.cons(new Move_Id_Integer(res, num))
+                .applyTo(Expr.make(res, Optional.empty())));
     }
 }

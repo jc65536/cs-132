@@ -1,33 +1,34 @@
-import java.util.function.Function;
+import java.util.*;
+import java.util.function.*;
 
 import cs132.minijava.syntaxtree.*;
 import cs132.minijava.visitor.*;
 
-class TypeVisitor extends GJDepthFirst<Type, TypeEnv> {
+class TypeVisitor extends GJDepthFirst<Optional<Class>, TypeEnv> {
     @Override
-    public Type visit(cs132.minijava.syntaxtree.Type n, TypeEnv argu) {
+    public Optional<Class> visit(cs132.minijava.syntaxtree.Type n, TypeEnv argu) {
         return n.f0.choice.accept(this, argu);
     }
 
     @Override
-    public Type visit(ArrayType n, TypeEnv argu) {
-        return Type.PRIM;
+    public Optional<Class> visit(ArrayType n, TypeEnv argu) {
+        return Optional.empty();
     }
 
     @Override
-    public Type visit(BooleanType n, TypeEnv argu) {
-        return Type.PRIM;
+    public Optional<Class> visit(BooleanType n, TypeEnv argu) {
+        return Optional.empty();
     }
 
     @Override
-    public Type visit(IntegerType n, TypeEnv argu) {
-        return Type.PRIM;
+    public Optional<Class> visit(IntegerType n, TypeEnv argu) {
+        return Optional.empty();
     }
 
     @Override
-    public Type visit(Identifier n, TypeEnv argu) {
+    public Optional<Class> visit(Identifier n, TypeEnv argu) {
         final var className = n.f0.tokenImage;
-        return argu.classLookup(className);
+        return Optional.of(argu.classLookup(className));
     }
 }
 
