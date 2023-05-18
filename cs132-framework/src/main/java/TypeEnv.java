@@ -9,26 +9,27 @@ import cs132.minijava.syntaxtree.*;
 class Expr {
     final Identifier sym;
     final Type type;
-    final Translation tr;
+    final Trans tr;
 
-    Expr(Identifier sym, Type type, Translation tr) {
+    Expr(Identifier sym, Type type, Trans tr) {
         this.sym = sym;
         this.type = type;
         this.tr = tr;
     }
 
     Expr nullCheck() {
-        return new Expr(sym, type, tr.applyTo(Translation.genLabel(err -> Translation.genLabel(end -> tr -> tr
-                .cons(new IfGoto(sym, err))
-                .cons(new Goto(end))
-                .cons(new LabelInstr(err))
-                .cons(new ErrorMessage("\"null pointer\""))
-                .cons(new LabelInstr(end))))));
+        return new Expr(sym, type, tr.applyTo(
+                Trans.genLabel(err -> Trans.genLabel(end -> tr -> tr
+                        .cons(new IfGoto(sym, err))
+                        .cons(new Goto(end))
+                        .cons(new LabelInstr(err))
+                        .cons(new ErrorMessage("\"null pointer\""))
+                        .cons(new LabelInstr(end))))));
     }
 
     Expr idxCheck(Identifier arr) {
-        return new Expr(sym, type,
-                tr.applyTo(Translation.genSym(len -> Translation.genLabel(err -> Translation.genLabel(end -> tr -> tr
+        return new Expr(sym, type, tr.applyTo(
+                Trans.genSym(len -> Trans.genLabel(err -> Trans.genLabel(end -> tr -> tr
                         .cons(new Load(len, arr, 0))
                         .cons(new LessThan(len, sym, len))
                         .cons(new IfGoto(len, err))
@@ -64,18 +65,18 @@ abstract class Named {
 
 class Vtable {
     final Class target;
-    final List<? extends VtabledMethod> overrides;
+    final List<? extends Virtual> overrides;
     final int size;
     final int offset;
 
-    Vtable(Class target, List<? extends VtabledMethod> overrides, int offset) {
+    Vtable(Class target, List<? extends Virtual> overrides, int offset) {
         this.target = target;
         this.overrides = overrides;
         this.size = overrides.count() * 4;
         this.offset = offset;
     }
 
-    Translation write(Identifier stat, Identifier tmp, Translation env) {
+    Trans write(Identifier stat, Identifier tmp, Trans env) {
         env = env.cons(J2S.comment(String.format("Vtable_for_%s", target.name)));
         return overrides.fold(env, (acc, m) -> acc
                 .cons(new Move_Id_FuncName(tmp, m.funcName()))
@@ -91,10 +92,7 @@ class Class extends Named implements Type {
     final List<Vtable> vtables;
     final Lazy<Integer> nextVtableOffset;
 
-    // Size of entire object
     final Lazy<Integer> objSize;
-
-    // Offset into object to own data
     final Lazy<Integer> ownObjOffset;
 
     Class(String name,
@@ -139,19 +137,19 @@ class Class extends Named implements Type {
                 .or(() -> superClass().flatMap(sc -> sc.fieldLookup(name)));
     }
 
-    Optional<ClassifiedMethod> classifiedLookup(String name) {
+    Optional<Classified> classifiedLookup(String name) {
         return methods.classified.find(m -> m.name.equals(name))
                 .or(() -> superClass().flatMap(sc -> sc.classifiedLookup(name)));
     }
 
-    Function<Translation, Expr> alloc() {
-        return Translation.genSym(obj -> Translation.genSym(tmp -> tr -> new Expr(obj, this, tr
+    Function<Trans, Expr> alloc() {
+        return Trans.genSym(obj -> Trans.genSym(tmp -> tr -> new Expr(obj, this, tr
                 .cons(new Move_Id_Integer(tmp, objSize.get()))
                 .cons(new Alloc(obj, tmp))
                 .applyTo(init(obj, tmp, vtables)))));
     }
 
-    Function<Translation, Translation> init(Identifier obj, Identifier tmp, List<Vtable> vtables) {
+    Function<Trans, Trans> init(Identifier obj, Identifier tmp, List<Vtable> vtables) {
         return superClass()
                 .map(sc -> sc.init(obj, tmp, vtables))
                 .orElse(x -> x)
@@ -159,7 +157,7 @@ class Class extends Named implements Type {
                         .find(vt -> vt.target.equals(this))
                         .map(vt -> tr
                                 .cons(new Move_Id_Integer(tmp, vt.offset))
-                                .cons(new Add(tmp, Translation.stat, tmp))
+                                .cons(new Add(tmp, Trans.stat, tmp))
                                 .cons(new Store(obj, ownObjOffset.get(), tmp)))
                         .orElse(tr));
     }
@@ -173,9 +171,9 @@ abstract class Variable extends Named {
         this.type = type;
     }
 
-    abstract Function<Translation, Expr> toTemp();
+    abstract Function<Trans, Expr> toTemp();
 
-    abstract Function<Translation, Translation> assign(Identifier src);
+    abstract Function<Trans, Trans> assign(Identifier src);
 }
 
 class Field extends Variable {
@@ -187,14 +185,14 @@ class Field extends Variable {
     }
 
     @Override
-    Function<Translation, Expr> toTemp() {
-        return Translation.genSym(tmp -> tr1 -> new Expr(tmp, type,
-                tr1.cons(new Load(tmp, Translation.self, offset))));
+    Function<Trans, Expr> toTemp() {
+        return Trans.genSym(tmp -> tr -> new Expr(tmp, type,
+                tr.cons(new Load(tmp, Trans.self, offset))));
     }
 
     @Override
-    Function<Translation, Translation> assign(Identifier src) {
-        return tr -> tr.cons(new Store(Translation.self, offset, src));
+    Function<Trans, Trans> assign(Identifier src) {
+        return tr -> tr.cons(new Store(Trans.self, offset, src));
     }
 }
 
@@ -207,69 +205,68 @@ class Local extends Variable {
     }
 
     @Override
-    Function<Translation, Expr> toTemp() {
-        return Translation.genSym(tmp -> tr1 -> new Expr(tmp, type,
-                tr1.cons(new Move_Id_Id(tmp, sym))));
+    Function<Trans, Expr> toTemp() {
+        return Trans.genSym(tmp -> tr -> new Expr(tmp, type,
+                tr.cons(new Move_Id_Id(tmp, sym))));
     }
 
     @Override
-    Function<Translation, Translation> assign(Identifier src) {
+    Function<Trans, Trans> assign(Identifier src) {
         return tr -> tr.cons(new Move_Id_Id(sym, src));
     }
 }
 
 class MethodStruct {
     final List<Method> all;
-    final List<OverridingMethod> overriding;
-    final List<OverriddenMethod> overridden;
-    final List<UniqueMethod> unique;
-    final List<ClassifiedMethod> classified;
+    final List<Overriding> overriding;
+    final List<Overridden> overridden;
+    final List<Unique> unique;
+    final List<Classified> classified;
 
     MethodStruct(List<Method> all,
-            List<OverridingMethod> overriding,
-            List<OverriddenMethod> overridden,
-            List<UniqueMethod> unique) {
+            List<Overriding> overriding,
+            List<Overridden> overridden,
+            List<Unique> unique) {
         this.all = all;
         this.overriding = overriding;
         this.overridden = overridden;
         this.unique = unique;
-        classified = List.<ClassifiedMethod>nul().join(overriding).join(overridden).join(unique);
+        classified = List.<Classified>nul().join(overriding).join(overridden).join(unique);
     }
 
-    MethodStruct cons(OverridingMethod m) {
+    MethodStruct cons(Overriding m) {
         return new MethodStruct(all, overriding.cons(m), overridden, unique);
     }
 
-    MethodStruct cons(OverriddenMethod m) {
+    MethodStruct cons(Overridden m) {
         return new MethodStruct(all, overriding, overridden.cons(m), unique);
     }
 
-    MethodStruct cons(UniqueMethod m) {
+    MethodStruct cons(Unique m) {
         return new MethodStruct(all, overriding, overridden, unique.cons(m));
     }
 }
 
-abstract class ClassifiedMethod extends Method {
-    ClassifiedMethod(Method m) {
+abstract class Classified extends Method {
+    Classified(Method m) {
         super(m.name, m.params, m.locals, m.retType, m.body, m.c);
     }
 
-    abstract Expr call(Identifier self, List<Identifier> args, Translation env);
+    abstract Function<Trans, Expr> call(Identifier self, List<Identifier> args);
 
     abstract Class origClass();
 }
 
-class UniqueMethod extends ClassifiedMethod {
-    UniqueMethod(Method m) {
+class Unique extends Classified {
+    Unique(Method m) {
         super(m);
     }
 
     @Override
-    Expr call(Identifier self, List<Identifier> args, Translation tr) {
-        return Translation.genSym(res -> tr1 -> new Expr(res, retType, tr1
+    Function<Trans, Expr> call(Identifier self, List<Identifier> args) {
+        return Trans.genSym(res -> tr -> new Expr(res, retType, tr
                 .cons(new Move_Id_FuncName(res, funcName()))
-                .cons(new Call(res, res, args.toJavaList()))))
-                .apply(tr);
+                .cons(new Call(res, res, args.toJavaList()))));
     }
 
     @Override
@@ -278,27 +275,26 @@ class UniqueMethod extends ClassifiedMethod {
     }
 }
 
-abstract class VtabledMethod extends ClassifiedMethod {
+abstract class Virtual extends Classified {
     final Lazy<Integer> offset;
 
-    VtabledMethod(Method m) {
+    Virtual(Method m) {
         super(m);
         this.offset = new Lazy<>(() -> origClass().vtables.head()
                 .get().overrides.firstIndex(m::nameEquals).get() * 4);
     }
 
     @Override
-    Expr call(Identifier self, List<Identifier> args, Translation tr) {
-        return Translation.genSym(res -> tr1 -> new Expr(res, retType, tr1
+    Function<Trans, Expr> call(Identifier self, List<Identifier> args) {
+        return Trans.genSym(res -> tr -> new Expr(res, retType, tr
                 .cons(new Load(res, self, origClass().ownObjOffset.get()))
                 .cons(new Load(res, res, offset.get()))
-                .cons(new Call(res, res, args.toJavaList()))))
-                .apply(tr);
+                .cons(new Call(res, res, args.toJavaList()))));
     }
 }
 
-class OverriddenMethod extends VtabledMethod {
-    OverriddenMethod(Method m) {
+class Overridden extends Virtual {
+    Overridden(Method m) {
         super(m);
     }
 
@@ -308,10 +304,10 @@ class OverriddenMethod extends VtabledMethod {
     }
 }
 
-class OverridingMethod extends VtabledMethod {
+class Overriding extends Virtual {
     final Class target;
 
-    OverridingMethod(Method m, Class target) {
+    Overriding(Method m, Class target) {
         super(m);
         this.target = target;
     }
@@ -345,15 +341,15 @@ class Method extends Named {
 
     FunctionDecl translate(TypeEnv typeEnv) {
         final var localsEnv = typeEnv.addLocals(params).addLocals(locals);
-        final var tr = new Translation(List.nul(), 0).initLocals(locals);
+        final var tr = new Trans(List.nul(), 0).initLocals(locals);
 
         final var bodyEnv = body.f8.accept(new ListVisitor<>(new StmtVisitor()), localsEnv)
-                .fold(tr, Translation::applyTo);
+                .fold(tr, Trans::applyTo);
 
         final var ret = body.f10.accept(new ExprVisitor(), localsEnv).apply(bodyEnv);
 
         return new FunctionDecl(funcName(),
-                params.map(s -> s.sym).cons(Translation.self).cons(Translation.stat).toJavaList(),
+                params.map(s -> s.sym).cons(Trans.self).cons(Trans.stat).toJavaList(),
                 new cs132.IR.sparrow.Block(ret.tr.codeRev.reverse().toJavaList(), ret.sym));
     }
 
@@ -370,18 +366,20 @@ class Method extends Named {
 public class TypeEnv {
     final List<Local> locals;
     final List<Class> classes;
+    final Lazy<Integer> statSize;
     final Optional<Class> currClass;
     final List<Vtable> vtables;
 
-    TypeEnv(List<Local> locals, List<Class> classes, Optional<Class> currClass) {
+    TypeEnv(List<Local> locals, List<Class> classes, Lazy<Integer> statSize, Optional<Class> currClass) {
         this.locals = locals;
         this.classes = classes;
+        this.statSize = statSize;
         this.currClass = currClass;
         this.vtables = classes.flatMap(c -> c.vtables).unique(Object::equals);
     }
 
     TypeEnv enterClass(Class c) {
-        return new TypeEnv(locals, classes, Optional.of(c));
+        return new TypeEnv(locals, classes, statSize, Optional.of(c));
     }
 
     Class classLookup(String name) {
@@ -389,7 +387,7 @@ public class TypeEnv {
     }
 
     TypeEnv addLocals(List<Local> locals) {
-        return new TypeEnv(this.locals.join(locals), classes, currClass);
+        return new TypeEnv(this.locals.join(locals), classes, statSize, currClass);
     }
 
     Variable symLookup(String name) {
@@ -398,28 +396,28 @@ public class TypeEnv {
     }
 }
 
-class Translation {
+class Trans {
     final List<Instruction> codeRev;
     private final int k;
 
-    Translation(List<Instruction> code, int k) {
+    Trans(List<Instruction> code, int k) {
         this.codeRev = code;
         this.k = k;
     }
 
-    static <T> Function<Translation, T> genSym(Function<Identifier, Function<Translation, T>> cont) {
-        return tr -> cont.apply(new Identifier("v" + tr.k)).apply(new Translation(tr.codeRev, tr.k + 1));
+    static <T> Function<Trans, T> genSym(Function<Identifier, Function<Trans, T>> cont) {
+        return tr -> cont.apply(new Identifier("v" + tr.k)).apply(new Trans(tr.codeRev, tr.k + 1));
     }
 
-    static <T> Function<Translation, T> genLabel(Function<Label, Function<Translation, T>> cont) {
-        return tr -> cont.apply(new Label("L" + tr.k)).apply(new Translation(tr.codeRev, tr.k + 1));
+    static <T> Function<Trans, T> genLabel(Function<Label, Function<Trans, T>> cont) {
+        return tr -> cont.apply(new Label("L" + tr.k)).apply(new Trans(tr.codeRev, tr.k + 1));
     }
 
-    Translation cons(Instruction i) {
-        return new Translation(codeRev.cons(i), k);
+    Trans cons(Instruction i) {
+        return new Trans(codeRev.cons(i), k);
     }
 
-    Translation initLocals(List<Local> locals) {
+    Trans initLocals(List<Local> locals) {
         return locals.fold(this, (acc, lc) -> acc.cons(new Move_Id_Integer(lc.sym, 0)));
     }
 
@@ -427,7 +425,7 @@ class Translation {
 
     static final Identifier stat = new Identifier("__stat__");
 
-    <T> T applyTo(Function<Translation, T> f) {
+    <T> T applyTo(Function<Trans, T> f) {
         return f.apply(this);
     }
 }

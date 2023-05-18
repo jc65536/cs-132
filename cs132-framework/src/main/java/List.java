@@ -15,8 +15,8 @@ class T2<A, B> {
         this.b = b;
     }
 
-    <T> T consume(BiFunction<A, B, T> f) {
-        return f.apply(a, b);
+    <T> T consume(Function<A, Function<B, T>> f) {
+        return f.apply(a).apply(b);
     }
 }
 

@@ -7,7 +7,7 @@ import cs132.minijava.visitor.*;
 class MethodVisitor extends GJDepthFirst<Method, T2<Class, TypeEnv>> {
     @Override
     public Method visit(MethodDeclaration n, T2<Class, TypeEnv> argu) {
-        return argu.consume((c, env) -> {
+        return argu.consume(c -> env -> {
             final var params = n.f4.accept(new ListVisitor<>(new LocalVisitor()), env);
             final var name = n.f2.f0.tokenImage;
             final var locals = n.f7.accept(new ListVisitor<>(new LocalVisitor()), env);
@@ -59,18 +59,18 @@ public class ClassVisitor extends GJDepthFirst<Function<Lazy<Integer>, Class>, L
     static T2<Integer, List<Vtable>> mkVtables(Class c, TypeEnv env, int vtableOffset) {
         return c.superClass().map(sc -> sc.vtables).orElse(List.nul())
                 .fold(new T2<>(vtableOffset, List.<Vtable>nul()),
-                        (acc, vt) -> acc.consume((offset, list) -> {
+                        (acc, vt) -> acc.consume(offset -> list -> {
                             final var overridingMethods = c.methods.overriding
                                     .filter(m -> m.origClass() == vt.target);
 
                             return overridingMethods.head()
                                     .map(u -> vt.overrides.map(m -> overridingMethods
-                                            .find(m::nameEquals).<VtabledMethod>map(x -> x).orElse(m)))
+                                            .find(m::nameEquals).<Virtual>map(x -> x).orElse(m)))
                                     .map(overrides -> new Vtable(vt.target, overrides, offset))
                                     .map(newVt -> new T2<>(offset + newVt.size, list.cons(newVt)))
                                     .orElse(new T2<>(offset, list.cons(vt)));
                         }))
-                .consume((nextOffset, overriddenVtables) -> c.methods.overridden.head()
+                .consume(nextOffset -> overriddenVtables -> c.methods.overridden.head()
                         .map(u -> new Vtable(c, c.methods.overridden, nextOffset))
                         .map(newVt -> new T2<>(nextOffset + newVt.size, overriddenVtables.cons(newVt)))
                         .orElse(new T2<>(nextOffset, overriddenVtables)));
@@ -80,12 +80,12 @@ public class ClassVisitor extends GJDepthFirst<Function<Lazy<Integer>, Class>, L
         return methods.fold(new MethodStruct(methods, List.nul(), List.nul(), List.nul()),
                 (struct, m) -> m.c.superClass()
                         .flatMap(sc -> sc.classifiedLookup(m.name))
-                        .map(sm -> struct.cons(new OverridingMethod(m, sm.origClass())))
+                        .map(sm -> struct.cons(new Overriding(m, sm.origClass())))
                         .or(() -> env.classes
                                 .filter(cls -> cls != m.c && cls.subtypes(m.c))
                                 .flatMap(cls -> cls.methods.all)
                                 .find(m::nameEquals)
-                                .map(u -> struct.cons(new OverriddenMethod(m))))
-                        .orElseGet(() -> struct.cons(new UniqueMethod(m))));
+                                .map(u -> struct.cons(new Overridden(m))))
+                        .orElseGet(() -> struct.cons(new Unique(m))));
     }
 }

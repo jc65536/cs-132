@@ -1,0 +1,32 @@
+(class mammal
+    (field string name "m")
+    (method void foo () 
+        (begin
+            (print name)
+            (call me bar)
+        )
+    )
+)
+
+(class person inherits mammal
+    (field string name "p")
+    (method void baz () (print name))
+)
+
+(class student inherits person
+    (field string name "s")
+    (method void bar () (begin
+        (print name)
+        (call me baz)
+    ))
+)
+
+(class main
+    (field person p null)
+    (method void main ()
+        (begin
+            (set p (new student))
+            (call p foo)
+        )
+    )
+)

@@ -5,26 +5,26 @@ import cs132.minijava.syntaxtree.*;
 import cs132.minijava.syntaxtree.Block;
 import cs132.minijava.visitor.*;
 
-public class StmtVisitor extends GJDepthFirst<Function<Translation, Translation>, TypeEnv> {
+public class StmtVisitor extends GJDepthFirst<Function<Trans, Trans>, TypeEnv> {
     @Override
-    public Function<Translation, Translation> visit(Statement n, TypeEnv argu) {
+    public Function<Trans, Trans> visit(Statement n, TypeEnv argu) {
         return n.f0.choice.accept(this, argu);
     }
 
     @Override
-    public Function<Translation, Translation> visit(Block n, TypeEnv argu) {
-        return tr -> n.f1.accept(new ListVisitor<>(this), argu).fold(tr, Translation::applyTo);
+    public Function<Trans, Trans> visit(Block n, TypeEnv argu) {
+        return tr -> n.f1.accept(new ListVisitor<>(this), argu).fold(tr, Trans::applyTo);
     }
 
     @Override
-    public Function<Translation, Translation> visit(AssignmentStatement n, TypeEnv argu) {
+    public Function<Trans, Trans> visit(AssignmentStatement n, TypeEnv argu) {
         return n.f2.accept(new ExprVisitor(), argu)
                 .andThen(rhs -> rhs.tr.applyTo(argu.symLookup(n.f0.f0.tokenImage).assign(rhs.sym)));
     }
 
     @Override
-    public Function<Translation, Translation> visit(ArrayAssignmentStatement n, TypeEnv argu) {
-        return Translation.genSym(tmp -> n.f0.accept(new ExprVisitor(), argu)
+    public Function<Trans, Trans> visit(ArrayAssignmentStatement n, TypeEnv argu) {
+        return Trans.genSym(tmp -> n.f0.accept(new ExprVisitor(), argu)
                 .andThen(Expr::nullCheck)
                 .andThen(arr -> arr.tr.applyTo(n.f2.accept(new ExprVisitor(), argu)
                         .andThen(idx -> idx.idxCheck(arr.sym))
@@ -37,8 +37,8 @@ public class StmtVisitor extends GJDepthFirst<Function<Translation, Translation>
     }
 
     @Override
-    public Function<Translation, Translation> visit(IfStatement n, TypeEnv argu) {
-        return Translation.genLabel(fail -> Translation.genLabel(end -> n.f2
+    public Function<Trans, Trans> visit(IfStatement n, TypeEnv argu) {
+        return Trans.genLabel(fail -> Trans.genLabel(end -> n.f2
                 .accept(new ExprVisitor(), argu)
                 .andThen(cond -> cond.tr.cons(new IfGoto(cond.sym, fail)))
                 .andThen(n.f4.accept(this, argu))
@@ -50,8 +50,8 @@ public class StmtVisitor extends GJDepthFirst<Function<Translation, Translation>
     }
 
     @Override
-    public Function<Translation, Translation> visit(WhileStatement n, TypeEnv argu) {
-        return Translation.genLabel(start -> Translation.genLabel(end -> tr2 -> tr2
+    public Function<Trans, Trans> visit(WhileStatement n, TypeEnv argu) {
+        return Trans.genLabel(start -> Trans.genLabel(end -> tr -> tr
                 .cons(new LabelInstr(start))
                 .applyTo(n.f2.accept(new ExprVisitor(), argu)
                         .andThen(cond -> cond.tr.cons(new IfGoto(cond.sym, end)))
@@ -62,7 +62,7 @@ public class StmtVisitor extends GJDepthFirst<Function<Translation, Translation>
     }
 
     @Override
-    public Function<Translation, Translation> visit(PrintStatement n, TypeEnv argu) {
+    public Function<Trans, Trans> visit(PrintStatement n, TypeEnv argu) {
         return n.f2.accept(new ExprVisitor(), argu)
                 .andThen(arg -> arg.tr.cons(new Print(arg.sym)));
     }
