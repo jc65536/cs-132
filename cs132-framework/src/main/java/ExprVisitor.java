@@ -14,15 +14,12 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
 
     @Override
     public Function<Trans, Expr> visit(AndExpression n, TypeEnv argu) {
-        return Trans.genSym(res -> Trans.genLabel(end -> n.f0.accept(this, argu)
-                .andThen(lhs -> lhs
-                        .cons(new Move_Id_Id(res, lhs.sym))
-                        .cons(new IfGoto(res, end)))
-                .andThen(n.f2.accept(this, argu))
-                .andThen(rhs -> rhs
-                        .cons(new Move_Id_Id(res, rhs.sym))
-                        .cons(new LabelInstr(end)))
-                .andThen(Expr.make(res, Optional.empty()))));
+        return Trans.genLabel(end -> n.f0.accept(this, argu).andThen(lhs -> lhs
+                .cons(new IfGoto(lhs.sym, end))
+                .applyTo(n.f2.accept(this, argu).andThen(rhs -> rhs
+                        .cons(new Move_Id_Id(lhs.sym, rhs.sym))
+                        .cons(new LabelInstr(end))))
+                .applyTo(Expr.make(lhs.sym, Optional.empty()))));
     }
 
     @Override
@@ -47,23 +44,23 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
 
     @Override
     public Function<Trans, Expr> visit(ArrayLookup n, TypeEnv argu) {
-        return Trans.genSym(res -> n.f0.accept(this, argu)
-                .andThen(arr -> arr.applyTo(n.f2.accept(this, argu)
+        return n.f0.accept(this, argu).andThen(arr -> arr
+                .applyTo(n.f2.accept(this, argu)
                         .andThen(idx -> idx.idxCheck(arr.sym))
-                        .andThen(idx -> idx
-                                .cons(new Move_Id_Integer(res, 4))
-                                .cons(new Multiply(idx.sym, idx.sym, res))
+                        .andThen(idx -> idx.applyTo(literal(4).andThen(tmp -> tmp
+                                .cons(new Multiply(idx.sym, idx.sym, tmp.sym))
                                 .cons(new Add(arr.sym, arr.sym, idx.sym))
-                                .cons(new Load(res, arr.sym, 4)))
-                        .andThen(Expr.make(res, Optional.empty())))));
+                                .cons(new Load(tmp.sym, arr.sym, 4))
+                                .applyTo(Expr.make(tmp.sym, Optional.empty())))))));
     }
 
     @Override
     public Function<Trans, Expr> visit(ArrayLength n, TypeEnv argu) {
-        return Trans.genSym(res -> n.f0.accept(this, argu)
+        return n.f0.accept(this, argu)
                 .andThen(Expr::nullCheck)
-                .andThen(arr -> arr.cons(new Load(res, arr.sym, 0)))
-                .andThen(Expr.make(res, Optional.empty())));
+                .andThen(arr -> arr
+                        .cons(new Load(arr.sym, arr.sym, 0))
+                        .applyTo(Expr.make(arr.sym, Optional.empty())));
     }
 
     @Override
@@ -105,26 +102,27 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
 
     @Override
     public Function<Trans, Expr> visit(ThisExpression n, TypeEnv argu) {
-        return Trans.genSym(res -> tr -> tr.cons(new Move_Id_Id(res, Trans.self))
-                .applyTo(Expr.make(res, argu.currClass)));
+        return Trans.genSym(tmp -> tr -> tr
+                .cons(new Move_Id_Id(tmp, Trans.self))
+                .applyTo(Expr.make(tmp, argu.currClass)));
     }
 
     @Override
     public Function<Trans, Expr> visit(ArrayAllocationExpression n, TypeEnv argu) {
-        return Trans.genSym(res -> Trans.genSym(size -> Trans.genLabel(ok -> n.f3.accept(this, argu)
-                .andThen(len -> len
-                        .cons(new Move_Id_Integer(res, 0))
-                        .cons(new LessThan(res, len.sym, res))
-                        .cons(new IfGoto(res, ok))
+        return Trans.genSym(size -> Trans.genLabel(ok -> n.f3.accept(this, argu).andThen(len -> len
+                .applyTo(literal(0).andThen(tmp -> tmp
+                        .cons(new Move_Id_Integer(tmp.sym, 0))
+                        .cons(new LessThan(tmp.sym, len.sym, tmp.sym))
+                        .cons(new IfGoto(tmp.sym, ok))
                         .cons(new ErrorMessage("\"array index out of bounds\""))
                         .cons(new LabelInstr(ok))
-                        .cons(new Move_Id_Integer(res, 1))
-                        .cons(new Add(size, len.sym, res))
-                        .cons(new Move_Id_Integer(res, 4))
-                        .cons(new Multiply(size, size, res))
-                        .cons(new Alloc(res, size))
-                        .cons(new Store(res, 0, len.sym)))
-                .andThen(Expr.make(res, Optional.empty())))));
+                        .cons(new Move_Id_Integer(tmp.sym, 1))
+                        .cons(new Add(size, len.sym, tmp.sym))
+                        .cons(new Move_Id_Integer(tmp.sym, 4))
+                        .cons(new Multiply(size, size, tmp.sym))
+                        .cons(new Alloc(tmp.sym, size))
+                        .cons(new Store(tmp.sym, 0, len.sym))
+                        .applyTo(Expr.make(tmp.sym, Optional.empty())))))));
     }
 
     @Override
@@ -134,11 +132,11 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
 
     @Override
     public Function<Trans, Expr> visit(NotExpression n, TypeEnv argu) {
-        return Trans.genSym(res -> n.f1.accept(this, argu)
-                .andThen(opd -> opd
-                        .cons(new Move_Id_Integer(res, 1))
-                        .cons(new Subtract(res, res, opd.sym)))
-                .andThen(Expr.make(res, Optional.empty())));
+        return n.f1.accept(this, argu).andThen(opd -> opd
+                .applyTo(literal(1).andThen(tmp -> tmp
+                        .cons(new Subtract(tmp.sym, tmp.sym, opd.sym))
+                        .applyTo(Expr.make(tmp.sym, Optional.empty())))));
+
     }
 
     @Override
@@ -153,14 +151,15 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
 
     Function<Trans, Expr> binOp(Node lNode, Node rNode, TypeEnv argu,
             F3<Identifier, Identifier, Identifier, Instruction> mkInstr) {
-        return Trans.genSym(res -> lNode.accept(this, argu)
-                .andThen(lhs -> lhs.applyTo(rNode.accept(this, argu)
-                        .andThen(rhs -> rhs.cons(mkInstr.apply(res, lhs.sym, rhs.sym)))
-                        .andThen(Expr.make(res, Optional.empty())))));
+        return lNode.accept(this, argu).andThen(lhs -> lhs
+                .applyTo(rNode.accept(this, argu).andThen(rhs -> rhs
+                        .cons(mkInstr.apply(lhs.sym, lhs.sym, rhs.sym))))
+                .applyTo(Expr.make(lhs.sym, Optional.empty())));
     }
 
-    Function<Trans, Expr> literal(int num) {
-        return Trans.genSym(res -> tr -> tr.cons(new Move_Id_Integer(res, num))
+    static Function<Trans, Expr> literal(int num) {
+        return Trans.genSym(res -> tr -> tr
+                .cons(new Move_Id_Integer(res, num))
                 .applyTo(Expr.make(res, Optional.empty())));
     }
 }
