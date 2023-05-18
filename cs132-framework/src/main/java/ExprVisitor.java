@@ -15,11 +15,11 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
     @Override
     public Function<Trans, Expr> visit(AndExpression n, TypeEnv argu) {
         return Trans.genSym(res -> Trans.genLabel(end -> n.f0.accept(this, argu)
-                .andThen(lhs -> lhs.tr
+                .andThen(lhs -> lhs
                         .cons(new Move_Id_Id(res, lhs.sym))
                         .cons(new IfGoto(res, end)))
                 .andThen(n.f2.accept(this, argu))
-                .andThen(rhs -> rhs.tr
+                .andThen(rhs -> rhs
                         .cons(new Move_Id_Id(res, rhs.sym))
                         .cons(new LabelInstr(end)))
                 .andThen(Expr.make(res, Optional.empty()))));
@@ -48,9 +48,9 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
     @Override
     public Function<Trans, Expr> visit(ArrayLookup n, TypeEnv argu) {
         return Trans.genSym(res -> n.f0.accept(this, argu)
-                .andThen(arr -> arr.tr.applyTo(n.f2.accept(this, argu)
+                .andThen(arr -> arr.applyTo(n.f2.accept(this, argu)
                         .andThen(idx -> idx.idxCheck(arr.sym))
-                        .andThen(idx -> idx.tr
+                        .andThen(idx -> idx
                                 .cons(new Move_Id_Integer(res, 4))
                                 .cons(new Multiply(idx.sym, idx.sym, res))
                                 .cons(new Add(arr.sym, arr.sym, idx.sym))
@@ -62,7 +62,7 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
     public Function<Trans, Expr> visit(ArrayLength n, TypeEnv argu) {
         return Trans.genSym(res -> n.f0.accept(this, argu)
                 .andThen(Expr::nullCheck)
-                .andThen(arr -> arr.tr.cons(new Load(res, arr.sym, 0)))
+                .andThen(arr -> arr.cons(new Load(res, arr.sym, 0)))
                 .andThen(Expr.make(res, Optional.empty())));
     }
 
@@ -70,10 +70,10 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
     public Function<Trans, Expr> visit(MessageSend n, TypeEnv argu) {
         return n.f0.accept(this, argu).andThen(obj -> n.f4
                 .accept(new ListVisitor<>(new ExprVisitor()), argu)
-                .fold(new T2<>(List.<Identifier>nul(), obj.nullCheck().tr),
+                .fold(new T2<>(List.<Identifier>nul(), obj.nullCheck()),
                         (acc, mkExpr) -> acc.consume(list -> mkExpr
-                                .andThen(arg -> new T2<>(list.cons(arg.sym), arg.tr))))
-                .consume(args -> obj.type.get()
+                                .andThen(arg -> new T2<>(list.cons(arg.sym), arg))))
+                .<Expr>consume(args -> obj.type.get()
                         .classifiedLookup(n.f2.f0.tokenImage).get()
                         .call(obj.sym, args.reverse().cons(obj.sym).cons(Trans.stat))));
     }
@@ -112,7 +112,7 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
     @Override
     public Function<Trans, Expr> visit(ArrayAllocationExpression n, TypeEnv argu) {
         return Trans.genSym(res -> Trans.genSym(size -> Trans.genLabel(ok -> n.f3.accept(this, argu)
-                .andThen(len -> len.tr
+                .andThen(len -> len
                         .cons(new Move_Id_Integer(res, 0))
                         .cons(new LessThan(res, len.sym, res))
                         .cons(new IfGoto(res, ok))
@@ -135,7 +135,7 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
     @Override
     public Function<Trans, Expr> visit(NotExpression n, TypeEnv argu) {
         return Trans.genSym(res -> n.f1.accept(this, argu)
-                .andThen(opd -> opd.tr
+                .andThen(opd -> opd
                         .cons(new Move_Id_Integer(res, 1))
                         .cons(new Subtract(res, res, opd.sym)))
                 .andThen(Expr.make(res, Optional.empty())));
@@ -154,8 +154,8 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
     Function<Trans, Expr> binOp(Node lNode, Node rNode, TypeEnv argu,
             F3<Identifier, Identifier, Identifier, Instruction> mkInstr) {
         return Trans.genSym(res -> lNode.accept(this, argu)
-                .andThen(lhs -> lhs.tr.applyTo(rNode.accept(this, argu)
-                        .andThen(rhs -> rhs.tr.cons(mkInstr.apply(res, lhs.sym, rhs.sym)))
+                .andThen(lhs -> lhs.applyTo(rNode.accept(this, argu)
+                        .andThen(rhs -> rhs.cons(mkInstr.apply(res, lhs.sym, rhs.sym)))
                         .andThen(Expr.make(res, Optional.empty())))));
     }
 

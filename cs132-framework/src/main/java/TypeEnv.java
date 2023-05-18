@@ -6,23 +6,22 @@ import cs132.IR.token.*;
 import cs132.IR.token.Identifier;
 import cs132.minijava.syntaxtree.*;
 
-class Expr {
+class Expr extends Trans {
     final Identifier sym;
     final Optional<Class> type;
-    final Trans tr;
 
-    private Expr(Identifier sym, Optional<Class> type, Trans tr) {
+    private Expr(Trans tr, Identifier sym, Optional<Class> type) {
+        super(tr.codeRev, tr.k);
         this.sym = sym;
         this.type = type;
-        this.tr = tr;
     }
 
     static Function<Trans, Expr> make(Identifier sym, Optional<Class> type) {
-        return tr -> new Expr(sym, type, tr);
+        return tr -> new Expr(tr, sym, type);
     }
 
     Expr nullCheck() {
-        return tr.applyTo(Trans.genLabel(err -> Trans.genLabel(end -> tr -> tr
+        return applyTo(Trans.genLabel(err -> Trans.genLabel(end -> tr -> tr
                 .cons(new IfGoto(sym, err))
                 .cons(new Goto(end))
                 .cons(new LabelInstr(err))
@@ -32,7 +31,7 @@ class Expr {
     }
 
     Expr idxCheck(Identifier arr) {
-        return tr.applyTo(Trans.genSym(len -> Trans.genLabel(err -> Trans.genLabel(end -> tr -> tr
+        return applyTo(Trans.genSym(len -> Trans.genLabel(err -> Trans.genLabel(end -> tr -> tr
                 .cons(new Load(len, arr, 0))
                 .cons(new LessThan(len, sym, len))
                 .cons(new IfGoto(len, err))
@@ -69,11 +68,11 @@ class Vtable {
         this.offset = offset;
     }
 
-    Trans write(Identifier stat, Identifier tmp, Trans env) {
+    Trans write(Identifier tmp, Trans env) {
         env = env.cons(J2S.comment(String.format("Vtable_for_%s", target.name)));
         return overrides.fold(env, (acc, m) -> acc
                 .cons(new Move_Id_FuncName(tmp, m.funcName()))
-                .cons(new Store(stat, offset + m.offset.get(), tmp)));
+                .cons(new Store(Trans.stat, offset + m.offset.get(), tmp)));
     }
 }
 
@@ -336,16 +335,16 @@ class Method extends Named {
 
     FunctionDecl translate(TypeEnv typeEnv) {
         final var localsEnv = typeEnv.addLocals(params).addLocals(locals);
-        final var tr = new Trans(List.nul(), 0).initLocals(locals);
+        final var trans = new Trans(List.nul(), 0).initLocals(locals);
 
         final var bodyEnv = body.f8.accept(new ListVisitor<>(new StmtVisitor()), localsEnv)
-                .fold(tr, Trans::applyTo);
+                .fold(trans, Trans::applyTo);
 
         final var ret = body.f10.accept(new ExprVisitor(), localsEnv).apply(bodyEnv);
 
         return new FunctionDecl(funcName(),
                 params.map(s -> s.sym).cons(Trans.self).cons(Trans.stat).toJavaList(),
-                new cs132.IR.sparrow.Block(ret.tr.codeRev.reverse().toJavaList(), ret.sym));
+                new cs132.IR.sparrow.Block(ret.codeRev.reverse().toJavaList(), ret.sym));
     }
 
     FunctionName funcName() {
@@ -393,10 +392,10 @@ public class TypeEnv {
 
 class Trans {
     final List<Instruction> codeRev;
-    private final int k;
+    protected final int k;
 
-    Trans(List<Instruction> code, int k) {
-        this.codeRev = code;
+    Trans(List<Instruction> codeRev, int k) {
+        this.codeRev = codeRev;
         this.k = k;
     }
 

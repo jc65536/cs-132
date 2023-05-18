@@ -27,8 +27,7 @@ class TypeVisitor extends GJDepthFirst<Optional<Class>, TypeEnv> {
 
     @Override
     public Optional<Class> visit(Identifier n, TypeEnv argu) {
-        final var className = n.f0.tokenImage;
-        return Optional.of(argu.classLookup(className));
+        return Optional.of(argu.classLookup(n.f0.tokenImage));
     }
 }
 

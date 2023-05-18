@@ -18,14 +18,14 @@ public class J2S {
                     .cons(new Alloc(Trans.stat, tmp));
 
             final var writeVtables = typeEnv.vtables.fold(allocStat,
-                    (acc, vt) -> vt.write(Trans.stat, tmp, acc))
-                    .cons(comment("End_vtables"));
+                    (acc, vt) -> vt.write(tmp, acc));
 
             final var locals = main.f14.accept(new ListVisitor<>(new LocalVisitor()), typeEnv);
             final var localsEnv = typeEnv.addLocals(locals);
+            final var trans = writeVtables.initLocals(locals);
 
             final var body = main.f15.accept(new ListVisitor<>(new StmtVisitor()), localsEnv)
-                    .fold(writeVtables.initLocals(locals), Trans::applyTo);
+                    .fold(trans, Trans::applyTo);
 
             return new FunctionDecl(new FunctionName("main"), java.util.List.of(),
                     new Block(body.codeRev.reverse().toJavaList(), Trans.stat));
