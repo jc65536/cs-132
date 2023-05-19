@@ -11,7 +11,7 @@ class A {
         a = new A();
 		return 99;
 	}
-    public int ooga(int a, boolean b)
+    public int ooga(int c, boolean b)
     {
         int x;
         int y;

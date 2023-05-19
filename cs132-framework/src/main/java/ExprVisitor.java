@@ -18,8 +18,8 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
                 .cons(new IfGoto(lhs.sym, end))
                 .applyTo(n.f2.accept(this, argu).andThen(rhs -> rhs
                         .cons(new Move_Id_Id(lhs.sym, rhs.sym))
-                        .cons(new LabelInstr(end))))
-                .applyTo(Expr.make(lhs.sym, Optional.empty()))));
+                        .cons(new LabelInstr(end)))
+                        .andThen(Expr.make(lhs.sym, Optional.empty())))));
     }
 
     @Override
@@ -44,14 +44,16 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
 
     @Override
     public Function<Trans, Expr> visit(ArrayLookup n, TypeEnv argu) {
-        return n.f0.accept(this, argu).andThen(arr -> arr
-                .applyTo(n.f2.accept(this, argu)
-                        .andThen(idx -> idx.idxCheck(arr.sym))
-                        .andThen(idx -> idx.applyTo(literal(4).andThen(tmp -> tmp
-                                .cons(new Multiply(idx.sym, idx.sym, tmp.sym))
-                                .cons(new Add(arr.sym, arr.sym, idx.sym))
-                                .cons(new Load(tmp.sym, arr.sym, 4))
-                                .applyTo(Expr.make(tmp.sym, Optional.empty())))))));
+        return n.f0.accept(this, argu)
+                .andThen(Expr::nullCheck)
+                .andThen(arr -> arr
+                        .applyTo(n.f2.accept(this, argu).andThen(idx -> idx
+                                .idxCheck(arr.sym)
+                                .applyTo(literal(4).andThen(tmp -> tmp
+                                        .cons(new Multiply(idx.sym, idx.sym, tmp.sym))
+                                        .cons(new Add(arr.sym, arr.sym, idx.sym))
+                                        .cons(new Load(tmp.sym, arr.sym, 4))
+                                        .applyTo(Expr.make(tmp.sym, Optional.empty())))))));
     }
 
     @Override
@@ -67,11 +69,9 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
     public Function<Trans, Expr> visit(MessageSend n, TypeEnv argu) {
         return n.f0.accept(this, argu).andThen(obj -> n.f4
                 .accept(new ListVisitor<>(new ExprVisitor()), argu)
-                .fold(new T2<>(List.<Identifier>nul(), obj.nullCheck()),
-                        (acc, mkExpr) -> acc.consume(list -> mkExpr
-                                .andThen(arg -> new T2<>(list.cons(arg.sym), arg))))
-                .<Expr>consume(args -> obj.type.get()
-                        .classifiedLookup(n.f2.f0.tokenImage).get()
+                .fold(new T2<>(List.<Identifier>nul(), obj.nullCheck()), (acc, mkExpr) -> acc
+                        .consume(list -> mkExpr.andThen(arg -> new T2<>(list.cons(arg.sym), arg))))
+                .consume(args -> obj.type.get().classifiedLookup(n.f2.f0.tokenImage).get()
                         .call(obj.sym, args.reverse().cons(obj.sym).cons(Trans.stat))));
     }
 
@@ -111,7 +111,6 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
     public Function<Trans, Expr> visit(ArrayAllocationExpression n, TypeEnv argu) {
         return Trans.genSym(size -> Trans.genLabel(ok -> n.f3.accept(this, argu).andThen(len -> len
                 .applyTo(literal(0).andThen(tmp -> tmp
-                        .cons(new Move_Id_Integer(tmp.sym, 0))
                         .cons(new LessThan(tmp.sym, len.sym, tmp.sym))
                         .cons(new IfGoto(tmp.sym, ok))
                         .cons(new ErrorMessage("\"array index out of bounds\""))
@@ -153,8 +152,8 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
             F3<Identifier, Identifier, Identifier, Instruction> mkInstr) {
         return lNode.accept(this, argu).andThen(lhs -> lhs
                 .applyTo(rNode.accept(this, argu).andThen(rhs -> rhs
-                        .cons(mkInstr.apply(lhs.sym, lhs.sym, rhs.sym))))
-                .applyTo(Expr.make(lhs.sym, Optional.empty())));
+                        .cons(mkInstr.apply(lhs.sym, lhs.sym, rhs.sym)))
+                        .andThen(Expr.make(lhs.sym, Optional.empty()))));
     }
 
     static Function<Trans, Expr> literal(int num) {

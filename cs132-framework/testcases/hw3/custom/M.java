@@ -2,7 +2,7 @@ class M {
     public static void main(String[] args) {
         A m;
         m = new B();
-        System.out.println(m.b());
+        System.out.println(m.a());
     }
 }
 
@@ -23,7 +23,6 @@ class C extends B {
     int k;
 
     public int b() {
-        System.out.println(n.a());
-        return 2 + 1;
+        return 2 + (this.a());
     }
 }

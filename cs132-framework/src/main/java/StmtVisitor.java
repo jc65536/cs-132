@@ -26,11 +26,11 @@ public class StmtVisitor extends GJDepthFirst<Function<Trans, Trans>, TypeEnv> {
     public Function<Trans, Trans> visit(ArrayAssignmentStatement n, TypeEnv argu) {
         return n.f0.accept(new ExprVisitor(), argu)
                 .andThen(Expr::nullCheck)
-                .andThen(arr -> arr.applyTo(n.f2.accept(new ExprVisitor(), argu)
-                        .andThen(idx -> idx.idxCheck(arr.sym))
-                        .andThen(idx -> idx.applyTo(n.f5.accept(new ExprVisitor(), argu)
-                                .andThen(rhs -> rhs.applyTo(ExprVisitor.literal(4)
-                                        .andThen(tmp -> tmp
+                .andThen(arr -> arr
+                        .applyTo(n.f2.accept(new ExprVisitor(), argu).andThen(idx -> idx
+                                .idxCheck(arr.sym)
+                                .applyTo(n.f5.accept(new ExprVisitor(), argu).andThen(rhs -> rhs
+                                        .applyTo(ExprVisitor.literal(4).andThen(tmp -> tmp
                                                 .cons(new Multiply(idx.sym, idx.sym, tmp.sym))
                                                 .cons(new Add(arr.sym, arr.sym, idx.sym))
                                                 .cons(new Store(arr.sym, 4, rhs.sym)))))))));
@@ -53,17 +53,15 @@ public class StmtVisitor extends GJDepthFirst<Function<Trans, Trans>, TypeEnv> {
     public Function<Trans, Trans> visit(WhileStatement n, TypeEnv argu) {
         return Trans.genLabel(start -> Trans.genLabel(end -> tr -> tr
                 .cons(new LabelInstr(start))
-                .applyTo(n.f2.accept(new ExprVisitor(), argu)
-                        .andThen(cond -> cond.cons(new IfGoto(cond.sym, end)))
-                        .andThen(n.f4.accept(this, argu))
-                        .andThen(body -> body
-                                .cons(new Goto(start))
-                                .cons(new LabelInstr(end))))));
+                .applyTo(n.f2.accept(new ExprVisitor(), argu).andThen(cond -> cond
+                        .cons(new IfGoto(cond.sym, end))))
+                .applyTo(n.f4.accept(this, argu).andThen(body -> body
+                        .cons(new Goto(start))
+                        .cons(new LabelInstr(end))))));
     }
 
     @Override
     public Function<Trans, Trans> visit(PrintStatement n, TypeEnv argu) {
-        return n.f2.accept(new ExprVisitor(), argu)
-                .andThen(arg -> arg.cons(new Print(arg.sym)));
+        return n.f2.accept(new ExprVisitor(), argu).andThen(arg -> arg.cons(new Print(arg.sym)));
     }
 }

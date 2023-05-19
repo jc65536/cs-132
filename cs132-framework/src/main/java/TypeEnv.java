@@ -31,14 +31,15 @@ class Expr extends Trans {
     }
 
     Expr idxCheck(Identifier arr) {
-        return applyTo(Trans.genSym(len -> Trans.genLabel(err -> Trans.genLabel(end -> tr -> tr
-                .cons(new Load(len, arr, 0))
-                .cons(new LessThan(len, sym, len))
-                .cons(new IfGoto(len, err))
-                .cons(new Goto(end))
+        return applyTo(Trans.genLabel(err -> Trans.genLabel(ok -> ExprVisitor.literal(0).andThen(tmp -> tmp
+                .cons(new LessThan(tmp.sym, sym, tmp.sym))
+                .cons(new IfGoto(tmp.sym, ok))
                 .cons(new LabelInstr(err))
                 .cons(new ErrorMessage("\"array index out of bounds\""))
-                .cons(new LabelInstr(end))))))
+                .cons(new LabelInstr(ok))
+                .cons(new Load(tmp.sym, arr, 0))
+                .cons(new LessThan(tmp.sym, sym, tmp.sym))
+                .cons(new IfGoto(tmp.sym, err))))))
                 .applyTo(Expr.make(sym, type));
     }
 }
