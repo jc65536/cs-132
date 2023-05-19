@@ -62,7 +62,7 @@ public class ClassVisitor extends GJDepthFirst<Function<Lazy<Integer>, Class>, L
                 .fold(new T2<>(List.<Vtable>nul(), vtableOffset),
                         (acc, vt) -> acc.consume(list -> offset -> {
                             final var overridingMethods = c.methods.overriding
-                                    .filter(m -> m.origClass() == vt.target);
+                                    .filter(m -> m.origin() == vt.target);
 
                             return overridingMethods.head()
                                     .map(u -> vt.overrides.map(m -> overridingMethods
@@ -83,7 +83,7 @@ public class ClassVisitor extends GJDepthFirst<Function<Lazy<Integer>, Class>, L
         return methods.fold(new MethodStruct(methods, List.nul(), List.nul(), List.nul()),
                 (struct, m) -> m.c.superClass()
                         .flatMap(sc -> sc.classifiedLookup(m.name))
-                        .map(sm -> struct.cons(new Overriding(m, sm.origClass())))
+                        .map(sm -> struct.cons(new Overriding(m, sm.origin())))
                         .or(() -> env.classes
                                 .filter(cls -> cls != m.c && cls.subtypes(m.c))
                                 .flatMap(cls -> cls.methods.all)

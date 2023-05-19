@@ -52,7 +52,7 @@ public class LocalVisitor extends GJDepthFirst<Local, TypeEnv> {
     public Local visit(FormalParameter n, TypeEnv argu) {
         final var name = n.f1.f0.tokenImage;
         final var type = n.f0.accept(new TypeVisitor(), argu);
-        return new Local(name, type, new cs132.IR.token.Identifier("p_" + name));
+        return new Local(name, type, new cs132.IR.token.Identifier("v_" + name));
     }
 
     @Override

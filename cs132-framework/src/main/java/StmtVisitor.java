@@ -25,12 +25,12 @@ public class StmtVisitor extends GJDepthFirst<Function<Trans, Trans>, TypeEnv> {
     @Override
     public Function<Trans, Trans> visit(ArrayAssignmentStatement n, TypeEnv argu) {
         return n.f0.accept(new ExprVisitor(), argu)
-                .andThen(Expr::nullCheck)
-                .andThen(arr -> arr
-                        .applyTo(n.f2.accept(new ExprVisitor(), argu).andThen(idx -> idx
-                                .idxCheck(arr.sym)
-                                .applyTo(n.f5.accept(new ExprVisitor(), argu).andThen(rhs -> rhs
-                                        .applyTo(ExprVisitor.literal(4).andThen(tmp -> tmp
+                .andThen(Expr.nullCheck)
+                .andThen(arr -> arr.applyTo(n.f2.accept(new ExprVisitor(), argu)
+                        .andThen(Expr.idxCheck(arr.sym))
+                        .andThen(idx -> idx.applyTo(n.f5.accept(new ExprVisitor(), argu)
+                                .andThen(rhs -> rhs.applyTo(ExprVisitor.literal(4)
+                                        .andThen(tmp -> tmp
                                                 .cons(new Multiply(idx.sym, idx.sym, tmp.sym))
                                                 .cons(new Add(arr.sym, arr.sym, idx.sym))
                                                 .cons(new Store(arr.sym, 4, rhs.sym)))))))));

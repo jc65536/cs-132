@@ -45,11 +45,11 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
     @Override
     public Function<Trans, Expr> visit(ArrayLookup n, TypeEnv argu) {
         return n.f0.accept(this, argu)
-                .andThen(Expr::nullCheck)
-                .andThen(arr -> arr
-                        .applyTo(n.f2.accept(this, argu).andThen(idx -> idx
-                                .idxCheck(arr.sym)
-                                .applyTo(literal(4).andThen(tmp -> tmp
+                .andThen(Expr.nullCheck)
+                .andThen(arr -> arr.applyTo(n.f2.accept(this, argu)
+                        .andThen(Expr.idxCheck(arr.sym))
+                        .andThen(idx -> idx.applyTo(literal(4)
+                                .andThen(tmp -> tmp
                                         .cons(new Multiply(idx.sym, idx.sym, tmp.sym))
                                         .cons(new Add(arr.sym, arr.sym, idx.sym))
                                         .cons(new Load(tmp.sym, arr.sym, 4))
@@ -59,7 +59,7 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
     @Override
     public Function<Trans, Expr> visit(ArrayLength n, TypeEnv argu) {
         return n.f0.accept(this, argu)
-                .andThen(Expr::nullCheck)
+                .andThen(Expr.nullCheck)
                 .andThen(arr -> arr
                         .cons(new Load(arr.sym, arr.sym, 0))
                         .applyTo(Expr.make(arr.sym, Optional.empty())));
@@ -67,12 +67,13 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
 
     @Override
     public Function<Trans, Expr> visit(MessageSend n, TypeEnv argu) {
-        return n.f0.accept(this, argu).andThen(obj -> n.f4
-                .accept(new ListVisitor<>(new ExprVisitor()), argu)
-                .fold(new T2<>(List.<Identifier>nul(), obj.nullCheck()), (acc, mkExpr) -> acc
-                        .consume(list -> mkExpr.andThen(arg -> new T2<>(list.cons(arg.sym), arg))))
-                .consume(args -> obj.type.get().classifiedLookup(n.f2.f0.tokenImage).get()
-                        .call(obj.sym, args.reverse().cons(obj.sym).cons(Trans.stat))));
+        return n.f0.accept(this, argu)
+                .andThen(Expr.nullCheck)
+                .andThen(obj -> n.f4.accept(new ListVisitor<>(new ExprVisitor()), argu)
+                        .fold(new T2<>(List.<Identifier>nul(), obj), (acc, mkExpr) -> acc
+                                .consume(list -> mkExpr.andThen(arg -> new T2<>(list.cons(arg.sym), arg))))
+                        .consume(args -> obj.type.get().classifiedLookup(n.f2.f0.tokenImage).get()
+                                .call(obj.sym, args.reverse().cons(obj.sym).cons(Trans.stat))));
     }
 
     @Override

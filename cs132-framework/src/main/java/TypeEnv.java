@@ -20,27 +20,27 @@ class Expr extends Trans {
         return tr -> new Expr(tr, sym, type);
     }
 
-    Expr nullCheck() {
-        return applyTo(Trans.genLabel(err -> Trans.genLabel(end -> tr -> tr
-                .cons(new IfGoto(sym, err))
-                .cons(new Goto(end))
-                .cons(new LabelInstr(err))
-                .cons(new ErrorMessage("\"null pointer\""))
-                .cons(new LabelInstr(end)))))
-                .applyTo(Expr.make(sym, type));
-    }
+    static final Function<Expr, Expr> nullCheck = expr -> expr
+            .applyTo(Trans.genLabel(err -> Trans.genLabel(end -> tr -> tr
+                    .cons(new IfGoto(expr.sym, err))
+                    .cons(new Goto(end))
+                    .cons(new LabelInstr(err))
+                    .cons(new ErrorMessage("\"null pointer\""))
+                    .cons(new LabelInstr(end)))))
+            .applyTo(Expr.make(expr.sym, expr.type));
 
-    Expr idxCheck(Identifier arr) {
-        return applyTo(Trans.genLabel(err -> Trans.genLabel(ok -> ExprVisitor.literal(0).andThen(tmp -> tmp
-                .cons(new LessThan(tmp.sym, sym, tmp.sym))
-                .cons(new IfGoto(tmp.sym, ok))
-                .cons(new LabelInstr(err))
-                .cons(new ErrorMessage("\"array index out of bounds\""))
-                .cons(new LabelInstr(ok))
-                .cons(new Load(tmp.sym, arr, 0))
-                .cons(new LessThan(tmp.sym, sym, tmp.sym))
-                .cons(new IfGoto(tmp.sym, err))))))
-                .applyTo(Expr.make(sym, type));
+    static Function<Expr, Expr> idxCheck(Identifier arr) {
+        return expr -> expr.applyTo(Trans.genLabel(err -> Trans.genLabel(ok -> ExprVisitor
+                .literal(0).andThen(tmp -> tmp
+                        .cons(new LessThan(tmp.sym, expr.sym, tmp.sym))
+                        .cons(new IfGoto(tmp.sym, ok))
+                        .cons(new LabelInstr(err))
+                        .cons(new ErrorMessage("\"array index out of bounds\""))
+                        .cons(new LabelInstr(ok))
+                        .cons(new Load(tmp.sym, arr, 0))
+                        .cons(new LessThan(tmp.sym, expr.sym, tmp.sym))
+                        .cons(new IfGoto(tmp.sym, err))))))
+                .applyTo(Expr.make(expr.sym, expr.type));
     }
 }
 
@@ -219,10 +219,7 @@ class MethodStruct {
     final List<Unique> unique;
     final List<Classified> classified;
 
-    MethodStruct(List<Method> all,
-            List<Overriding> overriding,
-            List<Overridden> overridden,
-            List<Unique> unique) {
+    MethodStruct(List<Method> all, List<Overriding> overriding, List<Overridden> overridden, List<Unique> unique) {
         this.all = all;
         this.overriding = overriding;
         this.overridden = overridden;
@@ -250,7 +247,7 @@ abstract class Classified extends Method {
 
     abstract Function<Trans, Expr> call(Identifier self, List<Identifier> args);
 
-    abstract Class origClass();
+    abstract Class origin();
 }
 
 class Unique extends Classified {
@@ -267,7 +264,7 @@ class Unique extends Classified {
     }
 
     @Override
-    Class origClass() {
+    Class origin() {
         return c;
     }
 }
@@ -277,14 +274,14 @@ abstract class Virtual extends Classified {
 
     Virtual(Method m) {
         super(m);
-        this.offset = new Lazy<>(() -> origClass().vtables.head()
+        this.offset = new Lazy<>(() -> origin().vtables.head()
                 .get().overrides.firstIndex(m::nameEquals).get() * 4);
     }
 
     @Override
     Function<Trans, Expr> call(Identifier self, List<Identifier> args) {
         return Trans.genSym(res -> tr -> tr
-                .cons(new Load(res, self, origClass().ownObjOffset.get()))
+                .cons(new Load(res, self, origin().ownObjOffset.get()))
                 .cons(new Load(res, res, offset.get()))
                 .cons(new Call(res, res, args.toJavaList()))
                 .applyTo(Expr.make(res, retType)));
@@ -297,7 +294,7 @@ class Overridden extends Virtual {
     }
 
     @Override
-    public Class origClass() {
+    public Class origin() {
         return c;
     }
 }
@@ -311,7 +308,7 @@ class Overriding extends Virtual {
     }
 
     @Override
-    public Class origClass() {
+    public Class origin() {
         return target;
     }
 }
@@ -323,12 +320,8 @@ class Method extends Named {
     final MethodDeclaration body;
     final Class c;
 
-    Method(String name,
-            List<Local> params,
-            List<Local> locals,
-            Optional<Class> retType,
-            MethodDeclaration body,
-            Class c) {
+    Method(String name, List<Local> params, List<Local> locals,
+            Optional<Class> retType, MethodDeclaration body, Class c) {
         super(name);
         this.params = params;
         this.locals = locals;
@@ -398,6 +391,10 @@ class Trans {
     final List<Instruction> codeRev;
     protected final int k;
 
+    static final Identifier self = new Identifier("this");
+
+    static final Identifier stat = new Identifier("__stat__");
+
     Trans(List<Instruction> codeRev, int k) {
         this.codeRev = codeRev;
         this.k = k;
@@ -418,10 +415,6 @@ class Trans {
     Trans initLocals(List<Local> locals) {
         return locals.fold(this, (acc, lc) -> acc.cons(new Move_Id_Integer(lc.sym, 0)));
     }
-
-    static final Identifier self = new Identifier("this");
-
-    static final Identifier stat = new Identifier("__stat__");
 
     <T> T applyTo(Function<Trans, T> f) {
         return f.apply(this);
