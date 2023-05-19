@@ -1,11 +1,6 @@
 import java.util.*;
 import java.util.function.*;
 
-@FunctionalInterface
-interface F3<A, B, C, R> {
-    R apply(A a, B b, C c);
-}
-
 class T2<A, B> {
     final A a;
     final B b;
@@ -36,6 +31,10 @@ class Lazy<T> implements Supplier<T> {
         final var v = s.get();
         s = () -> v;
         return v;
+    }
+
+    <U> Lazy<U> then(Function<T, U> f) {
+        return new Lazy<>(() -> f.apply(get()));
     }
 
     <U> Lazy<U> bind(Function<T, Supplier<U>> f) {
@@ -113,7 +112,7 @@ public class List<T> extends Lazy<Optional<Pair<T>>> implements ListInt<T> {
         return new List<>(bind(opt -> opt.map(n -> n.filter(p)).orElse(List.nul())));
     }
 
-    private final Lazy<Integer> count = new Lazy<>(() -> get().map(Pair::count).orElse(0));
+    private final Lazy<Integer> count = then(opt -> opt.map(Pair::count).orElse(0));
 
     @Override
     public int count() {

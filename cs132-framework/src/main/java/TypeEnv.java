@@ -20,27 +20,28 @@ class Expr extends Trans {
         return tr -> new Expr(tr, sym, type);
     }
 
-    static final Function<Expr, Expr> nullCheck = expr -> expr
-            .applyTo(Trans.genLabel(err -> Trans.genLabel(end -> tr -> tr
-                    .cons(new IfGoto(expr.sym, err))
-                    .cons(new Goto(end))
-                    .cons(new LabelInstr(err))
-                    .cons(new ErrorMessage("\"null pointer\""))
-                    .cons(new LabelInstr(end)))))
-            .applyTo(Expr.make(expr.sym, expr.type));
+    Expr nullCheck() {
+        return applyTo(Trans.genLabel(err -> Trans.genLabel(end -> tr -> tr
+                .cons(new IfGoto(sym, err))
+                .cons(new Goto(end))
+                .cons(new LabelInstr(err))
+                .cons(new ErrorMessage("\"null pointer\""))
+                .cons(new LabelInstr(end)))))
+                .applyTo(Expr.make(sym, type));
+    }
 
-    static Function<Expr, Expr> idxCheck(Identifier arr) {
-        return expr -> expr.applyTo(Trans.genLabel(err -> Trans.genLabel(ok -> ExprVisitor
+    Expr idxCheck(Identifier arr) {
+        return applyTo(Trans.genLabel(err -> Trans.genLabel(ok -> ExprVisitor
                 .literal(0).andThen(tmp -> tmp
-                        .cons(new LessThan(tmp.sym, expr.sym, tmp.sym))
+                        .cons(new LessThan(tmp.sym, sym, tmp.sym))
                         .cons(new IfGoto(tmp.sym, ok))
                         .cons(new LabelInstr(err))
                         .cons(new ErrorMessage("\"array index out of bounds\""))
                         .cons(new LabelInstr(ok))
                         .cons(new Load(tmp.sym, arr, 0))
-                        .cons(new LessThan(tmp.sym, expr.sym, tmp.sym))
+                        .cons(new LessThan(tmp.sym, sym, tmp.sym))
                         .cons(new IfGoto(tmp.sym, err))))))
-                .applyTo(Expr.make(expr.sym, expr.type));
+                .applyTo(Expr.make(sym, type));
     }
 }
 
@@ -70,7 +71,6 @@ class Vtable {
     }
 
     Trans write(Identifier tmp, Trans env) {
-        env = env.cons(J2S.comment(String.format("Vtable_for_%s", target.name)));
         return overrides.fold(env, (acc, m) -> acc
                 .cons(new Move_Id_FuncName(tmp, m.funcName()))
                 .cons(new Store(Trans.stat, offset.get() + m.offset.get(), tmp)));
@@ -83,37 +83,33 @@ class Class extends Named {
     final MethodStruct methods;
 
     final List<Vtable> vtables;
-    final Lazy<Integer> nextVtableOffset;
+    final Lazy<Integer> vtableEnd;
 
     final Lazy<Integer> objSize;
     final Lazy<Integer> ownObjOffset;
 
-    Class(String name,
-            Optional<? extends Supplier<Class>> superClass,
-            Function<Class, T2<List<Field>, Integer>> mkFields,
-            Function<Class, List<Method>> mkMethods,
-            Function<List<Method>, MethodStruct> mkStruct,
-            Function<Class, T2<List<Vtable>, Lazy<Integer>>> mkVtables) {
+    Class(String name, Optional<Lazy<Class>> superClass,
+            NodeListOptional fieldNodes, NodeListOptional methodNodes,
+            Lazy<Integer> vtableOffset, Lazy<TypeEnv> env) {
         super(name);
-        this.superClass = superClass.map(Lazy::new);
+        this.superClass = superClass;
 
-        final var lazyFields = new Lazy<>(() -> mkFields.apply(this));
+        final var lazyFields = env.then(e -> mkFields(fieldNodes, e));
         fields = new List<>(lazyFields.bind(z -> z.a));
-        final var fieldsSize = new Lazy<>(() -> lazyFields.get().b);
+        final var fieldsSize = lazyFields.then(z -> z.b);
 
-        final var all = new List<>(() -> mkMethods.apply(this).get());
-        final var lazyStruct = new Lazy<>(() -> mkStruct.apply(all));
-        methods = new MethodStruct(all,
+        final var lazyStruct = env.then(e -> mkStruct(methodNodes, e));
+        methods = new MethodStruct(
+                new List<>(lazyStruct.bind(z -> z.all)),
                 new List<>(lazyStruct.bind(z -> z.overriding)),
                 new List<>(lazyStruct.bind(z -> z.overridden)),
                 new List<>(lazyStruct.bind(z -> z.unique)));
 
-        final var lazyVtable = new Lazy<>(() -> mkVtables.apply(this));
+        final var lazyVtable = env.then(e -> mkVtables(vtableOffset, e));
         vtables = new List<>(lazyVtable.bind(z -> z.a));
-        nextVtableOffset = lazyVtable.bind(p -> p.b);
+        vtableEnd = lazyVtable.bind(z -> z.b);
 
-        ownObjOffset = new Lazy<>(() -> superClass().map(sc -> sc.objSize.get()).orElse(0));
-
+        ownObjOffset = superClass().map(sc -> sc.objSize).orElse(new Lazy<>(() -> 0));
         objSize = new Lazy<>(() -> ownObjOffset.get()
                 + methods.overridden.head().map(u -> 4).orElse(0)
                 + fieldsSize.get());
@@ -156,6 +152,47 @@ class Class extends Named {
                                 .cons(new Add(tmp, Trans.stat, tmp))
                                 .cons(new Store(obj, ownObjOffset.get(), tmp)))
                         .orElse(tr));
+    }
+
+    T2<List<Field>, Integer> mkFields(NodeListOptional fieldNodes, TypeEnv env) {
+        final var fieldOffset = ownObjOffset.get() + methods.overridden.head().map(u -> 4).orElse(0);
+        return fieldNodes.accept(new ListVisitor<>(new FieldVisitor()), env)
+                .fold(new T2<>(List.<Field>nul(), fieldOffset), (acc, mkField) -> acc
+                        .consume(fields -> mkField.andThen(f -> new T2<>(fields.cons(f), f.offset + 4))));
+    }
+
+    T2<List<Vtable>, Lazy<Integer>> mkVtables(Lazy<Integer> vtableOffset, TypeEnv env) {
+        return superClass().map(sc -> sc.vtables).orElse(List.nul())
+                .fold(new T2<>(List.<Vtable>nul(), vtableOffset),
+                        (acc, vt) -> acc.consume(vtables -> offset -> {
+                            final var overridingMethods = methods.overriding
+                                    .filter(m -> m.origin() == vt.target);
+
+                            return overridingMethods.head()
+                                    .map(u -> vt.overrides.map(m -> overridingMethods
+                                            .find(m::nameEquals).<Virtual>map(x -> x).orElse(m)))
+                                    .map(overrides -> new Vtable(vt.target, overrides, offset))
+                                    .map(nvt -> new T2<>(vtables.cons(nvt), offset.then(s -> s + vt.size)))
+                                    .orElse(new T2<>(vtables.cons(vt), offset));
+                        }))
+                .consume(vtables -> offset -> methods.overridden.head()
+                        .map(u -> new Vtable(this, methods.overridden, offset))
+                        .map(nvt -> new T2<>(vtables.cons(nvt), offset.then(s -> s + nvt.size)))
+                        .orElse(new T2<>(vtables, offset)));
+    }
+
+    MethodStruct mkStruct(NodeListOptional methodNodes, TypeEnv env) {
+        final var methods = methodNodes.accept(new ListVisitor<>(new MethodVisitor()), new T2<>(this, env));
+        return methods.fold(new MethodStruct(methods, List.nul(), List.nul(), List.nul()),
+                (struct, m) -> m.c.superClass()
+                        .flatMap(sc -> sc.classifiedLookup(m.name))
+                        .map(sm -> struct.cons(new Overriding(m, sm.origin())))
+                        .or(() -> env.classes
+                                .filter(cls -> cls != m.c && cls.subtypes(m.c))
+                                .flatMap(cls -> cls.methods.all)
+                                .find(m::nameEquals)
+                                .map(u -> struct.cons(new Overridden(m))))
+                        .orElseGet(() -> struct.cons(new Unique(m))));
     }
 }
 
@@ -330,27 +367,21 @@ class Method extends Named {
         this.c = c;
     }
 
-    FunctionDecl translate(TypeEnv typeEnv) {
-        final var localsEnv = typeEnv.addLocals(params).addLocals(locals);
-        final var trans = new Trans(List.nul(), 0).initLocals(locals);
-
-        final var bodyEnv = body.f8.accept(new ListVisitor<>(new StmtVisitor()), localsEnv)
-                .fold(trans, Trans::applyTo);
-
-        final var ret = body.f10.accept(new ExprVisitor(), localsEnv).apply(bodyEnv);
-
-        return new FunctionDecl(funcName(),
-                params.map(s -> s.sym).cons(Trans.self).cons(Trans.stat).toJavaList(),
-                new cs132.IR.sparrow.Block(ret.codeRev.reverse().toJavaList(), ret.sym));
+    FunctionDecl translate(TypeEnv env) {
+        final var localsEnv = env.addLocals(params).addLocals(locals);
+        return new Trans(List.nul(), 0)
+                .applyTo(tr -> tr.initLocals(locals))
+                .applyTo(tr -> body.f8.accept(new ListVisitor<>(new StmtVisitor()), localsEnv)
+                        .fold(tr, Trans::applyTo))
+                .applyTo(body.f10.accept(new ExprVisitor(), localsEnv)
+                        .andThen(ret -> new cs132.IR.sparrow.Block(ret.codeRev.reverse().toJavaList(), ret.sym))
+                        .andThen(block -> new FunctionDecl(funcName(),
+                                params.map(s -> s.sym).cons(Trans.self).cons(Trans.stat).toJavaList(),
+                                block)));
     }
 
     FunctionName funcName() {
-        return new FunctionName(toString());
-    }
-
-    @Override
-    public String toString() {
-        return c.name + "_" + name;
+        return new FunctionName(c.name + "_" + name);
     }
 }
 

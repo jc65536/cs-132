@@ -24,30 +24,30 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
 
     @Override
     public Function<Trans, Expr> visit(CompareExpression n, TypeEnv argu) {
-        return binOp(n.f0, n.f2, argu, LessThan::new);
+        return binOp(n.f0, n.f2, argu, (lhs, rhs) -> new LessThan(lhs, lhs, rhs));
     }
 
     @Override
     public Function<Trans, Expr> visit(PlusExpression n, TypeEnv argu) {
-        return binOp(n.f0, n.f2, argu, Add::new);
+        return binOp(n.f0, n.f2, argu, (lhs, rhs) -> new Add(lhs, lhs, rhs));
     }
 
     @Override
     public Function<Trans, Expr> visit(MinusExpression n, TypeEnv argu) {
-        return binOp(n.f0, n.f2, argu, Subtract::new);
+        return binOp(n.f0, n.f2, argu, (lhs, rhs) -> new Subtract(lhs, lhs, rhs));
     }
 
     @Override
     public Function<Trans, Expr> visit(TimesExpression n, TypeEnv argu) {
-        return binOp(n.f0, n.f2, argu, Multiply::new);
+        return binOp(n.f0, n.f2, argu, (lhs, rhs) -> new Multiply(lhs, lhs, rhs));
     }
 
     @Override
     public Function<Trans, Expr> visit(ArrayLookup n, TypeEnv argu) {
         return n.f0.accept(this, argu)
-                .andThen(Expr.nullCheck)
+                .andThen(Expr::nullCheck)
                 .andThen(arr -> arr.applyTo(n.f2.accept(this, argu)
-                        .andThen(Expr.idxCheck(arr.sym))
+                        .andThen(idx -> idx.idxCheck(arr.sym))
                         .andThen(idx -> idx.applyTo(literal(4)
                                 .andThen(tmp -> tmp
                                         .cons(new Multiply(idx.sym, idx.sym, tmp.sym))
@@ -59,7 +59,7 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
     @Override
     public Function<Trans, Expr> visit(ArrayLength n, TypeEnv argu) {
         return n.f0.accept(this, argu)
-                .andThen(Expr.nullCheck)
+                .andThen(Expr::nullCheck)
                 .andThen(arr -> arr
                         .cons(new Load(arr.sym, arr.sym, 0))
                         .applyTo(Expr.make(arr.sym, Optional.empty())));
@@ -68,7 +68,7 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
     @Override
     public Function<Trans, Expr> visit(MessageSend n, TypeEnv argu) {
         return n.f0.accept(this, argu)
-                .andThen(Expr.nullCheck)
+                .andThen(Expr::nullCheck)
                 .andThen(obj -> n.f4.accept(new ListVisitor<>(new ExprVisitor()), argu)
                         .fold(new T2<>(List.<Identifier>nul(), obj), (acc, mkExpr) -> acc
                                 .consume(list -> mkExpr.andThen(arg -> new T2<>(list.cons(arg.sym), arg))))
@@ -150,10 +150,10 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
     }
 
     Function<Trans, Expr> binOp(Node lNode, Node rNode, TypeEnv argu,
-            F3<Identifier, Identifier, Identifier, Instruction> mkInstr) {
+            BiFunction<Identifier, Identifier, Instruction> mkInstr) {
         return lNode.accept(this, argu).andThen(lhs -> lhs
                 .applyTo(rNode.accept(this, argu).andThen(rhs -> rhs
-                        .cons(mkInstr.apply(lhs.sym, lhs.sym, rhs.sym)))
+                        .cons(mkInstr.apply(lhs.sym, rhs.sym)))
                         .andThen(Expr.make(lhs.sym, Optional.empty()))));
     }
 

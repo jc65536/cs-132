@@ -3,6 +3,7 @@ import java.util.function.*;
 
 import cs132.minijava.syntaxtree.*;
 import cs132.minijava.visitor.*;
+import cs132.IR.token.Identifier;
 
 class TypeVisitor extends GJDepthFirst<Optional<Class>, TypeEnv> {
     @Override
@@ -26,7 +27,7 @@ class TypeVisitor extends GJDepthFirst<Optional<Class>, TypeEnv> {
     }
 
     @Override
-    public Optional<Class> visit(Identifier n, TypeEnv argu) {
+    public Optional<Class> visit(cs132.minijava.syntaxtree.Identifier n, TypeEnv argu) {
         return Optional.of(argu.classLookup(n.f0.tokenImage));
     }
 }
@@ -45,14 +46,14 @@ public class LocalVisitor extends GJDepthFirst<Local, TypeEnv> {
     public Local visit(VarDeclaration n, TypeEnv argu) {
         final var name = n.f1.f0.tokenImage;
         final var type = n.f0.accept(new TypeVisitor(), argu);
-        return new Local(name, type, new cs132.IR.token.Identifier("v_" + name));
+        return new Local(name, type, new Identifier("v_" + name));
     }
 
     @Override
     public Local visit(FormalParameter n, TypeEnv argu) {
         final var name = n.f1.f0.tokenImage;
         final var type = n.f0.accept(new TypeVisitor(), argu);
-        return new Local(name, type, new cs132.IR.token.Identifier("v_" + name));
+        return new Local(name, type, new Identifier("v_" + name));
     }
 
     @Override
