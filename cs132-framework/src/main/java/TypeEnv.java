@@ -98,18 +98,19 @@ class Class extends Named {
         fields = new List<>(lazyFields.bind(z -> z.a));
         final var fieldsSize = lazyFields.then(z -> z.b);
 
-        final var lazyStruct = env.then(e -> mkStruct(methodNodes, e));
+        final var lazyStruct = env.then(e -> mkMethods(methodNodes, e));
+        final var struct = lazyStruct.bind(z -> z.b);
         methods = new MethodStruct(
-                new List<>(lazyStruct.bind(z -> z.all)),
-                new List<>(lazyStruct.bind(z -> z.overriding)),
-                new List<>(lazyStruct.bind(z -> z.overridden)),
-                new List<>(lazyStruct.bind(z -> z.unique)));
+                new List<>(lazyStruct.bind(z -> z.a)),
+                new List<>(struct.bind(z -> z.overriding)),
+                new List<>(struct.bind(z -> z.overridden)),
+                new List<>(struct.bind(z -> z.unique)));
 
         final var lazyVtable = env.then(e -> mkVtables(vtableOffset, e));
         vtables = new List<>(lazyVtable.bind(z -> z.a));
         vtableEnd = lazyVtable.bind(z -> z.b);
 
-        ownObjOffset = superClass().map(sc -> sc.objSize).orElse(new Lazy<>(() -> 0));
+        ownObjOffset = superClass.map(z -> z.bind(sc -> sc.objSize)).orElse(new Lazy<>(() -> 0));
         objSize = new Lazy<>(() -> ownObjOffset.get()
                 + methods.overridden.head().map(u -> 4).orElse(0)
                 + fieldsSize.get());
@@ -181,9 +182,10 @@ class Class extends Named {
                         .orElse(new T2<>(vtables, offset)));
     }
 
-    MethodStruct mkStruct(NodeListOptional methodNodes, TypeEnv env) {
+    T2<List<Method>, Lazy<MethodStruct>> mkMethods(NodeListOptional methodNodes, TypeEnv env) {
         final var methods = methodNodes.accept(new ListVisitor<>(new MethodVisitor()), new T2<>(this, env));
-        return methods.fold(new MethodStruct(methods, List.nul(), List.nul(), List.nul()),
+        return new T2<>(methods, new Lazy<>(() -> methods.fold(
+                new MethodStruct(methods, List.nul(), List.nul(), List.nul()),
                 (struct, m) -> m.c.superClass()
                         .flatMap(sc -> sc.classifiedLookup(m.name))
                         .map(sm -> struct.cons(new Overriding(m, sm.origin())))
@@ -192,7 +194,7 @@ class Class extends Named {
                                 .flatMap(cls -> cls.methods.all)
                                 .find(m::nameEquals)
                                 .map(u -> struct.cons(new Overridden(m))))
-                        .orElseGet(() -> struct.cons(new Unique(m))));
+                        .orElseGet(() -> struct.cons(new Unique(m))))));
     }
 }
 
@@ -331,7 +333,7 @@ class Overridden extends Virtual {
     }
 
     @Override
-    public Class origin() {
+    Class origin() {
         return c;
     }
 }
@@ -345,7 +347,7 @@ class Overriding extends Virtual {
     }
 
     @Override
-    public Class origin() {
+    Class origin() {
         return target;
     }
 }

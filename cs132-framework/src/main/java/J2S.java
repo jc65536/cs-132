@@ -38,6 +38,7 @@ public class J2S {
                 .then(prgm -> {
                     System.out.println(prgm);
                     return prgm;
-                });
+                })
+                .get();
     }
 }
