@@ -59,9 +59,9 @@ class Vtable {
     final Class target;
     final List<? extends Virtual> overrides;
     final int size;
-    final int offset;
+    final Lazy<Integer> offset;
 
-    Vtable(Class target, List<? extends Virtual> overrides, int offset) {
+    Vtable(Class target, List<? extends Virtual> overrides, Lazy<Integer> offset) {
         this.target = target;
         this.overrides = overrides;
         this.size = overrides.count() * 4;
@@ -72,7 +72,7 @@ class Vtable {
         env = env.cons(J2S.comment(String.format("Vtable_for_%s", target.name)));
         return overrides.fold(env, (acc, m) -> acc
                 .cons(new Move_Id_FuncName(tmp, m.funcName()))
-                .cons(new Store(Trans.stat, offset + m.offset.get(), tmp)));
+                .cons(new Store(Trans.stat, offset.get() + m.offset.get(), tmp)));
     }
 }
 
@@ -92,7 +92,7 @@ class Class extends Named {
             Function<Class, T2<List<Field>, Integer>> mkFields,
             Function<Class, List<Method>> mkMethods,
             Function<List<Method>, MethodStruct> mkStruct,
-            Function<Class, T2<List<Vtable>, Integer>> mkVtables) {
+            Function<Class, T2<List<Vtable>, Lazy<Integer>>> mkVtables) {
         super(name);
         this.superClass = superClass.map(Lazy::new);
 
@@ -109,7 +109,7 @@ class Class extends Named {
 
         final var lazyVtable = new Lazy<>(() -> mkVtables.apply(this));
         vtables = new List<>(lazyVtable.bind(z -> z.a));
-        nextVtableOffset = new Lazy<>(() -> lazyVtable.get().b);
+        nextVtableOffset = lazyVtable.bind(p -> p.b);
 
         ownObjOffset = new Lazy<>(() -> superClass().map(sc -> sc.objSize.get()).orElse(0));
 
@@ -151,7 +151,7 @@ class Class extends Named {
                 .andThen(tr -> vtables
                         .find(vt -> vt.target.equals(this))
                         .map(vt -> tr
-                                .cons(new Move_Id_Integer(tmp, vt.offset))
+                                .cons(new Move_Id_Integer(tmp, vt.offset.get()))
                                 .cons(new Add(tmp, Trans.stat, tmp))
                                 .cons(new Store(obj, ownObjOffset.get(), tmp)))
                         .orElse(tr));

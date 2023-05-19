@@ -31,7 +31,7 @@ public class ClassVisitor extends GJDepthFirst<Function<Lazy<Integer>, Class>, L
                 (c) -> mkFields(c, n.f3, argu.get()),
                 (c) -> mkMethods(c, n.f4, argu.get()),
                 (ms) -> mkStruct(ms, argu.get()),
-                (c) -> mkVtables(c, argu.get(), vtableOffset.get()));
+                (c) -> mkVtables(c, argu.get(), vtableOffset));
     }
 
     @Override
@@ -43,7 +43,7 @@ public class ClassVisitor extends GJDepthFirst<Function<Lazy<Integer>, Class>, L
                 (c) -> mkFields(c, n.f5, argu.get()),
                 (c) -> mkMethods(c, n.f6, argu.get()),
                 (ms) -> mkStruct(ms, argu.get()),
-                (c) -> mkVtables(c, argu.get(), vtableOffset.get()));
+                (c) -> mkVtables(c, argu.get(), vtableOffset));
     }
 
     static T2<List<Field>, Integer> mkFields(Class c, NodeListOptional fieldNodes, TypeEnv argu) {
@@ -57,7 +57,7 @@ public class ClassVisitor extends GJDepthFirst<Function<Lazy<Integer>, Class>, L
         return methodNodes.accept(new ListVisitor<>(new MethodVisitor()), new T2<>(c, argu));
     }
 
-    static T2<List<Vtable>, Integer> mkVtables(Class c, TypeEnv env, int vtableOffset) {
+    static T2<List<Vtable>, Lazy<Integer>> mkVtables(Class c, TypeEnv env, Lazy<Integer> vtableOffset) {
         return c.superClass().map(sc -> sc.vtables).orElse(List.nul())
                 .fold(new T2<>(List.<Vtable>nul(), vtableOffset),
                         (acc, vt) -> acc.consume(list -> offset -> {
@@ -68,12 +68,14 @@ public class ClassVisitor extends GJDepthFirst<Function<Lazy<Integer>, Class>, L
                                     .map(u -> vt.overrides.map(m -> overridingMethods
                                             .find(m::nameEquals).<Virtual>map(x -> x).orElse(m)))
                                     .map(overrides -> new Vtable(vt.target, overrides, offset))
-                                    .map(newVt -> new T2<>(list.cons(newVt), offset + newVt.size))
+                                    .map(newVt -> new T2<>(list.cons(newVt),
+                                            new Lazy<>(() -> offset.get() + vt.size)))
                                     .orElse(new T2<>(list.cons(vt), offset));
                         }))
                 .consume(overriddenVtables -> nextOffset -> c.methods.overridden.head()
                         .map(u -> new Vtable(c, c.methods.overridden, nextOffset))
-                        .map(newVt -> new T2<>(overriddenVtables.cons(newVt), nextOffset + newVt.size))
+                        .map(newVt -> new T2<>(overriddenVtables.cons(newVt),
+                                new Lazy<>(() -> nextOffset.get() + newVt.size)))
                         .orElse(new T2<>(overriddenVtables, nextOffset)));
     }
 
