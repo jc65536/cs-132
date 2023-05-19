@@ -71,8 +71,8 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
                 .andThen(Expr::nullCheck)
                 .andThen(obj -> n.f4.accept(new ListVisitor<>(new ExprVisitor()), argu)
                         .fold(new T2<>(List.<Identifier>nul(), obj), (acc, mkExpr) -> acc
-                                .consume(list -> mkExpr.andThen(arg -> new T2<>(list.cons(arg.sym), arg))))
-                        .consume(args -> obj.type.get().classifiedLookup(n.f2.f0.tokenImage).get()
+                                .then(list -> mkExpr.andThen(arg -> new T2<>(list.cons(arg.sym), arg))))
+                        .then(args -> obj.type.get().classifiedLookup(n.f2.f0.tokenImage).get()
                                 .call(obj.sym, args.reverse().cons(obj.sym).cons(Trans.stat))));
     }
 

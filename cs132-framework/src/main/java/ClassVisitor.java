@@ -7,7 +7,7 @@ import cs132.minijava.visitor.*;
 class MethodVisitor extends GJDepthFirst<Method, T2<Class, TypeEnv>> {
     @Override
     public Method visit(MethodDeclaration n, T2<Class, TypeEnv> argu) {
-        return argu.consume(c -> env -> {
+        return argu.then(c -> env -> {
             final var params = n.f4.accept(new ListVisitor<>(new LocalVisitor()), env);
             final var name = n.f2.f0.tokenImage;
             final var locals = n.f7.accept(new ListVisitor<>(new LocalVisitor()), env);

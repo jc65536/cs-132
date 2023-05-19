@@ -28,10 +28,9 @@ public class J2S {
 
         new Lazy<TypeEnv>(z -> root.f1
                 .accept(new ListVisitor<>(new ClassVisitor()), z)
-                .fold(new T2<>(List.<Class>nul(), new Lazy<>(() -> 0)),
-                        (acc, mkClass) -> acc.consume(classes -> mkClass.andThen(
-                                cls -> new T2<>(classes.cons(cls), cls.vtableEnd))))
-                .consume(classes -> statSize -> new TypeEnv(List.nul(), classes, statSize, Optional.empty())))
+                .fold(new T2<>(List.<Class>nul(), new Lazy<>(() -> 0)), (acc, mkClass) -> acc
+                        .then(classes -> mkClass.andThen(cls -> new T2<>(classes.cons(cls), cls.vtableEnd))))
+                .then(classes -> statSize -> new TypeEnv(List.nul(), classes, statSize, Optional.empty())))
                 .then(env -> env.classes.flatMap(c -> c.methods.all
                         .map(m -> m.translate(env.enterClass(c))))
                         .cons(transMain(root.f0, env)))

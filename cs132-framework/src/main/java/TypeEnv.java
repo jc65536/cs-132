@@ -158,13 +158,13 @@ class Class extends Named {
         final var fieldOffset = ownObjOffset.get() + methods.overridden.head().map(u -> 4).orElse(0);
         return fieldNodes.accept(new ListVisitor<>(new FieldVisitor()), env)
                 .fold(new T2<>(List.<Field>nul(), fieldOffset), (acc, mkField) -> acc
-                        .consume(fields -> mkField.andThen(f -> new T2<>(fields.cons(f), f.offset + 4))));
+                        .then(fields -> mkField.andThen(f -> new T2<>(fields.cons(f), f.offset + 4))));
     }
 
     T2<List<Vtable>, Lazy<Integer>> mkVtables(Lazy<Integer> vtableOffset, TypeEnv env) {
         return superClass().map(sc -> sc.vtables).orElse(List.nul())
                 .fold(new T2<>(List.<Vtable>nul(), vtableOffset),
-                        (acc, vt) -> acc.consume(vtables -> offset -> {
+                        (acc, vt) -> acc.then(vtables -> offset -> {
                             final var overridingMethods = methods.overriding
                                     .filter(m -> m.origin() == vt.target);
 
@@ -175,7 +175,7 @@ class Class extends Named {
                                     .map(nvt -> new T2<>(vtables.cons(nvt), offset.then(s -> s + vt.size)))
                                     .orElse(new T2<>(vtables.cons(vt), offset));
                         }))
-                .consume(vtables -> offset -> methods.overridden.head()
+                .then(vtables -> offset -> methods.overridden.head()
                         .map(u -> new Vtable(this, methods.overridden, offset))
                         .map(nvt -> new T2<>(vtables.cons(nvt), offset.then(s -> s + nvt.size)))
                         .orElse(new T2<>(vtables, offset)));

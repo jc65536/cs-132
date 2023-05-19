@@ -10,7 +10,7 @@ class T2<A, B> {
         this.b = b;
     }
 
-    <T> T consume(Function<? super A, Function<? super B, T>> f) {
+    <T> T then(Function<? super A, Function<? super B, T>> f) {
         return f.apply(a).apply(b);
     }
 }
