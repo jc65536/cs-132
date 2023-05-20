@@ -68,8 +68,8 @@ class Vtable {
         this.offset = offset;
     }
 
-    Trans write(Identifier tmp, Trans env) {
-        return overrides.fold(env, (acc, m) -> acc
+    Function<Trans, Trans> write(Identifier tmp) {
+        return tr -> overrides.fold(tr, (acc, m) -> acc
                 .cons(new Move_Id_FuncName(tmp, m.funcName()))
                 .cons(new Store(Trans.stat, offset.get() + m.offset.get(), tmp)));
     }
@@ -372,7 +372,7 @@ class Method extends Named {
     FunctionDecl translate(TypeEnv env) {
         final var localsEnv = env.addLocals(params).addLocals(locals);
         return new Trans(List.nul(), 0)
-                .applyTo(tr -> tr.initLocals(locals))
+                .applyTo(Trans.initLocals(locals))
                 .applyTo(tr -> body.f8.accept(new ListVisitor<>(new StmtVisitor()), localsEnv)
                         .fold(tr, Trans::applyTo))
                 .applyTo(body.f10.accept(new ExprVisitor(), localsEnv)
@@ -444,8 +444,8 @@ class Trans extends List<Instruction> {
         return new Trans(super.cons(i), k);
     }
 
-    Trans initLocals(List<Local> locals) {
-        return locals.fold(this, (acc, lc) -> acc.cons(new Move_Id_Integer(lc.sym, 0)));
+    static Function<Trans, Trans> initLocals(List<Local> locals) {
+        return tr -> locals.fold(tr, (acc, lc) -> acc.cons(new Move_Id_Integer(lc.sym, 0)));
     }
 
     <T> T applyTo(Function<Trans, T> f) {
