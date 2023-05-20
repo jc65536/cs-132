@@ -11,7 +11,7 @@ class Expr extends Trans {
     final Optional<Class> type;
 
     private Expr(Trans tr, Identifier sym, Optional<Class> type) {
-        super(tr.codeRev, tr.k);
+        super(tr, tr.k);
         this.sym = sym;
         this.type = type;
     }
@@ -20,28 +20,26 @@ class Expr extends Trans {
         return tr -> new Expr(tr, sym, type);
     }
 
-    Expr nullCheck() {
-        return applyTo(Trans.genLabel(err -> Trans.genLabel(end -> tr -> tr
-                .cons(new IfGoto(sym, err))
-                .cons(new Goto(end))
-                .cons(new LabelInstr(err))
-                .cons(new ErrorMessage("\"null pointer\""))
-                .cons(new LabelInstr(end)))))
-                .applyTo(Expr.make(sym, type));
-    }
+    static final Function<Expr, Expr> nullCheck = e -> e
+            .applyTo(Trans.genLabel(err -> Trans.genLabel(end -> tr -> tr
+                    .cons(new IfGoto(e.sym, err))
+                    .cons(new Goto(end))
+                    .cons(new LabelInstr(err))
+                    .cons(new ErrorMessage("\"null pointer\""))
+                    .cons(new LabelInstr(end)))))
+            .applyTo(Expr.make(e.sym, e.type));
 
-    Expr idxCheck(Identifier arr) {
-        return applyTo(Trans.genLabel(err -> Trans.genLabel(ok -> ExprVisitor
-                .literal(0).andThen(tmp -> tmp
-                        .cons(new LessThan(tmp.sym, sym, tmp.sym))
-                        .cons(new IfGoto(tmp.sym, ok))
-                        .cons(new LabelInstr(err))
-                        .cons(new ErrorMessage("\"array index out of bounds\""))
-                        .cons(new LabelInstr(ok))
-                        .cons(new Load(tmp.sym, arr, 0))
-                        .cons(new LessThan(tmp.sym, sym, tmp.sym))
-                        .cons(new IfGoto(tmp.sym, err))))))
-                .applyTo(Expr.make(sym, type));
+    static Function<Expr, Expr> idxCheck(Identifier arr) {
+        return e -> e.applyTo(Trans.genLabel(err -> Trans.genLabel(ok -> ExprVisitor.literal(0).andThen(tmp -> tmp
+                .cons(new LessThan(tmp.sym, e.sym, tmp.sym))
+                .cons(new IfGoto(tmp.sym, ok))
+                .cons(new LabelInstr(err))
+                .cons(new ErrorMessage("\"array index out of bounds\""))
+                .cons(new LabelInstr(ok))
+                .cons(new Load(tmp.sym, arr, 0))
+                .cons(new LessThan(tmp.sym, e.sym, tmp.sym))
+                .cons(new IfGoto(tmp.sym, err))))))
+                .applyTo(Expr.make(e.sym, e.type));
     }
 }
 
@@ -221,7 +219,8 @@ class Field extends Variable {
 
     @Override
     Function<Trans, Expr> toTemp() {
-        return Trans.genSym(res -> tr -> tr.cons(new Load(res, Trans.self, offset))
+        return Trans.genSym(res -> tr -> tr
+                .cons(new Load(res, Trans.self, offset))
                 .applyTo(Expr.make(res, type)));
     }
 
@@ -241,7 +240,8 @@ class Local extends Variable {
 
     @Override
     Function<Trans, Expr> toTemp() {
-        return Trans.genSym(res -> tr -> tr.cons(new Move_Id_Id(res, sym))
+        return Trans.genSym(res -> tr -> tr
+                .cons(new Move_Id_Id(res, sym))
                 .applyTo(Expr.make(res, type)));
     }
 
@@ -376,7 +376,7 @@ class Method extends Named {
                 .applyTo(tr -> body.f8.accept(new ListVisitor<>(new StmtVisitor()), localsEnv)
                         .fold(tr, Trans::applyTo))
                 .applyTo(body.f10.accept(new ExprVisitor(), localsEnv)
-                        .andThen(ret -> new cs132.IR.sparrow.Block(ret.codeRev.reverse().toJavaList(), ret.sym))
+                        .andThen(ret -> new cs132.IR.sparrow.Block(ret.reverse().toJavaList(), ret.sym))
                         .andThen(block -> new FunctionDecl(funcName(),
                                 params.map(s -> s.sym).cons(Trans.self).cons(Trans.stat).toJavaList(),
                                 block)));
@@ -420,29 +420,28 @@ public class TypeEnv {
     }
 }
 
-class Trans {
-    final List<Instruction> codeRev;
+class Trans extends List<Instruction> {
     protected final int k;
 
     static final Identifier self = new Identifier("this");
 
     static final Identifier stat = new Identifier("__stat__");
 
-    Trans(List<Instruction> codeRev, int k) {
-        this.codeRev = codeRev;
+    Trans(List<Instruction> code, int k) {
+        super(code);
         this.k = k;
     }
 
     static <T> Function<Trans, T> genSym(Function<Identifier, Function<Trans, T>> cont) {
-        return tr -> cont.apply(new Identifier("v" + tr.k)).apply(new Trans(tr.codeRev, tr.k + 1));
+        return tr -> cont.apply(new Identifier("v" + tr.k)).apply(new Trans(tr, tr.k + 1));
     }
 
     static <T> Function<Trans, T> genLabel(Function<Label, Function<Trans, T>> cont) {
-        return tr -> cont.apply(new Label("L" + tr.k)).apply(new Trans(tr.codeRev, tr.k + 1));
+        return tr -> cont.apply(new Label("L" + tr.k)).apply(new Trans(tr, tr.k + 1));
     }
 
     Trans cons(Instruction i) {
-        return new Trans(codeRev.cons(i), k);
+        return new Trans(cons(i), k);
     }
 
     Trans initLocals(List<Local> locals) {

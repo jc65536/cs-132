@@ -11,14 +11,14 @@ public class J2S {
                 .cons(new Move_Id_Integer(tmp, env.statSize.get()))
                 .cons(new Alloc(Trans.stat, tmp))
                 .applyTo(tr1 -> env.vtables.fold(tr1, (acc, vt) -> vt.write(tmp, acc))))
-                .andThen(tr2 -> {
+                .andThen(tr -> {
                     final var locals = main.f14.accept(new ListVisitor<>(new LocalVisitor()), env);
                     final var localsEnv = env.addLocals(locals);
-                    final var tr3 = tr2.initLocals(locals);
+                    final var tr1 = tr.initLocals(locals);
                     return main.f15.accept(new ListVisitor<>(new StmtVisitor()), localsEnv)
-                            .fold(tr3, Trans::applyTo);
+                            .fold(tr1, Trans::applyTo);
                 })
-                .andThen(tr4 -> new Block(tr4.codeRev.reverse().toJavaList(), Trans.stat))
+                .andThen(tr -> new Block(tr.reverse().toJavaList(), Trans.stat))
                 .andThen(block -> new FunctionDecl(new FunctionName("main"), java.util.List.of(), block)));
     }
 
