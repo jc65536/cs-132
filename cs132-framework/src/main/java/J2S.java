@@ -32,10 +32,7 @@ public class J2S {
                         .map(m -> m.translate(env.enterClass(c))))
                         .cons(transMain(root.f0, env)))
                 .then(fns -> new Program(fns.toJavaList()))
-                .then(prgm -> {
-                    System.out.println(prgm);
-                    return 0;
-                })
+                .then(prgm -> System.out.printf("%s\n", prgm))
                 .get();
     }
 }
