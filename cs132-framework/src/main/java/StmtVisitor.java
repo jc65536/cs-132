@@ -38,15 +38,13 @@ public class StmtVisitor extends GJDepthFirst<Function<Trans, Trans>, TypeEnv> {
 
     @Override
     public Function<Trans, Trans> visit(IfStatement n, TypeEnv argu) {
-        return Trans.genLabel(fail -> Trans.genLabel(end -> n.f2
+        return Trans.genLabel(end -> Trans.genLabel(fail -> n.f2
                 .accept(new ExprVisitor(), argu)
                 .andThen(cond -> cond.cons(new IfGoto(cond.sym, fail)))
                 .andThen(n.f4.accept(this, argu))
-                .andThen(ifStmt -> ifStmt
-                        .cons(new Goto(end))
-                        .cons(new LabelInstr(fail)))
+                .andThen(ifStmt -> ifStmt.cons(new Goto(end)).cons(new LabelInstr(fail))))
                 .andThen(n.f6.accept(this, argu))
-                .andThen(elseStmt -> elseStmt.cons(new LabelInstr(end)))));
+                .andThen(elseStmt -> elseStmt.cons(new LabelInstr(end))));
     }
 
     @Override
@@ -55,9 +53,8 @@ public class StmtVisitor extends GJDepthFirst<Function<Trans, Trans>, TypeEnv> {
                 .cons(new LabelInstr(start))
                 .applyTo(n.f2.accept(new ExprVisitor(), argu).andThen(cond -> cond
                         .cons(new IfGoto(cond.sym, end))))
-                .applyTo(n.f4.accept(this, argu).andThen(body -> body
-                        .cons(new Goto(start))
-                        .cons(new LabelInstr(end))))));
+                .applyTo(n.f4.accept(this, argu))
+                .applyTo(body -> body.cons(new Goto(start)).cons(new LabelInstr(end)))));
     }
 
     @Override

@@ -441,7 +441,7 @@ class Trans extends List<Instruction> {
     }
 
     Trans cons(Instruction i) {
-        return new Trans(cons(i), k);
+        return new Trans(super.cons(i), k);
     }
 
     Trans initLocals(List<Local> locals) {
