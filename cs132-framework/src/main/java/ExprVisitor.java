@@ -98,7 +98,7 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
 
     @Override
     public Function<Trans, Expr> visit(cs132.minijava.syntaxtree.Identifier n, TypeEnv argu) {
-        return argu.symLookup(n.f0.tokenImage).toTemp();
+        return argu.varLookup(n.f0.tokenImage).toTemp();
     }
 
     @Override

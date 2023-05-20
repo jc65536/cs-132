@@ -414,7 +414,7 @@ public class TypeEnv {
         return new TypeEnv(this.locals.join(locals), classes, statSize, currClass);
     }
 
-    Variable symLookup(String name) {
+    Variable varLookup(String name) {
         return locals.find(s -> s.name.equals(name)).<Variable>map(x -> x)
                 .or(() -> currClass.flatMap(c -> c.fieldLookup(name))).get();
     }

@@ -19,7 +19,7 @@ public class StmtVisitor extends GJDepthFirst<Function<Trans, Trans>, TypeEnv> {
     @Override
     public Function<Trans, Trans> visit(AssignmentStatement n, TypeEnv argu) {
         return n.f2.accept(new ExprVisitor(), argu)
-                .andThen(rhs -> rhs.applyTo(argu.symLookup(n.f0.f0.tokenImage).assign(rhs.sym)));
+                .andThen(rhs -> rhs.applyTo(argu.varLookup(n.f0.f0.tokenImage).assign(rhs.sym)));
     }
 
     @Override
