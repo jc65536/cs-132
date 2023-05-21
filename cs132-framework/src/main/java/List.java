@@ -91,7 +91,7 @@ public class List<T> extends Lazy<Optional<Pair<T>>> implements ListInt<T> {
     }
 
     java.util.List<T> toJavaList() {
-        return fold(new java.util.ArrayList<>(), (l, v) -> {
+        return fold(new ArrayList<>(), (l, v) -> {
             l.add(v);
             return l;
         });
