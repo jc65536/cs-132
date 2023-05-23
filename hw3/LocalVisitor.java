@@ -5,6 +5,9 @@ import cs132.minijava.syntaxtree.*;
 import cs132.minijava.visitor.*;
 import cs132.IR.token.Identifier;
 
+// In HW2 I had a Type super class which included primitives, but here an
+// Optional<Class> is enough to express all the type information I need.
+
 class TypeVisitor extends GJDepthFirst<Optional<Class>, TypeEnv> {
     @Override
     public Optional<Class> visit(cs132.minijava.syntaxtree.Type n, TypeEnv argu) {
@@ -31,6 +34,9 @@ class TypeVisitor extends GJDepthFirst<Optional<Class>, TypeEnv> {
         return Optional.of(argu.classLookup(n.f0.tokenImage));
     }
 }
+
+// Returning a Function<Integer, Field> instead of a Field directly for a
+// similar reason as ClassVisitor.
 
 class FieldVisitor extends GJDepthFirst<Function<Integer, Field>, TypeEnv> {
     @Override

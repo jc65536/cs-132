@@ -6,11 +6,30 @@ import cs132.IR.token.Identifier;
 import cs132.minijava.syntaxtree.*;
 import cs132.minijava.visitor.*;
 
+// CPS makes things flow in a chronological pipeline but the indentation and
+// parens are awful. Btw, the IfStatement visitor in StmtVisitor might be the
+// most readable CPS visitor function since it's very flat.
+
 public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
     @Override
     public Function<Trans, Expr> visit(Expression n, TypeEnv argu) {
         return n.f0.choice.accept(this, argu);
     }
+
+    /*
+     * If I had to write the following function in non-CPS style (if only Java
+     * supported tuples and visitors would allow multiple arguments) it would
+     * look something like this:
+     *
+     *  public Expr visit(AndExpression n, TypeEnv argu, Trans tr) {
+     *      end, tr = tr.genLabel();
+     *      lhs = n.f0.accept(this, argu, tr);
+     *      tr = lhs.cons(new IfGoto(lhs.sym, end));
+     *      rhs = n.f2.accept(this, argu, tr);
+     *      tr = rhs.cons(new Move_Id_Id(lhs.sym, rhs.sym)).cons(new LabelInstr(end));
+     *      return new Expr(tr, lhs.sym, Optional.empty());
+     *  }
+     */
 
     @Override
     public Function<Trans, Expr> visit(AndExpression n, TypeEnv argu) {
@@ -18,8 +37,8 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
                 .cons(new IfGoto(lhs.sym, end))
                 .applyTo(n.f2.accept(this, argu).andThen(rhs -> rhs
                         .cons(new Move_Id_Id(lhs.sym, rhs.sym))
-                        .cons(new LabelInstr(end)))
-                        .andThen(Expr.make(lhs.sym, Optional.empty())))));
+                        .cons(new LabelInstr(end))))
+                .applyTo(Expr.make(lhs.sym, Optional.empty()))));
     }
 
     @Override
@@ -153,8 +172,8 @@ public class ExprVisitor extends GJDepthFirst<Function<Trans, Expr>, TypeEnv> {
             BiFunction<Identifier, Identifier, Instruction> mkInstr) {
         return lNode.accept(this, argu).andThen(lhs -> lhs
                 .applyTo(rNode.accept(this, argu).andThen(rhs -> rhs
-                        .cons(mkInstr.apply(lhs.sym, rhs.sym)))
-                        .andThen(Expr.make(lhs.sym, Optional.empty()))));
+                        .cons(mkInstr.apply(lhs.sym, rhs.sym))))
+                .applyTo(Expr.make(lhs.sym, Optional.empty())));
     }
 
     static Function<Trans, Expr> literal(int num) {

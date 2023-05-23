@@ -36,6 +36,8 @@ public class StmtVisitor extends GJDepthFirst<Function<Trans, Trans>, TypeEnv> {
                                                 .cons(new Store(arr.sym, 4, rhs.sym)))))))));
     }
 
+    // Probably the most readable function chaining code I've written. It's so flat!
+
     @Override
     public Function<Trans, Trans> visit(IfStatement n, TypeEnv argu) {
         return Trans.genLabel(end -> Trans.genLabel(fail -> n.f2

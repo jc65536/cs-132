@@ -1,0 +1,73 @@
+Memory layout of objects & vtables
+
+Sample code
+
+class A {
+    int f();    // overridden
+    int g();    // overridden
+
+    int x;
+}
+
+class B extends A {
+    int f();    // overriding
+    int h();    // overridden
+    int u();    // unique (no vtable entry)
+
+    int y;
+}
+
+class C extends B {
+    int g();    // overriding
+    int h();    // overriding
+
+    int z;
+}
+
+
+__static__ (actual vtable order may differ)
+
++-----------+ <- vtable by A targeting A    +0
+| @A_f      |
+| @A_g      |
++-----------+ <- vtable by B targeting A    +8
+| @B_f      |
+| @A_g      |
++-----------+ <- vtable by B targeting B    +16
+| @B_h      |
++-----------+ <- vtable by C targeting A    +20
+| @B_f      |
+| @C_g      |
++-----------+ <- vtable by C targeting B    +28
+| @C_h      |
++-----------+
+
+A object
+
++---------------+
+| __stat__ + 0  |
+| x             |
++---------------+
+
+B object
+
++---------------+
+| __stat__ + 8  |
+| x             |
++---------------+
+| __stat__ + 16 |
+| y             |
++---------------+
+
+C object
+
++---------------+
+| __stat__ + 20 |
+| x             |
++---------------+
+| __stat__ + 28 |
+| y             |
++---------------+
+| z             |
++---------------+
+

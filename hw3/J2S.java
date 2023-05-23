@@ -25,14 +25,20 @@ public class J2S {
         final var root = MiniJavaParser.Goal();
 
         new Lazy<TypeEnv>(z -> root.f1.accept(new ListVisitor<>(new ClassVisitor()), z)
+                // Folding the list of functions into a list of Classes
                 .fold(new T2<>(List.<Class>nul(), new Lazy<>(() -> 0)), (acc, mkClass) -> acc
-                        .then(classes -> mkClass.andThen(cls -> new T2<>(classes.cons(cls), cls.vtableEnd))))
+                        // Taking a small advantage of currying here
+                        // The then argument should be a Function<List<Class>, Function<Lazy<Integer>, T2<...>>>
+                        // (Java notation is awful)
+                        // But mkClass is already a Function<Lazy<Integer>, Class>>, so
+                        // classes -> mkClass.andThen(c -> new T2<>(...)) actually typechecks
+                        .then(classes -> mkClass.andThen(c -> new T2<>(classes.cons(c), c.vtableEnd))))
                 .then(classes -> statSize -> new TypeEnv(List.nul(), classes, statSize, Optional.empty())))
                 .then(env -> env.classes.flatMap(c -> c.methods.all
                         .map(m -> m.translate(env.enterClass(c))))
                         .cons(transMain(root.f0, env)))
                 .then(fns -> new Program(fns.toJavaList()))
                 .then(prgm -> System.out.printf("%s\n", prgm))
-                .get();
+                .get(); // Without this line no computation actually happens, cuz everything's lazy, lol
     }
 }

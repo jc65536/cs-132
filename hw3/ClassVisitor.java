@@ -17,6 +17,21 @@ class MethodVisitor extends GJDepthFirst<Method, T2<Class, TypeEnv>> {
     }
 }
 
+// ListVisitor builds the list like a map operation - each list node is
+// instantiated without the context of the previous nodes - which is why it can
+// be lazy. I want to build the Class list as if by a fold operation - when
+// instantiating the next Class object, I want to feed it information obtained
+// from the previously built Class objects. This is I first create a list of
+// functions, then fold that list into another list of Classes in J2S.java. The
+// Lazy<Integer> required to complete each Class is the global vtable offset
+// for that class's vtables, which is calculated from the previous Class's
+// vtableEnd.
+
+// I often use the ListVisitor then fold method to compute iteratively. Other
+// use cases include visiting fields (each Field needs an offset, which is
+// gotten from the last visited Field) and translating (each translation
+// procedure needs to cons onto the previous translation history).
+
 public class ClassVisitor extends GJDepthFirst<Function<Lazy<Integer>, Class>, Lazy<TypeEnv>> {
     @Override
     public Function<Lazy<Integer>, Class> visit(TypeDeclaration n, Lazy<TypeEnv> argu) {

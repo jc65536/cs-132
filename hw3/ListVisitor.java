@@ -3,6 +3,10 @@ import java.util.*;
 import cs132.minijava.syntaxtree.*;
 import cs132.minijava.visitor.*;
 
+// Visitor for a sequence of nodes; The advantage of using ListVisitor vs.
+// nodes.stream().map() is that this generates a lazy list compatible with the
+// rest of the lists I use, instead of a Java stream.
+
 public class ListVisitor<R, A> extends GJDepthFirst<List<R>, A> {
     final GJDepthFirst<R, A> v;
 

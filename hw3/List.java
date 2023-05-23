@@ -1,6 +1,12 @@
 import java.util.*;
 import java.util.function.*;
 
+// Utility
+// I originally used T2 (and even T3) to return tuples, but then continuation
+// passing style lessened the need to actually store the return value in
+// variables. Instead of returning multiple values, I pass in a callback
+// function that can receive multiple arguments.
+
 class T2<A, B> {
     final A a;
     final B b;
@@ -15,6 +21,13 @@ class T2<A, B> {
     }
 }
 
+// Lazy serves 3 purposes: 1) delay computation 2) cache computed values, and
+// 3) eliminate the need for mutable values elsewhere.
+
+// Tbh whenever I ran into stack overflow errors due to infinite mutual
+// recursion, making one side Lazy usually fixed the issue. I haven't fully
+// thought about the data dependencies between parts of my code.
+
 class Lazy<T> implements Supplier<T> {
     Supplier<T> s;
 
@@ -22,6 +35,7 @@ class Lazy<T> implements Supplier<T> {
         this.s = s;
     }
 
+    // Hack for self referential lazy values    
     Lazy(Function<Lazy<T>, T> f) {
         this.s = () -> f.apply(this);
     }
@@ -61,6 +75,8 @@ interface ListInt<T> {
 
     List<T> unique(List<T> hist, BiPredicate<T, T> eq);
 }
+
+// Lazy linked list implementation
 
 public class List<T> extends Lazy<Optional<Pair<T>>> implements ListInt<T> {
     List(Supplier<Optional<Pair<T>>> s) {
