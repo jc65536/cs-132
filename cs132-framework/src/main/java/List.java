@@ -1,12 +1,6 @@
 import java.util.*;
 import java.util.function.*;
 
-// Utility
-// I originally used T2 (and even T3) to return tuples, but then continuation
-// passing style lessened the need to actually store the return value in
-// variables. Instead of returning multiple values, I pass in a callback
-// function that can receive multiple arguments.
-
 class T2<A, B> {
     final A a;
     final B b;
@@ -19,14 +13,11 @@ class T2<A, B> {
     <T> T then(Function<? super A, Function<? super B, T>> f) {
         return f.apply(a).apply(b);
     }
+
+    static <A, B> T2<List<A>, List<B>> unwrap(Lazy<T2<List<A>, List<B>>> z) {
+        return new T2<>(new List<>(z.bind(t -> t.a)), new List<>(z.bind(t -> t.b)));
+    }
 }
-
-// Lazy serves 3 purposes: 1) delay computation 2) cache computed values, and
-// 3) eliminate the need for mutable values elsewhere.
-
-// Tbh whenever I ran into stack overflow errors due to infinite mutual
-// recursion, making one side Lazy usually fixed the issue. I haven't fully
-// thought about the data dependencies between parts of my code.
 
 class Lazy<T> implements Supplier<T> {
     Supplier<T> s;
@@ -53,28 +44,6 @@ class Lazy<T> implements Supplier<T> {
 
     <U> Lazy<U> bind(Function<T, Supplier<U>> f) {
         return new Lazy<>(() -> f.apply(get()).get());
-    }
-}
-
-class AcyclicLazy<T> extends Lazy<T> {
-    final T def;
-
-    AcyclicLazy(Supplier<T> x, T def) {
-        super(x);
-        this.def = def;
-    }
-
-    @Override
-    public T get() {
-        if (s == null)
-            return def;
-
-        final var tmp = s;
-        s = null;
-
-        final var v = tmp.get();
-        s = () -> v;
-        return v;
     }
 }
 

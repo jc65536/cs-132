@@ -1,0 +1,1251 @@
+func main()
+v0 = 8
+__stat__ = alloc(v0)
+v0 = @MyVisitor_visit
+[__stat__ + 4] = v0
+v0 = @Visitor_visit
+[__stat__ + 0] = v0
+v2 = 0
+v1 = alloc(v2)
+if0 v1 goto L3
+goto L4
+L3:
+error("null pointer")
+L4:
+v5 = @TV_Start
+v5 = call v5(__stat__ v1)
+print(v5)
+      return __stat__
+
+func MyVisitor_visit(__stat__ this v_n)
+v_nti = 0
+v2 = v_n
+if0 v2 goto L3
+goto L4
+L3:
+error("null pointer")
+L4:
+v5 = @Tree_GetHas_Right
+v5 = call v5(__stat__ v2)
+if0 v5 goto L1
+v6 = v_n
+if0 v6 goto L7
+goto L8
+L7:
+error("null pointer")
+L8:
+v9 = @Tree_GetRight
+v9 = call v9(__stat__ v6)
+[this + 8] = v9
+v10 = [this + 8]
+if0 v10 goto L11
+goto L12
+L11:
+error("null pointer")
+L12:
+v13 = this
+v14 = @Tree_accept
+v14 = call v14(__stat__ v10 v13)
+v_nti = v14
+goto L0
+L1:
+v15 = 0
+v_nti = v15
+L0:
+v16 = v_n
+if0 v16 goto L17
+goto L18
+L17:
+error("null pointer")
+L18:
+v19 = @Tree_GetKey
+v19 = call v19(__stat__ v16)
+print(v19)
+v22 = v_n
+if0 v22 goto L23
+goto L24
+L23:
+error("null pointer")
+L24:
+v25 = @Tree_GetHas_Left
+v25 = call v25(__stat__ v22)
+if0 v25 goto L21
+v26 = v_n
+if0 v26 goto L27
+goto L28
+L27:
+error("null pointer")
+L28:
+v29 = @Tree_GetLeft
+v29 = call v29(__stat__ v26)
+[this + 4] = v29
+v30 = [this + 4]
+if0 v30 goto L31
+goto L32
+L31:
+error("null pointer")
+L32:
+v33 = this
+v34 = @Tree_accept
+v34 = call v34(__stat__ v30 v33)
+v_nti = v34
+goto L20
+L21:
+v35 = 0
+v_nti = v35
+L20:
+v36 = 0
+      return v36
+
+func Visitor_visit(__stat__ this v_n)
+v_nti = 0
+v2 = v_n
+if0 v2 goto L3
+goto L4
+L3:
+error("null pointer")
+L4:
+v5 = @Tree_GetHas_Right
+v5 = call v5(__stat__ v2)
+if0 v5 goto L1
+v6 = v_n
+if0 v6 goto L7
+goto L8
+L7:
+error("null pointer")
+L8:
+v9 = @Tree_GetRight
+v9 = call v9(__stat__ v6)
+[this + 8] = v9
+v10 = [this + 8]
+if0 v10 goto L11
+goto L12
+L11:
+error("null pointer")
+L12:
+v13 = this
+v14 = @Tree_accept
+v14 = call v14(__stat__ v10 v13)
+v_nti = v14
+goto L0
+L1:
+v15 = 0
+v_nti = v15
+L0:
+v18 = v_n
+if0 v18 goto L19
+goto L20
+L19:
+error("null pointer")
+L20:
+v21 = @Tree_GetHas_Left
+v21 = call v21(__stat__ v18)
+if0 v21 goto L17
+v22 = v_n
+if0 v22 goto L23
+goto L24
+L23:
+error("null pointer")
+L24:
+v25 = @Tree_GetLeft
+v25 = call v25(__stat__ v22)
+[this + 4] = v25
+v26 = [this + 4]
+if0 v26 goto L27
+goto L28
+L27:
+error("null pointer")
+L28:
+v29 = this
+v30 = @Tree_accept
+v30 = call v30(__stat__ v26 v29)
+v_nti = v30
+goto L16
+L17:
+v31 = 0
+v_nti = v31
+L16:
+v32 = 0
+      return v32
+
+func Tree_Init(__stat__ this v_v_key)
+v0 = v_v_key
+[this + 8] = v0
+v1 = 0
+[this + 12] = v1
+v2 = 0
+[this + 16] = v2
+v3 = 1
+      return v3
+
+func Tree_SetRight(__stat__ this v_rn)
+v0 = v_rn
+[this + 4] = v0
+v1 = 1
+      return v1
+
+func Tree_SetLeft(__stat__ this v_ln)
+v0 = v_ln
+[this + 0] = v0
+v1 = 1
+      return v1
+
+func Tree_GetRight(__stat__ this)
+v0 = [this + 4]
+      return v0
+
+func Tree_GetLeft(__stat__ this)
+v0 = [this + 0]
+      return v0
+
+func Tree_GetKey(__stat__ this)
+v0 = [this + 8]
+      return v0
+
+func Tree_SetKey(__stat__ this v_v_key)
+v0 = v_v_key
+[this + 8] = v0
+v1 = 1
+      return v1
+
+func Tree_GetHas_Right(__stat__ this)
+v0 = [this + 16]
+      return v0
+
+func Tree_GetHas_Left(__stat__ this)
+v0 = [this + 12]
+      return v0
+
+func Tree_SetHas_Left(__stat__ this v_val)
+v0 = v_val
+[this + 12] = v0
+v1 = 1
+      return v1
+
+func Tree_SetHas_Right(__stat__ this v_val)
+v0 = v_val
+[this + 16] = v0
+v1 = 1
+      return v1
+
+func Tree_Compare(__stat__ this v_num1 v_num2)
+v_ntb = 0
+v_nti = 0
+v0 = 0
+v_ntb = v0
+v1 = v_num2
+v2 = 1
+v1 = v1 + v2
+v_nti = v1
+v5 = v_num1
+v6 = v_num2
+v5 = v5 < v6
+if0 v5 goto L4
+v7 = 0
+v_ntb = v7
+goto L3
+L4:
+v10 = v_num1
+v11 = v_nti
+v10 = v10 < v11
+v12 = 1
+v12 = v12 - v10
+if0 v12 goto L9
+v13 = 0
+v_ntb = v13
+goto L8
+L9:
+v14 = 1
+v_ntb = v14
+L8:
+L3:
+v15 = v_ntb
+      return v15
+
+func Tree_Insert(__stat__ this v_v_key)
+v_new_node = 0
+v_ntb = 0
+v_current_node = 0
+v_cont = 0
+v_key_aux = 0
+v1 = 24
+v0 = alloc(v1)
+v_new_node = v0
+v2 = v_new_node
+if0 v2 goto L3
+goto L4
+L3:
+error("null pointer")
+L4:
+v5 = v_v_key
+v6 = @Tree_Init
+v6 = call v6(__stat__ v2 v5)
+v_ntb = v6
+v7 = this
+v_current_node = v7
+v8 = 1
+v_cont = v8
+L9:
+v11 = v_cont
+if0 v11 goto L10
+v12 = v_current_node
+if0 v12 goto L13
+goto L14
+L13:
+error("null pointer")
+L14:
+v15 = @Tree_GetKey
+v15 = call v15(__stat__ v12)
+v_key_aux = v15
+v18 = v_v_key
+v19 = v_key_aux
+v18 = v18 < v19
+if0 v18 goto L17
+v22 = v_current_node
+if0 v22 goto L23
+goto L24
+L23:
+error("null pointer")
+L24:
+v25 = @Tree_GetHas_Left
+v25 = call v25(__stat__ v22)
+if0 v25 goto L21
+v26 = v_current_node
+if0 v26 goto L27
+goto L28
+L27:
+error("null pointer")
+L28:
+v29 = @Tree_GetLeft
+v29 = call v29(__stat__ v26)
+v_current_node = v29
+goto L20
+L21:
+v30 = 0
+v_cont = v30
+v31 = v_current_node
+if0 v31 goto L32
+goto L33
+L32:
+error("null pointer")
+L33:
+v34 = 1
+v35 = @Tree_SetHas_Left
+v35 = call v35(__stat__ v31 v34)
+v_ntb = v35
+v36 = v_current_node
+if0 v36 goto L37
+goto L38
+L37:
+error("null pointer")
+L38:
+v39 = v_new_node
+v40 = @Tree_SetLeft
+v40 = call v40(__stat__ v36 v39)
+v_ntb = v40
+L20:
+goto L16
+L17:
+v43 = v_current_node
+if0 v43 goto L44
+goto L45
+L44:
+error("null pointer")
+L45:
+v46 = @Tree_GetHas_Right
+v46 = call v46(__stat__ v43)
+if0 v46 goto L42
+v47 = v_current_node
+if0 v47 goto L48
+goto L49
+L48:
+error("null pointer")
+L49:
+v50 = @Tree_GetRight
+v50 = call v50(__stat__ v47)
+v_current_node = v50
+goto L41
+L42:
+v51 = 0
+v_cont = v51
+v52 = v_current_node
+if0 v52 goto L53
+goto L54
+L53:
+error("null pointer")
+L54:
+v55 = 1
+v56 = @Tree_SetHas_Right
+v56 = call v56(__stat__ v52 v55)
+v_ntb = v56
+v57 = v_current_node
+if0 v57 goto L58
+goto L59
+L58:
+error("null pointer")
+L59:
+v60 = v_new_node
+v61 = @Tree_SetRight
+v61 = call v61(__stat__ v57 v60)
+v_ntb = v61
+L41:
+L16:
+goto L9
+L10:
+v62 = 1
+      return v62
+
+func Tree_Delete(__stat__ this v_v_key)
+v_current_node = 0
+v_parent_node = 0
+v_cont = 0
+v_found = 0
+v_ntb = 0
+v_is_root = 0
+v_key_aux = 0
+v0 = this
+v_current_node = v0
+v1 = this
+v_parent_node = v1
+v2 = 1
+v_cont = v2
+v3 = 0
+v_found = v3
+v4 = 1
+v_is_root = v4
+L5:
+v7 = v_cont
+if0 v7 goto L6
+v8 = v_current_node
+if0 v8 goto L9
+goto L10
+L9:
+error("null pointer")
+L10:
+v11 = @Tree_GetKey
+v11 = call v11(__stat__ v8)
+v_key_aux = v11
+v14 = v_v_key
+v15 = v_key_aux
+v14 = v14 < v15
+if0 v14 goto L13
+v18 = v_current_node
+if0 v18 goto L19
+goto L20
+L19:
+error("null pointer")
+L20:
+v21 = @Tree_GetHas_Left
+v21 = call v21(__stat__ v18)
+if0 v21 goto L17
+v22 = v_current_node
+v_parent_node = v22
+v23 = v_current_node
+if0 v23 goto L24
+goto L25
+L24:
+error("null pointer")
+L25:
+v26 = @Tree_GetLeft
+v26 = call v26(__stat__ v23)
+v_current_node = v26
+goto L16
+L17:
+v27 = 0
+v_cont = v27
+L16:
+goto L12
+L13:
+v30 = v_key_aux
+v31 = v_v_key
+v30 = v30 < v31
+if0 v30 goto L29
+v34 = v_current_node
+if0 v34 goto L35
+goto L36
+L35:
+error("null pointer")
+L36:
+v37 = @Tree_GetHas_Right
+v37 = call v37(__stat__ v34)
+if0 v37 goto L33
+v38 = v_current_node
+v_parent_node = v38
+v39 = v_current_node
+if0 v39 goto L40
+goto L41
+L40:
+error("null pointer")
+L41:
+v42 = @Tree_GetRight
+v42 = call v42(__stat__ v39)
+v_current_node = v42
+goto L32
+L33:
+v43 = 0
+v_cont = v43
+L32:
+goto L28
+L29:
+v46 = v_is_root
+if0 v46 goto L45
+v50 = v_current_node
+if0 v50 goto L51
+goto L52
+L51:
+error("null pointer")
+L52:
+v53 = @Tree_GetHas_Right
+v53 = call v53(__stat__ v50)
+v54 = 1
+v54 = v54 - v53
+if0 v54 goto L49
+v55 = v_current_node
+if0 v55 goto L56
+goto L57
+L56:
+error("null pointer")
+L57:
+v58 = @Tree_GetHas_Left
+v58 = call v58(__stat__ v55)
+v59 = 1
+v59 = v59 - v58
+v54 = v59
+L49:
+if0 v54 goto L48
+v60 = 1
+v_ntb = v60
+goto L47
+L48:
+v61 = this
+if0 v61 goto L62
+goto L63
+L62:
+error("null pointer")
+L63:
+v64 = v_parent_node
+v65 = v_current_node
+v66 = @Tree_Remove
+v66 = call v66(__stat__ v61 v64 v65)
+v_ntb = v66
+L47:
+goto L44
+L45:
+v67 = this
+if0 v67 goto L68
+goto L69
+L68:
+error("null pointer")
+L69:
+v70 = v_parent_node
+v71 = v_current_node
+v72 = @Tree_Remove
+v72 = call v72(__stat__ v67 v70 v71)
+v_ntb = v72
+L44:
+v73 = 1
+v_found = v73
+v74 = 0
+v_cont = v74
+L28:
+L12:
+v75 = 0
+v_is_root = v75
+goto L5
+L6:
+v76 = v_found
+      return v76
+
+func Tree_Remove(__stat__ this v_p_node v_c_node)
+v_ntb = 0
+v_auxkey1 = 0
+v_auxkey2 = 0
+v2 = v_c_node
+if0 v2 goto L3
+goto L4
+L3:
+error("null pointer")
+L4:
+v5 = @Tree_GetHas_Left
+v5 = call v5(__stat__ v2)
+if0 v5 goto L1
+v6 = this
+if0 v6 goto L7
+goto L8
+L7:
+error("null pointer")
+L8:
+v9 = v_p_node
+v10 = v_c_node
+v11 = @Tree_RemoveLeft
+v11 = call v11(__stat__ v6 v9 v10)
+v_ntb = v11
+goto L0
+L1:
+v14 = v_c_node
+if0 v14 goto L15
+goto L16
+L15:
+error("null pointer")
+L16:
+v17 = @Tree_GetHas_Right
+v17 = call v17(__stat__ v14)
+if0 v17 goto L13
+v18 = this
+if0 v18 goto L19
+goto L20
+L19:
+error("null pointer")
+L20:
+v21 = v_p_node
+v22 = v_c_node
+v23 = @Tree_RemoveRight
+v23 = call v23(__stat__ v18 v21 v22)
+v_ntb = v23
+goto L12
+L13:
+v24 = v_c_node
+if0 v24 goto L25
+goto L26
+L25:
+error("null pointer")
+L26:
+v27 = @Tree_GetKey
+v27 = call v27(__stat__ v24)
+v_auxkey1 = v27
+v28 = v_p_node
+if0 v28 goto L29
+goto L30
+L29:
+error("null pointer")
+L30:
+v31 = @Tree_GetLeft
+v31 = call v31(__stat__ v28)
+if0 v31 goto L32
+goto L33
+L32:
+error("null pointer")
+L33:
+v34 = @Tree_GetKey
+v34 = call v34(__stat__ v31)
+v_auxkey2 = v34
+v37 = this
+if0 v37 goto L38
+goto L39
+L38:
+error("null pointer")
+L39:
+v40 = v_auxkey1
+v41 = v_auxkey2
+v42 = @Tree_Compare
+v42 = call v42(__stat__ v37 v40 v41)
+if0 v42 goto L36
+v43 = v_p_node
+if0 v43 goto L44
+goto L45
+L44:
+error("null pointer")
+L45:
+v46 = [this + 20]
+v47 = @Tree_SetLeft
+v47 = call v47(__stat__ v43 v46)
+v_ntb = v47
+v48 = v_p_node
+if0 v48 goto L49
+goto L50
+L49:
+error("null pointer")
+L50:
+v51 = 0
+v52 = @Tree_SetHas_Left
+v52 = call v52(__stat__ v48 v51)
+v_ntb = v52
+goto L35
+L36:
+v53 = v_p_node
+if0 v53 goto L54
+goto L55
+L54:
+error("null pointer")
+L55:
+v56 = [this + 20]
+v57 = @Tree_SetRight
+v57 = call v57(__stat__ v53 v56)
+v_ntb = v57
+v58 = v_p_node
+if0 v58 goto L59
+goto L60
+L59:
+error("null pointer")
+L60:
+v61 = 0
+v62 = @Tree_SetHas_Right
+v62 = call v62(__stat__ v58 v61)
+v_ntb = v62
+L35:
+L12:
+L0:
+v63 = 1
+      return v63
+
+func Tree_RemoveRight(__stat__ this v_p_node v_c_node)
+v_ntb = 0
+L0:
+v2 = v_c_node
+if0 v2 goto L3
+goto L4
+L3:
+error("null pointer")
+L4:
+v5 = @Tree_GetHas_Right
+v5 = call v5(__stat__ v2)
+if0 v5 goto L1
+v6 = v_c_node
+if0 v6 goto L7
+goto L8
+L7:
+error("null pointer")
+L8:
+v9 = v_c_node
+if0 v9 goto L10
+goto L11
+L10:
+error("null pointer")
+L11:
+v12 = @Tree_GetRight
+v12 = call v12(__stat__ v9)
+if0 v12 goto L13
+goto L14
+L13:
+error("null pointer")
+L14:
+v15 = @Tree_GetKey
+v15 = call v15(__stat__ v12)
+v16 = @Tree_SetKey
+v16 = call v16(__stat__ v6 v15)
+v_ntb = v16
+v17 = v_c_node
+v_p_node = v17
+v18 = v_c_node
+if0 v18 goto L19
+goto L20
+L19:
+error("null pointer")
+L20:
+v21 = @Tree_GetRight
+v21 = call v21(__stat__ v18)
+v_c_node = v21
+goto L0
+L1:
+v22 = v_p_node
+if0 v22 goto L23
+goto L24
+L23:
+error("null pointer")
+L24:
+v25 = [this + 20]
+v26 = @Tree_SetRight
+v26 = call v26(__stat__ v22 v25)
+v_ntb = v26
+v27 = v_p_node
+if0 v27 goto L28
+goto L29
+L28:
+error("null pointer")
+L29:
+v30 = 0
+v31 = @Tree_SetHas_Right
+v31 = call v31(__stat__ v27 v30)
+v_ntb = v31
+v32 = 1
+      return v32
+
+func Tree_RemoveLeft(__stat__ this v_p_node v_c_node)
+v_ntb = 0
+L0:
+v2 = v_c_node
+if0 v2 goto L3
+goto L4
+L3:
+error("null pointer")
+L4:
+v5 = @Tree_GetHas_Left
+v5 = call v5(__stat__ v2)
+if0 v5 goto L1
+v6 = v_c_node
+if0 v6 goto L7
+goto L8
+L7:
+error("null pointer")
+L8:
+v9 = v_c_node
+if0 v9 goto L10
+goto L11
+L10:
+error("null pointer")
+L11:
+v12 = @Tree_GetLeft
+v12 = call v12(__stat__ v9)
+if0 v12 goto L13
+goto L14
+L13:
+error("null pointer")
+L14:
+v15 = @Tree_GetKey
+v15 = call v15(__stat__ v12)
+v16 = @Tree_SetKey
+v16 = call v16(__stat__ v6 v15)
+v_ntb = v16
+v17 = v_c_node
+v_p_node = v17
+v18 = v_c_node
+if0 v18 goto L19
+goto L20
+L19:
+error("null pointer")
+L20:
+v21 = @Tree_GetLeft
+v21 = call v21(__stat__ v18)
+v_c_node = v21
+goto L0
+L1:
+v22 = v_p_node
+if0 v22 goto L23
+goto L24
+L23:
+error("null pointer")
+L24:
+v25 = [this + 20]
+v26 = @Tree_SetLeft
+v26 = call v26(__stat__ v22 v25)
+v_ntb = v26
+v27 = v_p_node
+if0 v27 goto L28
+goto L29
+L28:
+error("null pointer")
+L29:
+v30 = 0
+v31 = @Tree_SetHas_Left
+v31 = call v31(__stat__ v27 v30)
+v_ntb = v31
+v32 = 1
+      return v32
+
+func Tree_Search(__stat__ this v_v_key)
+v_current_node = 0
+v_ifound = 0
+v_cont = 0
+v_key_aux = 0
+v0 = this
+v_current_node = v0
+v1 = 1
+v_cont = v1
+v2 = 0
+v_ifound = v2
+L3:
+v5 = v_cont
+if0 v5 goto L4
+v6 = v_current_node
+if0 v6 goto L7
+goto L8
+L7:
+error("null pointer")
+L8:
+v9 = @Tree_GetKey
+v9 = call v9(__stat__ v6)
+v_key_aux = v9
+v12 = v_v_key
+v13 = v_key_aux
+v12 = v12 < v13
+if0 v12 goto L11
+v16 = v_current_node
+if0 v16 goto L17
+goto L18
+L17:
+error("null pointer")
+L18:
+v19 = @Tree_GetHas_Left
+v19 = call v19(__stat__ v16)
+if0 v19 goto L15
+v20 = v_current_node
+if0 v20 goto L21
+goto L22
+L21:
+error("null pointer")
+L22:
+v23 = @Tree_GetLeft
+v23 = call v23(__stat__ v20)
+v_current_node = v23
+goto L14
+L15:
+v24 = 0
+v_cont = v24
+L14:
+goto L10
+L11:
+v27 = v_key_aux
+v28 = v_v_key
+v27 = v27 < v28
+if0 v27 goto L26
+v31 = v_current_node
+if0 v31 goto L32
+goto L33
+L32:
+error("null pointer")
+L33:
+v34 = @Tree_GetHas_Right
+v34 = call v34(__stat__ v31)
+if0 v34 goto L30
+v35 = v_current_node
+if0 v35 goto L36
+goto L37
+L36:
+error("null pointer")
+L37:
+v38 = @Tree_GetRight
+v38 = call v38(__stat__ v35)
+v_current_node = v38
+goto L29
+L30:
+v39 = 0
+v_cont = v39
+L29:
+goto L25
+L26:
+v40 = 1
+v_ifound = v40
+v41 = 0
+v_cont = v41
+L25:
+L10:
+goto L3
+L4:
+v42 = v_ifound
+      return v42
+
+func Tree_Print(__stat__ this)
+v_ntb = 0
+v_current_node = 0
+v0 = this
+v_current_node = v0
+v1 = this
+if0 v1 goto L2
+goto L3
+L2:
+error("null pointer")
+L3:
+v4 = v_current_node
+v5 = @Tree_RecPrint
+v5 = call v5(__stat__ v1 v4)
+v_ntb = v5
+v6 = 1
+      return v6
+
+func Tree_RecPrint(__stat__ this v_node)
+v_ntb = 0
+v2 = v_node
+if0 v2 goto L3
+goto L4
+L3:
+error("null pointer")
+L4:
+v5 = @Tree_GetHas_Left
+v5 = call v5(__stat__ v2)
+if0 v5 goto L1
+v6 = this
+if0 v6 goto L7
+goto L8
+L7:
+error("null pointer")
+L8:
+v9 = v_node
+if0 v9 goto L10
+goto L11
+L10:
+error("null pointer")
+L11:
+v12 = @Tree_GetLeft
+v12 = call v12(__stat__ v9)
+v13 = @Tree_RecPrint
+v13 = call v13(__stat__ v6 v12)
+v_ntb = v13
+goto L0
+L1:
+v14 = 1
+v_ntb = v14
+L0:
+v15 = v_node
+if0 v15 goto L16
+goto L17
+L16:
+error("null pointer")
+L17:
+v18 = @Tree_GetKey
+v18 = call v18(__stat__ v15)
+print(v18)
+v21 = v_node
+if0 v21 goto L22
+goto L23
+L22:
+error("null pointer")
+L23:
+v24 = @Tree_GetHas_Right
+v24 = call v24(__stat__ v21)
+if0 v24 goto L20
+v25 = this
+if0 v25 goto L26
+goto L27
+L26:
+error("null pointer")
+L27:
+v28 = v_node
+if0 v28 goto L29
+goto L30
+L29:
+error("null pointer")
+L30:
+v31 = @Tree_GetRight
+v31 = call v31(__stat__ v28)
+v32 = @Tree_RecPrint
+v32 = call v32(__stat__ v25 v31)
+v_ntb = v32
+goto L19
+L20:
+v33 = 1
+v_ntb = v33
+L19:
+v34 = 1
+      return v34
+
+func Tree_accept(__stat__ this v_v)
+v_nti = 0
+v0 = 333
+print(v0)
+v1 = v_v
+if0 v1 goto L2
+goto L3
+L2:
+error("null pointer")
+L3:
+v4 = this
+v5 = [v1 + 0]
+v5 = [v5 + 0]
+v5 = call v5(__stat__ v1 v4)
+v_nti = v5
+v6 = 0
+      return v6
+
+func TV_Start(__stat__ this)
+v_root = 0
+v_ntb = 0
+v_nti = 0
+v_v = 0
+v1 = 24
+v0 = alloc(v1)
+v_root = v0
+v2 = v_root
+if0 v2 goto L3
+goto L4
+L3:
+error("null pointer")
+L4:
+v5 = 16
+v6 = @Tree_Init
+v6 = call v6(__stat__ v2 v5)
+v_ntb = v6
+v7 = v_root
+if0 v7 goto L8
+goto L9
+L8:
+error("null pointer")
+L9:
+v10 = @Tree_Print
+v10 = call v10(__stat__ v7)
+v_ntb = v10
+v11 = 100000000
+print(v11)
+v12 = v_root
+if0 v12 goto L13
+goto L14
+L13:
+error("null pointer")
+L14:
+v15 = 8
+v16 = @Tree_Insert
+v16 = call v16(__stat__ v12 v15)
+v_ntb = v16
+v17 = v_root
+if0 v17 goto L18
+goto L19
+L18:
+error("null pointer")
+L19:
+v20 = 24
+v21 = @Tree_Insert
+v21 = call v21(__stat__ v17 v20)
+v_ntb = v21
+v22 = v_root
+if0 v22 goto L23
+goto L24
+L23:
+error("null pointer")
+L24:
+v25 = 4
+v26 = @Tree_Insert
+v26 = call v26(__stat__ v22 v25)
+v_ntb = v26
+v27 = v_root
+if0 v27 goto L28
+goto L29
+L28:
+error("null pointer")
+L29:
+v30 = 12
+v31 = @Tree_Insert
+v31 = call v31(__stat__ v27 v30)
+v_ntb = v31
+v32 = v_root
+if0 v32 goto L33
+goto L34
+L33:
+error("null pointer")
+L34:
+v35 = 20
+v36 = @Tree_Insert
+v36 = call v36(__stat__ v32 v35)
+v_ntb = v36
+v37 = v_root
+if0 v37 goto L38
+goto L39
+L38:
+error("null pointer")
+L39:
+v40 = 28
+v41 = @Tree_Insert
+v41 = call v41(__stat__ v37 v40)
+v_ntb = v41
+v42 = v_root
+if0 v42 goto L43
+goto L44
+L43:
+error("null pointer")
+L44:
+v45 = 14
+v46 = @Tree_Insert
+v46 = call v46(__stat__ v42 v45)
+v_ntb = v46
+v47 = v_root
+if0 v47 goto L48
+goto L49
+L48:
+error("null pointer")
+L49:
+v50 = @Tree_Print
+v50 = call v50(__stat__ v47)
+v_ntb = v50
+v51 = 100000000
+print(v51)
+v53 = 32
+v52 = alloc(v53)
+v53 = 4
+v53 = __stat__ + v53
+[v52 + 0] = v53
+v_v = v52
+v54 = 50000000
+print(v54)
+v55 = v_root
+if0 v55 goto L56
+goto L57
+L56:
+error("null pointer")
+L57:
+v58 = v_v
+v59 = @Tree_accept
+v59 = call v59(__stat__ v55 v58)
+v_nti = v59
+v60 = 100000000
+print(v60)
+v61 = v_root
+if0 v61 goto L62
+goto L63
+L62:
+error("null pointer")
+L63:
+v64 = 24
+v65 = @Tree_Search
+v65 = call v65(__stat__ v61 v64)
+print(v65)
+v66 = v_root
+if0 v66 goto L67
+goto L68
+L67:
+error("null pointer")
+L68:
+v69 = 12
+v70 = @Tree_Search
+v70 = call v70(__stat__ v66 v69)
+print(v70)
+v71 = v_root
+if0 v71 goto L72
+goto L73
+L72:
+error("null pointer")
+L73:
+v74 = 16
+v75 = @Tree_Search
+v75 = call v75(__stat__ v71 v74)
+print(v75)
+v76 = v_root
+if0 v76 goto L77
+goto L78
+L77:
+error("null pointer")
+L78:
+v79 = 50
+v80 = @Tree_Search
+v80 = call v80(__stat__ v76 v79)
+print(v80)
+v81 = v_root
+if0 v81 goto L82
+goto L83
+L82:
+error("null pointer")
+L83:
+v84 = 12
+v85 = @Tree_Search
+v85 = call v85(__stat__ v81 v84)
+print(v85)
+v86 = v_root
+if0 v86 goto L87
+goto L88
+L87:
+error("null pointer")
+L88:
+v89 = 12
+v90 = @Tree_Delete
+v90 = call v90(__stat__ v86 v89)
+v_ntb = v90
+v91 = v_root
+if0 v91 goto L92
+goto L93
+L92:
+error("null pointer")
+L93:
+v94 = @Tree_Print
+v94 = call v94(__stat__ v91)
+v_ntb = v94
+v95 = v_root
+if0 v95 goto L96
+goto L97
+L96:
+error("null pointer")
+L97:
+v98 = 12
+v99 = @Tree_Search
+v99 = call v99(__stat__ v95 v98)
+print(v99)
+v100 = 0
+      return v100
+
+
