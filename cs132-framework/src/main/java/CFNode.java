@@ -26,22 +26,12 @@ public class CFNode {
     final List<Var> def;
     final List<Var> use;
 
-    final List<Var> in;
-    final List<Var> out;
-
-    CFNode(Instruction ins, List<? extends CFNode> succ, List<Identifier> defIds, List<Identifier> useIds, List<CFNode> rest) {
+    CFNode(Instruction ins, List<? extends CFNode> succ, List<Identifier> defIds, List<Identifier> useIds,
+            List<CFNode> rest) {
         this.ins = ins;
         this.succ = succ;
         def = defIds.map(id -> new Var(id, this)).unique(Var::nameEquals);
         use = useIds.map(id -> new Var(id, this)).unique(Var::nameEquals);
-
-        out = new List<>(() -> );
-        in = use.join(out.filter(v -> !def.exists(v::nameEquals))).unique(Var::nameEquals);
-    }
-
-    static final Optional<Pair<Var>> f(List<? extends CFNode> succ) {
-        succ.head()
-            .map(n -> n.in.head().or())
     }
 
     @Override
@@ -66,5 +56,24 @@ class LabelNode extends CFNode {
 
     boolean equalsLabel(Label l) {
         return label.toString().equals(l.toString());
+    }
+}
+
+class NodeInOut {
+    final CFNode node;
+    final List<Var> in;
+    final List<Var> out;
+
+    NodeInOut(CFNode node, List<Var> in, List<Var> out) {
+        this.node = node;
+        this.in = in;
+        this.out = out;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s%s\n%s\n", node,
+                in.fold("In: ", (acc, s) -> acc + s.id + ", "),
+                out.fold("Out: ", (acc, s) -> acc + s.id + ", "));
     }
 }
