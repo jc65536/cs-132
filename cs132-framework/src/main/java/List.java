@@ -1,6 +1,11 @@
 import java.util.*;
 import java.util.function.*;
 
+@FunctionalInterface
+interface F3<A, B, C, R> {
+    R apply(A a, B b, C c);
+}
+
 class T2<A, B> {
     final A a;
     final B b;
@@ -16,6 +21,15 @@ class T2<A, B> {
 
     static <A, B> T2<List<A>, List<B>> unwrap(Lazy<T2<List<A>, List<B>>> z) {
         return new T2<>(new List<>(z.bind(t -> t.a)), new List<>(z.bind(t -> t.b)));
+    }
+}
+
+class T3<A, B, C> extends T2<A, B> {
+    final C c;
+
+    T3(A a, B b, C c) {
+        super(a, b);
+        this.c = c;
     }
 }
 
@@ -81,6 +95,10 @@ public class List<T> extends Lazy<Optional<Pair<T>>> implements ListInt<T> {
 
     boolean exists(Predicate<? super T> p) {
         return find(p).isPresent();
+    }
+
+    boolean forAll(Predicate<? super T> p) {
+        return !exists(p.negate());
     }
 
     static <T> List<T> nul() {
@@ -169,6 +187,12 @@ public class List<T> extends Lazy<Optional<Pair<T>>> implements ListInt<T> {
         return get().map(n -> n.val);
     }
 
+    Optional<T> max(BiFunction<T, T, Integer> cmp) {
+        return fold(Optional.empty(), (acc, val) -> acc
+                .filter(m -> cmp.apply(m, val) > 0)
+                .or(() -> Optional.of(val)));
+    }
+
     @Override
     public List<T> unique(List<T> hist, BiPredicate<T, T> eq) {
         return new List<>(bind(opt -> opt.map(n -> n.unique(hist, eq)).orElse(List.nul())));
@@ -176,6 +200,61 @@ public class List<T> extends Lazy<Optional<Pair<T>>> implements ListInt<T> {
 
     List<T> unique(BiPredicate<T, T> eq) {
         return unique(List.nul(), eq);
+    }
+
+    T2<List<T>, List<T>> partition(Predicate<? super T> p) {
+        return fold(new T2<>(List.nul(), List.nul()),
+                (acc, v) -> p.test(v)
+                        ? new T2<>(acc.a.cons(v), acc.b)
+                        : new T2<>(acc.a, acc.b.cons(v)));
+    }
+
+    private static <U, V> T3<List<T2<U, V>>, List<U>, List<V>> zip(T3<List<T2<U, V>>, List<U>, List<V>> acc, List<U> l1,
+            List<V> l2) {
+        return l1.get()
+                .map(n1 -> l2.get()
+                        .map(n2 -> zip(new T3<>(acc.a.cons(new T2<>(n1.val, n2.val)), acc.b, acc.c), n1.next, n2.next))
+                        .orElseGet(() -> new T3<>(acc.a, l1, acc.c)))
+                .orElseGet(() -> l2.get().map(u -> new T3<>(acc.a, acc.b, l2))
+                        .orElse(acc));
+    }
+
+    static <U, V> T3<List<T2<U, V>>, List<U>, List<V>> zip(List<U> l1, List<V> l2) {
+        return zip(new T3<>(List.nul(), List.nul(), List.nul()), l1, l2);
+    }
+
+    String strJoin(String delim) {
+        return get().map(n -> n.next.fold(n.val.toString(),
+                (acc, v) -> acc + delim + v))
+                .orElse("");
+    }
+
+    private T2<List<T>, List<T>> split(T2<List<T>, List<T>> acc, boolean flag) {
+        return get().map(n -> n.next.split(flag
+                ? new T2<>(acc.a.cons(n.val), acc.b)
+                : new T2<>(acc.a, acc.b.cons(n.val)),
+                !flag)).orElse(acc);
+    }
+
+    private List<T> merge(List<T> l1, List<T> l2, BiFunction<T, T, Integer> cmp) {
+        return l1.get()
+                .map(n1 -> l2.get()
+                        .map(n2 -> cmp.apply(n1.val, n2.val) < 0
+                                ? merge(n1.next, l2, cmp).cons(n1.val)
+                                : merge(l1, n2.next, cmp).cons(n2.val))
+                        .orElseGet(() -> l1))
+                .orElseGet(() -> l2.get()
+                        .map(u -> l2)
+                        .orElse(List.nul()));
+    }
+
+    List<T> sort(BiFunction<T, T, Integer> cmp) {
+        if (count() <= 1) {
+            return this;
+        } else {
+            final var frags = this.split(new T2<>(List.nul(), List.nul()), true);
+            return merge(frags.a.sort(cmp), frags.b.sort(cmp), cmp);
+        }
     }
 }
 
