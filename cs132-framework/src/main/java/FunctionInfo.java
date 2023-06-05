@@ -49,8 +49,8 @@ public class FunctionInfo {
                         .map(TransVisitor::saveReg)::join
                 : x -> x;
 
-        final Function<List<Instruction>, List<Instruction>> transBody = body
-                .fold(Function.identity(), (acc, nio) -> acc
+        final var transBody = body
+                .fold(TransVisitor.ident, (acc, nio) -> acc
                         .andThen(tr -> S2SV.DEBUG >= 1 ? tr.cons(Util.comment(nio.node.ins)) : tr)
                         .andThen(nio.node.translate(this)));
 
@@ -61,8 +61,8 @@ public class FunctionInfo {
                 : x -> x;
 
         final var ins = calleeSave.andThen(transBody)
-                .andThen(tr -> usedRegs.find(v -> Util.nameEq(v.a, retId))
-                        .map(t -> tr.cons(new Move_Id_Reg(retId, t.b)))
+                .andThen(tr -> regLookup(retId)
+                        .map(r -> tr.cons(new Move_Id_Reg(retId, r)))
                         .orElse(tr))
                 .andThen(calleeRestore)
                 .apply(List.nul())
@@ -87,7 +87,7 @@ public class FunctionInfo {
         return dead.exists(v -> Util.nameEq(v, id));
     }
 
-    Optional<T2<Identifier, Register>> regLookup(Identifier id) {
-        return usedRegs.find(t -> Util.nameEq(t.a, id));
+    Optional<Register> regLookup(Identifier id) {
+        return usedRegs.find(t -> Util.nameEq(t.a, id)).map(t -> t.b);
     }
 }

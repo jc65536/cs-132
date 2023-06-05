@@ -27,9 +27,9 @@ class RegAlloc {
     final List<LiveRange> active;
     final List<Register> freeRegs;
 
-    static final Register tmp = new Register("t0");
-
-    RegAlloc(List<T2<Identifier, Register>> reg, List<Identifier> mem, List<LiveRange> active,
+    RegAlloc(List<T2<Identifier, Register>> reg,
+            List<Identifier> mem,
+            List<LiveRange> active,
             List<Register> freeRegs) {
         this.regs = reg;
         this.mems = mem;
