@@ -7,9 +7,11 @@ case $1 in
     v)
         args="sv"
         ;;
-
     vvb)
         args="sv verbose"
+        ;;
+    vstat)
+        args="sv stats"
         ;;
     *)
         args="s"

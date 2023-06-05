@@ -1,4 +1,4 @@
-import java.util.function.Function;
+import java.util.function.*;
 
 import cs132.IR.sparrow.*;
 import cs132.IR.sparrowv.Instruction;
@@ -7,8 +7,7 @@ import cs132.IR.sparrowv.Move_Reg_FuncName;
 import cs132.IR.sparrowv.Move_Reg_Id;
 import cs132.IR.sparrowv.Move_Reg_Integer;
 import cs132.IR.sparrowv.Move_Reg_Reg;
-import cs132.IR.token.Identifier;
-import cs132.IR.token.Register;
+import cs132.IR.token.*;
 
 public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruction>, List<Instruction>>> {
     @Override
@@ -22,8 +21,7 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
             return x -> x;
 
         return arg1.regLookup(arg0.lhs)
-                .<Function<List<Instruction>, List<Instruction>>>map(t -> tl -> tl
-                        .cons(new Move_Reg_Integer(t.b, arg0.rhs)))
+                .map(t -> ident.andThen(tl -> tl.cons(new Move_Reg_Integer(t.b, arg0.rhs))))
                 .orElse(tl -> tl
                         .cons(new Move_Reg_Integer(Regs.t0, arg0.rhs))
                         .cons(new Move_Id_Reg(arg0.lhs, Regs.t0)));
@@ -35,8 +33,7 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
             return x -> x;
 
         return arg1.regLookup(arg0.lhs)
-                .<Function<List<Instruction>, List<Instruction>>>map(t -> tl -> tl
-                        .cons(new Move_Reg_FuncName(t.b, arg0.rhs)))
+                .map(t -> ident.andThen(tl -> tl.cons(new Move_Reg_FuncName(t.b, arg0.rhs))))
                 .orElse(tl -> tl
                         .cons(new Move_Reg_FuncName(Regs.t0, arg0.rhs))
                         .cons(new Move_Id_Reg(arg0.lhs, Regs.t0)));
@@ -77,10 +74,10 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
         final var lhsReg = lhs.map(t -> t.b).orElse(Regs.t0);
         final var baseReg = base.map(t -> t.b).orElse(Regs.t1);
 
-        return base.<Function<List<Instruction>, List<Instruction>>>map(u -> x -> x)
+        return base.map(u -> ident)
                 .orElse(tr -> tr.cons(new Move_Reg_Id(baseReg, arg0.base)))
                 .andThen(tr -> tr.cons(new cs132.IR.sparrowv.Load(lhsReg, baseReg, arg0.offset)))
-                .andThen(lhs.<Function<List<Instruction>, List<Instruction>>>map(u -> x -> x)
+                .andThen(lhs.map(u -> ident)
                         .orElse(tr -> tr.cons(new Move_Id_Reg(arg0.lhs, lhsReg))));
     }
 
@@ -92,9 +89,9 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
         final var rhsReg = rhs.map(t -> t.b).orElse(Regs.t0);
         final var baseReg = base.map(t -> t.b).orElse(Regs.t1);
 
-        return base.<Function<List<Instruction>, List<Instruction>>>map(u -> x -> x)
+        return base.map(u -> ident)
                 .orElse(tr -> tr.cons(new Move_Reg_Id(Regs.t1, arg0.base)))
-                .andThen(rhs.<Function<List<Instruction>, List<Instruction>>>map(u -> x -> x)
+                .andThen(rhs.map(u -> ident)
                         .orElse(tr -> tr.cons(new Move_Reg_Id(Regs.t0, arg0.rhs))))
                 .andThen(tr -> tr.cons(new cs132.IR.sparrowv.Store(baseReg, arg0.offset, rhsReg)));
     }
@@ -110,10 +107,10 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
         final var lhsReg = lhs.map(t -> t.b).orElse(Regs.t0);
         final var rhsReg = rhs.map(t -> t.b).orElse(Regs.t0);
 
-        return rhs.<Function<List<Instruction>, List<Instruction>>>map(u -> x -> x)
+        return rhs.map(u -> ident)
                 .orElse(tr -> tr.cons(new Move_Reg_Id(rhsReg, arg0.rhs)))
                 .andThen(tr -> tr.cons(new Move_Reg_Reg(lhsReg, rhsReg)))
-                .andThen(lhs.<Function<List<Instruction>, List<Instruction>>>map(u -> x -> x)
+                .andThen(lhs.map(u -> ident)
                         .orElse(tr -> tr.cons(new Move_Id_Reg(arg0.lhs, lhsReg))));
     }
 
@@ -128,18 +125,17 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
         final var lhsReg = lhs.map(t -> t.b).orElse(Regs.t0);
         final var sizeReg = size.map(t -> t.b).orElse(Regs.t0);
 
-        return size.<Function<List<Instruction>, List<Instruction>>>map(u -> x -> x)
+        return size.map(u -> ident)
                 .orElse(tr -> tr.cons(new Move_Reg_Id(sizeReg, arg0.size)))
                 .andThen(tr -> tr.cons(new cs132.IR.sparrowv.Alloc(lhsReg, sizeReg)))
-                .andThen(lhs.<Function<List<Instruction>, List<Instruction>>>map(u -> x -> x)
+                .andThen(lhs.map(u -> ident)
                         .orElse(tr -> tr.cons(new Move_Id_Reg(arg0.lhs, lhsReg))));
     }
 
     @Override
     public Function<List<Instruction>, List<Instruction>> visit(Print arg0, FunctionInfo arg1) {
         return arg1.regLookup(arg0.content)
-                .<Function<List<Instruction>, List<Instruction>>>map(t -> tl -> tl
-                        .cons(new cs132.IR.sparrowv.Print(t.b)))
+                .map(t -> ident.andThen(tl -> tl.cons(new cs132.IR.sparrowv.Print(t.b))))
                 .orElse(tl -> tl
                         .cons(new Move_Reg_Id(Regs.t0, arg0.content))
                         .cons(new cs132.IR.sparrowv.Print(Regs.t0)));
@@ -158,8 +154,7 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
     @Override
     public Function<List<Instruction>, List<Instruction>> visit(IfGoto arg0, FunctionInfo arg1) {
         return arg1.regLookup(arg0.condition)
-                .<Function<List<Instruction>, List<Instruction>>>map(t -> tl -> tl
-                        .cons(new cs132.IR.sparrowv.IfGoto(t.b, arg0.label)))
+                .map(t -> ident.andThen(tl -> tl.cons(new cs132.IR.sparrowv.IfGoto(t.b, arg0.label))))
                 .orElse(tl -> tl
                         .cons(new Move_Reg_Id(Regs.t0, arg0.condition))
                         .cons(new cs132.IR.sparrowv.IfGoto(Regs.t0, arg0.label)));
@@ -175,38 +170,39 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
         final var callee = arg1.regLookup(arg0.callee);
         final var calleeReg = callee.map(t -> t.b).orElse(Regs.t0);
 
-        final Function<List<Instruction>, List<Instruction>> callerSave = zip.a
-                .map(t -> t.b)
+        final var regsToSave = zip.a.map(t -> t.b)
+            .filter(r -> arg1.allRegs.exists(t -> t.b == r));
+
+        final var callerSave = zip.a.map(t -> t.b)
                 .unique(Util::nameEq)
-                .map(TransVisitor::saveReg)::join;
+                .map(TransVisitor::saveReg);
 
-        final Function<List<Instruction>, List<Instruction>> setRegArgs = zip.a
-                                // overwritten          ins
-                .fold(new T2<>(List.<Register>nul(), List.<Instruction>nul()),
-                        (acc, t) -> arg1.regLookup(t.a)
-                                .map(t2 -> acc.a.find(r -> r == t2.b)
-                                        .map(u -> new T2<>(acc.a.cons(t.b), acc.b.cons(new Move_Reg_Id(t.b, saveId(t2.b)))))
-                                        .orElseGet(() -> new T2<>(acc.a.cons(t.b), acc.b.cons(new Move_Reg_Reg(t.b, t2.b)))))
-                                .orElseGet(() -> new T2<>(acc.a.cons(t.b), acc.b.cons(new Move_Reg_Id(t.b, t.a)))))
-                                .b::join;
+        final var setMemArgs = zip.b.fold(List.<Instruction>nul(), (acc, id) -> arg1
+                .regLookup(id)
+                .map(t -> acc.cons(new Move_Id_Reg(id, t.b)))
+                .orElse(acc));
 
-        final var setMemArgs = zip.b.<Function<List<Instruction>, List<Instruction>>>fold(x -> x,
-                (acc, id) -> acc.andThen(arg1.regLookup(id)
-                        .<Function<List<Instruction>, List<Instruction>>>map(
-                                t -> tr -> tr.cons(new Move_Id_Reg(id, t.b)))
-                        .orElse(x -> x)));
+        final var setRegArgs = zip.a.fold(new T2<>(List.<Register>nul(), List.<Instruction>nul()),
+                (acc, t) -> {
+                    final var ins = arg1.regLookup(t.a).<Instruction>map(t2 -> acc.a.find(r -> r == t2.b)
+                            .<Instruction>map(u -> new Move_Reg_Id(t.b, saveId(t2.b)))
+                            .orElseGet(() -> new Move_Reg_Reg(t.b, t2.b)))
+                            .orElseGet(() -> new Move_Reg_Id(t.b, t.a));
+                    return new T2<>(acc.a.cons(t.b), acc.b.cons(ins));
+                }).b;
 
-        final Function<List<Instruction>, List<Instruction>> callerRestore = zip.a
-                .map(t -> t.b)
+        final var callerRestore = zip.a.map(t -> t.b)
                 .unique(Util::nameEq)
-                .map(TransVisitor::restoreReg)::join;
+                .map(TransVisitor::restoreReg);
 
-        return callerSave.andThen(setMemArgs)
-                .andThen(setRegArgs)
+        return ident
+                .andThen(callerSave::join)
+                .andThen(setMemArgs::join)
+                .andThen(setRegArgs::join)
                 .andThen(tr -> callee.map(u -> tr).orElseGet(() -> tr.cons(new Move_Reg_Id(calleeReg, arg0.callee))))
                 .andThen(tr -> tr.cons(new cs132.IR.sparrowv.Call(lhsReg, calleeReg, zip.b.toJavaList())))
                 .andThen(tr -> lhs.map(u -> tr).orElseGet(() -> tr.cons(new Move_Id_Reg(arg0.lhs, lhsReg))))
-                .andThen(callerRestore);
+                .andThen(callerRestore::join);
     }
 
     static Function<List<Instruction>, List<Instruction>> binop(Identifier lhsId, Identifier op1Id, Identifier op2Id,
@@ -222,12 +218,12 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
         final var op1Reg = op1.map(t -> t.b).orElse(Regs.t0);
         final var op2Reg = op2.map(t -> t.b).orElse(Regs.t1);
 
-        return op1.<Function<List<Instruction>, List<Instruction>>>map(u -> x -> x)
+        return op1.map(u -> ident)
                 .orElse(tr -> tr.cons(new Move_Reg_Id(Regs.t0, op1Id)))
-                .andThen(op2.<Function<List<Instruction>, List<Instruction>>>map(u -> x -> x)
+                .andThen(op2.map(u -> ident)
                         .orElse(tr -> tr.cons(new Move_Reg_Id(Regs.t1, op2Id))))
                 .andThen(tr -> tr.cons(mkIns.apply(lhsReg, op1Reg, op2Reg)))
-                .andThen(lhs.<Function<List<Instruction>, List<Instruction>>>map(u -> x -> x)
+                .andThen(lhs.map(u -> ident)
                         .orElse(tr -> tr.cons(new Move_Id_Reg(lhsId, Regs.t0))));
     }
 
@@ -242,4 +238,6 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
     static Instruction restoreReg(Register reg) {
         return new Move_Reg_Id(reg, saveId(reg));
     }
+
+    static final Function<List<Instruction>, List<Instruction>> ident = Function.identity();
 }

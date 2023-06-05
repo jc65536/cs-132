@@ -1,0 +1,6 @@
+#!/bin/bash
+
+file="testcases/hw4/custom/$1.sparrow"
+
+gradle run -q < $file > sparrowv
+./sparrow vstat < sparrowv

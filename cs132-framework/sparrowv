@@ -1,236 +1,171 @@
 func Main()
-__save__t3 = t3
-__save__t4 = t4
-__save__t5 = t5
-__save__t2 = t2
-__save__s11 = s11
-__save__s10 = s10
-__save__s9 = s9
-__save__s7 = s7
-__save__s6 = s6
-__save__s8 = s8
-________params = t0
-params:
-________t8__eq__4 = t0
 t5 = 4
-________t9__eq__alloc_t8_ = t0
 t4 = alloc(t5)
-________t10__eq__8 = t0
 t5 = 8
-________vmt_MT4__eq__alloc_t10_ = t0
 t3 = alloc(t5)
-________t11__eq___fn_MT4_Start = t0
-t5 = @MT4_Start
-_________l_vmt_MT4__p__0_r___eq__t11 = t0
+t5 = @A_ackermann
 [t3 + 0] = t5
-________t12__eq___fn_MT4_Change = t0
-t5 = @MT4_Change
-_________l_vmt_MT4__p__4_r___eq__t12 = t0
+t5 = @A_isZero
 [t3 + 4] = t5
-_________l_t9__p__0_r___eq__vmt_MT4 = t0
 [t4 + 0] = t3
-________t7__eq__t9 = t0
 t3 = t4
-________t14__eq__1 = t0
-t4 = 1
-________t15__eq__2 = t0
-t5 = 2
-________t16__eq__3 = t0
-t2 = 3
-________t17__eq__4 = t0
-s11 = 4
-________t18__eq__5 = t0
-s10 = 5
-________t19__eq__6 = t0
-s9 = 6
-________if0_t7_goto_null = t0
+t4 = 3
+t5 = 4
 if0 t3 goto null
-________t20__eq___l_t7__p__0_r_ = t0
-s8 = [t3 + 0]
-________t21__eq___l_t20__p__0_r_ = t0
-s7 = [s8 + 0]
-________a__eq__3 = t0
-s8 = 3
-________t6__eq__call_t21_t7_t14_t15_t16_t17_t18_t19_a_ = t0
+t2 = [t3 + 0]
+s11 = [t2 + 0]
 __save__a7 = a7
 __save__a6 = a6
 __save__a5 = a5
-__save__a4 = a4
-__save__a3 = a3
-__save__a2 = a2
-t19 = s9
-a = s8
-a2 = s10
-a3 = s11
-a4 = t2
 a5 = t5
 a6 = t4
 a7 = t3
-s6 = call s7(t19 a)
+t2 = call s11()
 a7 = __save__a7
 a6 = __save__a6
 a5 = __save__a5
-a4 = __save__a4
-a3 = __save__a3
-a2 = __save__a2
-________print_t6_ = t0
-print(s6)
-________goto_Main_end = t0
-goto Main_end
-________null = t0
+print(t2)
+goto main_end
 null:
-________error_"null_pointer"_ = t0
 error("null pointer")
-________Main_end = t0
-Main_end:
-________t25__eq__0 = t0
-s8 = 0
-________ret = t0
-ret:
-t25 = s8
-t3 = __save__t3
-t4 = __save__t4
-t5 = __save__t5
-t2 = __save__t2
-s11 = __save__s11
-s10 = __save__s10
-s9 = __save__s9
-s7 = __save__s7
-s6 = __save__s6
-s8 = __save__s8
-      return t25
+array_index_out_of_bounds:
+error("array index out of bounds")
+main_end:
+s11 = 0
+t19 = s11
+      return t19
 
-func MT4_Start(p6_ p7_)
+func A_ackermann()
+__save__t4 = t4
+__save__s11 = s11
+__save__t5 = t5
+__save__s10 = s10
+__save__t3 = t3
+__save__t2 = t2
+t5 = 0
+t4 = t5
+if0 a7 goto null
+t5 = [a7 + 0]
+t4 = [t5 + 4]
+__save__a7 = a7
+__save__a6 = a6
+a6 = a6
+a7 = a7
+t5 = call t4()
+a7 = __save__a7
+a6 = __save__a6
+if0 t5 goto l53
+t4 = 1
+t5 = a5 + t4
+t4 = t5
+goto l54
+l53:
+if0 a7 goto null
+t5 = [a7 + 0]
+t3 = [t5 + 4]
+__save__a7 = a7
+__save__a6 = a6
+a6 = a5
+a7 = a7
+t5 = call t3()
+a7 = __save__a7
+a6 = __save__a6
+if0 t5 goto l51
+t3 = 1
+t5 = a6 - t3
+t3 = 1
+if0 a7 goto null
+t2 = [a7 + 0]
+s11 = [t2 + 0]
+__save__a7 = a7
+__save__a6 = a6
+__save__a5 = a5
+a5 = t3
+a6 = t5
+a7 = a7
+t2 = call s11()
+a7 = __save__a7
+a6 = __save__a6
+a5 = __save__a5
+t4 = t2
+goto l52
+l51:
+t3 = 1
+t5 = a6 - t3
+t3 = 1
+t2 = a5 - t3
+if0 a7 goto null
+t3 = [a7 + 0]
+s10 = [t3 + 0]
+__save__a7 = a7
+__save__a6 = a6
+__save__a5 = a5
+a5 = t2
+a6 = a6
+a7 = a7
+t3 = call s10()
+a7 = __save__a7
+a6 = __save__a6
+a5 = __save__a5
+if0 a7 goto null
+s10 = [a7 + 0]
+t2 = [s10 + 0]
+__save__a7 = a7
+__save__a6 = a6
+__save__a5 = a5
+a5 = t3
+a6 = t5
+a7 = a7
+s11 = call t2()
+a7 = __save__a7
+a6 = __save__a6
+a5 = __save__a5
+t4 = s11
+l52:
+l54:
+goto A_ackermann_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_ackermann_end:
+t20 = t4
+t4 = __save__t4
+s11 = __save__s11
+t5 = __save__t5
+s10 = __save__s10
+t3 = __save__t3
+t2 = __save__t2
+      return t20
+
+func A_isZero()
+__save__t4 = t4
 __save__t5 = t5
 __save__t3 = t3
-__save__t4 = t4
 __save__t2 = t2
-________params = t0
-params:
-________aux___eq__0 = t0
+t5 = 1
+t4 = a6 < t5
+if0 t4 goto l60
 t5 = 0
-________t20__eq__aux_ = t0
-t4 = t5
-________print_p1__ = t0
-print(a6)
-________print_p2__ = t0
-print(a5)
-________print_p3__ = t0
-print(a4)
-________print_p4__ = t0
-print(a3)
-________print_p5__ = t0
-print(a2)
-________print_p6__ = t0
-t0 = p6_
-print(t0)
-________if0_self_goto_null = t0
-if0 a7 goto null
-________t30__eq___l_self__p__0_r_ = t0
-t5 = [a7 + 0]
-________t31__eq___l_t30__p__4_r_ = t0
-t4 = [t5 + 4]
-________t28__eq__call_t31_self_p6__p5__p4__p3__p2__p1__ = t0
-__save__a7 = a7
-__save__a6 = a6
-__save__a5 = a5
-__save__a4 = a4
-__save__a3 = a3
-__save__a2 = a2
-p1_ = a6
-a2 = a5
-a3 = a4
-a4 = __save__a3
-a5 = __save__a2
-a6 = p6_
-a7 = a7
-t5 = call t4(p1_)
-a7 = __save__a7
-a6 = __save__a6
-a5 = __save__a5
-a4 = __save__a4
-a3 = __save__a3
-a2 = __save__a2
-________y__eq__0 = t0
-t4 = 0
-________x__eq__y__lt__p7_ = t0
-t1 = p7_
-t3 = t4 < t1
-________if0_x_goto_MT4_Start_end = t0
-if0 t3 goto MT4_Start_end
-________t20__eq___l_self__p__0_r_ = t0
-t4 = [a7 + 0]
-________t21__eq___l_t20__p__0_r_ = t0
-t3 = [t4 + 0]
-________a__eq__1 = t0
-t4 = 1
-________z__eq__p7___m__a = t0
-t0 = p7_
-t2 = t0 - t4
-________t28__eq__call_t21_self_p6__p5__p4__p3__p2__p1__z_ = t0
-__save__a7 = a7
-__save__a6 = a6
-__save__a5 = a5
-__save__a4 = a4
-__save__a3 = a3
-__save__a2 = a2
-p1_ = a6
-z = t2
-a2 = a5
-a3 = a4
-a4 = __save__a3
-a5 = __save__a2
-a6 = p6_
-a7 = a7
-t5 = call t3(p1_ z)
-a7 = __save__a7
-a6 = __save__a6
-a5 = __save__a5
-a4 = __save__a4
-a3 = __save__a3
-a2 = __save__a2
-________print_t28_ = t0
-print(t5)
-________goto_MT4_Start_end = t0
-goto MT4_Start_end
-________null = t0
+t3 = 1
+t2 = t5 - t3
+t3 = t2 < a6
+t2 = t3
+goto l67
+l60:
+t2 = t4
+l67:
+goto A_isZero_end
 null:
-________error_"null_pointer"_ = t0
 error("null pointer")
-________MT4_Start_end = t0
-MT4_Start_end:
-________ret = t0
-ret:
-t28 = t5
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_isZero_end:
+t56 = t2
+t4 = __save__t4
 t5 = __save__t5
 t3 = __save__t3
-t4 = __save__t4
 t2 = __save__t2
-      return t28
-
-func MT4_Change(p6_)
-__save__t5 = t5
-________params = t0
-params:
-________print_p1__ = t0
-print(a6)
-________print_p2__ = t0
-print(a5)
-________print_p3__ = t0
-print(a4)
-________print_p4__ = t0
-print(a3)
-________print_p5__ = t0
-print(a2)
-________print_p6__ = t0
-t0 = p6_
-print(t0)
-________t41__eq__0 = t0
-t5 = 0
-________ret = t0
-ret:
-t41 = t5
-t5 = __save__t5
-      return t41
+      return t56
 
 

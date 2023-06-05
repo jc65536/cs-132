@@ -73,7 +73,9 @@ public class S2SV {
         final var prgm = ctor.getProgram();
         final var fns = List.fromJavaList(prgm.funDecls);
 
-        final var functionInfos = new Lazy<List<FunctionInfo>>(z -> fns.map(fn -> {
+        final var mainFnDecl = fns.head().get();
+
+        final var functionInfos = fns.map(fn -> {
             final var cfGraph_ = new Lazy<T2<List<CFNode>, List<LabelNode>>>(
                     zz -> fn.accept(new CFGraphVisitor(), T2.unwrap(zz))).get().a;
 
@@ -112,7 +114,9 @@ public class S2SV {
                 System.out.printf("Live ranges:\n%s", liveRanges.strJoin(""));
             }
 
-            final var alloc = linScanRegAlloc(liveRanges, new RegAlloc());
+            final var alloc = linScanRegAlloc(liveRanges, new RegAlloc(
+                fn == mainFnDecl ? Regs.all.join(Regs.argRegs) : Regs.all
+            ));
 
             final var check = alloc.regs.forAll(t -> {
                 final var range = liveRanges.find(r -> Util.nameEq(r.id, t.a)).get();
@@ -124,7 +128,7 @@ public class S2SV {
                     System.out.println("Live range conflict!!!");
                     System.out.println(range);
                     System.out.println(b.get());
-                    return false;
+                    System.exit(1);
                 }
 
                 return true;
@@ -135,16 +139,16 @@ public class S2SV {
             }
 
             return new FunctionInfo(fn.functionName, params, alloc, cfGraph,
-                    fn.block.return_id,
-                    new List<>(z.bind(x -> x)),
-                    deadVars);
-        })).get();
+                    fn.block.return_id, deadVars);
+        });
+
+        final var mainFn = functionInfos.head().get();
 
         final var prgmv = new Program(functionInfos.map(f -> {
             if (DEBUG >= 2) {
                 System.out.print(f);
             }
-            return f.translate();
+            return f.translate(f != mainFn);
         }).toJavaList());
 
         if (DEBUG >= 2) {

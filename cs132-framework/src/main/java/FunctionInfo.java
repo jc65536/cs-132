@@ -7,7 +7,6 @@ import cs132.IR.token.Identifier;
 import cs132.IR.token.Register;
 
 public class FunctionInfo {
-    final List<FunctionInfo> allFns;
     final FunctionName functionName;
 
     final List<T2<Identifier, Register>> regParams;
@@ -23,7 +22,6 @@ public class FunctionInfo {
 
     public FunctionInfo(FunctionName functionName, List<Identifier> params, RegAlloc alloc, List<CFNode> body,
             Identifier retId,
-            List<FunctionInfo> allFns,
             List<Identifier> dead) {
         this.functionName = functionName;
         this.regLocals = alloc.regs;
@@ -37,26 +35,27 @@ public class FunctionInfo {
 
         this.body = body;
         this.retId = retId;
-        this.allFns = allFns;
 
         this.dead = dead;
     }
 
-    FunctionDecl translate() {
-        final Function<List<Instruction>, List<Instruction>> calleeSave = regLocals
-                .map(t -> t.b)
-                .unique(Util::nameEq)
-                .map(TransVisitor::saveReg)::join;
+    FunctionDecl translate(boolean saveRegs) {
+        final Function<List<Instruction>, List<Instruction>> calleeSave = saveRegs
+                ? regLocals.map(t -> t.b)
+                        .unique(Util::nameEq)
+                        .map(TransVisitor::saveReg)::join
+                : x -> x;
 
         final Function<List<Instruction>, List<Instruction>> transBody = body
                 .fold(Function.identity(), (acc, node) -> acc
                         .andThen(tr -> S2SV.DEBUG >= 1 ? tr.cons(Util.comment(node.ins)) : tr)
                         .andThen(node.translate(this)));
 
-        final Function<List<Instruction>, List<Instruction>> calleeRestore = regLocals
-                .map(t -> t.b)
-                .unique(Util::nameEq)
-                .map(TransVisitor::restoreReg)::join;
+        final Function<List<Instruction>, List<Instruction>> calleeRestore = saveRegs
+                ? regLocals.map(t -> t.b)
+                        .unique(Util::nameEq)
+                        .map(TransVisitor::restoreReg)::join
+                : x -> x;
 
         final var ins = calleeSave.andThen(transBody)
                 .andThen(tr -> allRegs.find(v -> Util.nameEq(v.a, retId))
