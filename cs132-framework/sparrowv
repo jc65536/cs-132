@@ -1,169 +1,2601 @@
 func Main()
+________params = t0
+________t8__eq__4 = t0
 t5 = 4
+________t9__eq__alloc_t8_ = t0
 t4 = alloc(t5)
-t5 = 8
-t3 = alloc(t5)
-t5 = @A_ackermann
-[t3 + 0] = t5
-t5 = @A_isZero
-[t3 + 4] = t5
-[t4 + 0] = t3
-t3 = t4
-t4 = 3
+________t10__eq__4 = t0
 t5 = 4
+________vmt_BT__eq__alloc_t10_ = t0
+t3 = alloc(t5)
+________t11__eq___fn_BT_Start = t0
+t5 = @BT_Start
+_________l_vmt_BT__p__0_r___eq__t11 = t0
+[t3 + 0] = t5
+_________l_t9__p__0_r___eq__vmt_BT = t0
+[t4 + 0] = t3
+________t7__eq__t9 = t0
+t3 = t4
+________if0_t7_goto_null = t0
 if0 t3 goto null
-t2 = [t3 + 0]
-s11 = [t2 + 0]
-a5 = t5
-a6 = t4
+________t13__eq___l_t7__p__0_r_ = t0
+t4 = [t3 + 0]
+________t14__eq___l_t13__p__0_r_ = t0
+t5 = [t4 + 0]
+________t6__eq__call_t14_t7_ = t0
+________In__t14_t5__t7_t3 = t0
+________Free_saved__ = t0
 a7 = t3
-t2 = call s11()
-print(t2)
+t4 = call t5()
+________print_t6_ = t0
+print(t4)
+________t18__eq__0 = t0
+t5 = 0
+________goto_main_end = t0
 goto main_end
+________null = t0
 null:
+________error__null_pointer__ = t0
 error("null pointer")
+________array_index_out_of_bounds = t0
 array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
 error("array index out of bounds")
+________main_end = t0
 main_end:
-s11 = 0
-t19 = s11
-      return t19
+________ret = t0
+t18 = t5
+      return t18
 
-func A_ackermann()
+func BT_Start()
 __save__t4 = t4
-__save__s11 = s11
+__save__t3 = t3
 __save__t5 = t5
+__save__t2 = t2
+________params = t0
+________root___eq__0 = t0
+t5 = 0
+________t19__eq__root_ = t0
+t4 = t5
+________ntb___eq__0 = t0
+t5 = 0
+________t20__eq__ntb_ = t0
+________nti___eq__0 = t0
+t5 = 0
+________t21__eq__nti_ = t0
+________t24__eq__28 = t0
+t5 = 28
+________t25__eq__alloc_t24_ = t0
+t4 = alloc(t5)
+________t26__eq__80 = t0
+t5 = 80
+________vmt_Tree__eq__alloc_t26_ = t0
+t3 = alloc(t5)
+________t27__eq___fn_Tree_Init = t0
+t5 = @Tree_Init
+_________l_vmt_Tree__p__0_r___eq__t27 = t0
+[t3 + 0] = t5
+________t28__eq___fn_Tree_SetRight = t0
+t5 = @Tree_SetRight
+_________l_vmt_Tree__p__4_r___eq__t28 = t0
+[t3 + 4] = t5
+________t29__eq___fn_Tree_SetLeft = t0
+t5 = @Tree_SetLeft
+_________l_vmt_Tree__p__8_r___eq__t29 = t0
+[t3 + 8] = t5
+________t30__eq___fn_Tree_GetRight = t0
+t5 = @Tree_GetRight
+_________l_vmt_Tree__p__12_r___eq__t30 = t0
+[t3 + 12] = t5
+________t31__eq___fn_Tree_GetLeft = t0
+t5 = @Tree_GetLeft
+_________l_vmt_Tree__p__16_r___eq__t31 = t0
+[t3 + 16] = t5
+________t32__eq___fn_Tree_GetKey = t0
+t5 = @Tree_GetKey
+_________l_vmt_Tree__p__20_r___eq__t32 = t0
+[t3 + 20] = t5
+________t33__eq___fn_Tree_SetKey = t0
+t5 = @Tree_SetKey
+_________l_vmt_Tree__p__24_r___eq__t33 = t0
+[t3 + 24] = t5
+________t34__eq___fn_Tree_GetHas_Right = t0
+t5 = @Tree_GetHas_Right
+_________l_vmt_Tree__p__28_r___eq__t34 = t0
+[t3 + 28] = t5
+________t35__eq___fn_Tree_GetHas_Left = t0
+t5 = @Tree_GetHas_Left
+_________l_vmt_Tree__p__32_r___eq__t35 = t0
+[t3 + 32] = t5
+________t36__eq___fn_Tree_SetHas_Left = t0
+t5 = @Tree_SetHas_Left
+_________l_vmt_Tree__p__36_r___eq__t36 = t0
+[t3 + 36] = t5
+________t37__eq___fn_Tree_SetHas_Right = t0
+t5 = @Tree_SetHas_Right
+_________l_vmt_Tree__p__40_r___eq__t37 = t0
+[t3 + 40] = t5
+________t38__eq___fn_Tree_Compare = t0
+t5 = @Tree_Compare
+_________l_vmt_Tree__p__44_r___eq__t38 = t0
+[t3 + 44] = t5
+________t39__eq___fn_Tree_Insert = t0
+t5 = @Tree_Insert
+_________l_vmt_Tree__p__48_r___eq__t39 = t0
+[t3 + 48] = t5
+________t40__eq___fn_Tree_Delete = t0
+t5 = @Tree_Delete
+_________l_vmt_Tree__p__52_r___eq__t40 = t0
+[t3 + 52] = t5
+________t41__eq___fn_Tree_Remove = t0
+t5 = @Tree_Remove
+_________l_vmt_Tree__p__56_r___eq__t41 = t0
+[t3 + 56] = t5
+________t42__eq___fn_Tree_RemoveRight = t0
+t5 = @Tree_RemoveRight
+_________l_vmt_Tree__p__60_r___eq__t42 = t0
+[t3 + 60] = t5
+________t43__eq___fn_Tree_RemoveLeft = t0
+t5 = @Tree_RemoveLeft
+_________l_vmt_Tree__p__64_r___eq__t43 = t0
+[t3 + 64] = t5
+________t44__eq___fn_Tree_Search = t0
+t5 = @Tree_Search
+_________l_vmt_Tree__p__68_r___eq__t44 = t0
+[t3 + 68] = t5
+________t45__eq___fn_Tree_Print = t0
+t5 = @Tree_Print
+_________l_vmt_Tree__p__72_r___eq__t45 = t0
+[t3 + 72] = t5
+________t46__eq___fn_Tree_RecPrint = t0
+t5 = @Tree_RecPrint
+_________l_vmt_Tree__p__76_r___eq__t46 = t0
+[t3 + 76] = t5
+_________l_t25__p__0_r___eq__vmt_Tree = t0
+[t4 + 0] = t3
+________t23__eq__t25 = t0
+t3 = t4
+________t19__eq__t23 = t0
+t4 = t3
+________t50__eq__16 = t0
+t3 = 16
+________if0_t19_goto_null = t0
+if0 t4 goto null
+________t51__eq___l_t19__p__0_r_ = t0
+t5 = [t4 + 0]
+________t52__eq___l_t51__p__0_r_ = t0
+t2 = [t5 + 0]
+________t48__eq__call_t52_t19_t50_ = t0
+________In__t52_t2__t19_t4__t50_t3 = t0
+________Free_saved__ = t0
+__save__a7 = a7
+a6 = t3
+a7 = t4
+t5 = call t2()
+a7 = __save__a7
+________t20__eq__t48 = t0
+________if0_t19_goto_null = t0
+if0 t4 goto null
+________t57__eq___l_t19__p__0_r_ = t0
+t2 = [t4 + 0]
+________t58__eq___l_t57__p__72_r_ = t0
+t3 = [t2 + 72]
+________t55__eq__call_t58_t19_ = t0
+________In__t58_t3__t19_t4 = t0
+________Free_saved__t5 = t0
+t5 = a7
+a7 = t4
+t2 = call t3()
+a7 = t5
+________t20__eq__t55 = t0
+________t61__eq__100000000 = t0
+t3 = 100000000
+________print_t61_ = t0
+print(t3)
+________t66__eq__8 = t0
+t3 = 8
+________if0_t19_goto_null = t0
+if0 t4 goto null
+________t67__eq___l_t19__p__0_r_ = t0
+t2 = [t4 + 0]
+________t68__eq___l_t67__p__48_r_ = t0
+t5 = [t2 + 48]
+________t64__eq__call_t68_t19_t66_ = t0
+________In__t68_t5__t19_t4__t66_t3 = t0
+________Free_saved__ = t0
+__save__a7 = a7
+a6 = t3
+a7 = t4
+t2 = call t5()
+a7 = __save__a7
+________t20__eq__t64 = t0
+________if0_t19_goto_null = t0
+if0 t4 goto null
+________t73__eq___l_t19__p__0_r_ = t0
+t5 = [t4 + 0]
+________t74__eq___l_t73__p__72_r_ = t0
+t3 = [t5 + 72]
+________t71__eq__call_t74_t19_ = t0
+________In__t74_t3__t19_t4 = t0
+________Free_saved__t2 = t0
+t2 = a7
+a7 = t4
+t5 = call t3()
+a7 = t2
+________t20__eq__t71 = t0
+________t80__eq__24 = t0
+t3 = 24
+________if0_t19_goto_null = t0
+if0 t4 goto null
+________t81__eq___l_t19__p__0_r_ = t0
+t5 = [t4 + 0]
+________t82__eq___l_t81__p__48_r_ = t0
+t2 = [t5 + 48]
+________t78__eq__call_t82_t19_t80_ = t0
+________In__t82_t2__t19_t4__t80_t3 = t0
+________Free_saved__ = t0
+__save__a7 = a7
+a6 = t3
+a7 = t4
+t5 = call t2()
+a7 = __save__a7
+________t20__eq__t78 = t0
+________t87__eq__4 = t0
+t2 = 4
+________if0_t19_goto_null = t0
+if0 t4 goto null
+________t88__eq___l_t19__p__0_r_ = t0
+t3 = [t4 + 0]
+________t89__eq___l_t88__p__48_r_ = t0
+t5 = [t3 + 48]
+________t85__eq__call_t89_t19_t87_ = t0
+________In__t89_t5__t19_t4__t87_t2 = t0
+________Free_saved__ = t0
+__save__a7 = a7
+a6 = t2
+a7 = t4
+t3 = call t5()
+a7 = __save__a7
+________t20__eq__t85 = t0
+________t94__eq__12 = t0
+t5 = 12
+________if0_t19_goto_null = t0
+if0 t4 goto null
+________t95__eq___l_t19__p__0_r_ = t0
+t2 = [t4 + 0]
+________t96__eq___l_t95__p__48_r_ = t0
+t3 = [t2 + 48]
+________t92__eq__call_t96_t19_t94_ = t0
+________In__t96_t3__t19_t4__t94_t5 = t0
+________Free_saved__ = t0
+__save__a7 = a7
+a6 = t5
+a7 = t4
+t2 = call t3()
+a7 = __save__a7
+________t20__eq__t92 = t0
+________t101__eq__20 = t0
+t3 = 20
+________if0_t19_goto_null = t0
+if0 t4 goto null
+________t102__eq___l_t19__p__0_r_ = t0
+t5 = [t4 + 0]
+________t103__eq___l_t102__p__48_r_ = t0
+t2 = [t5 + 48]
+________t99__eq__call_t103_t19_t101_ = t0
+________In__t103_t2__t19_t4__t101_t3 = t0
+________Free_saved__ = t0
+__save__a7 = a7
+a6 = t3
+a7 = t4
+t5 = call t2()
+a7 = __save__a7
+________t20__eq__t99 = t0
+________t108__eq__28 = t0
+t2 = 28
+________if0_t19_goto_null = t0
+if0 t4 goto null
+________t109__eq___l_t19__p__0_r_ = t0
+t3 = [t4 + 0]
+________t110__eq___l_t109__p__48_r_ = t0
+t5 = [t3 + 48]
+________t106__eq__call_t110_t19_t108_ = t0
+________In__t110_t5__t19_t4__t108_t2 = t0
+________Free_saved__ = t0
+__save__a7 = a7
+a6 = t2
+a7 = t4
+t3 = call t5()
+a7 = __save__a7
+________t20__eq__t106 = t0
+________t115__eq__14 = t0
+t5 = 14
+________if0_t19_goto_null = t0
+if0 t4 goto null
+________t116__eq___l_t19__p__0_r_ = t0
+t2 = [t4 + 0]
+________t117__eq___l_t116__p__48_r_ = t0
+t3 = [t2 + 48]
+________t113__eq__call_t117_t19_t115_ = t0
+________In__t117_t3__t19_t4__t115_t5 = t0
+________Free_saved__ = t0
+__save__a7 = a7
+a6 = t5
+a7 = t4
+t2 = call t3()
+a7 = __save__a7
+________t20__eq__t113 = t0
+________if0_t19_goto_null = t0
+if0 t4 goto null
+________t122__eq___l_t19__p__0_r_ = t0
+t3 = [t4 + 0]
+________t123__eq___l_t122__p__72_r_ = t0
+t5 = [t3 + 72]
+________t120__eq__call_t123_t19_ = t0
+________In__t123_t5__t19_t4 = t0
+________Free_saved__t2 = t0
+t2 = a7
+a7 = t4
+t3 = call t5()
+a7 = t2
+________t20__eq__t120 = t0
+________t128__eq__24 = t0
+t5 = 24
+________if0_t19_goto_null = t0
+if0 t4 goto null
+________t129__eq___l_t19__p__0_r_ = t0
+t3 = [t4 + 0]
+________t130__eq___l_t129__p__68_r_ = t0
+t2 = [t3 + 68]
+________t126__eq__call_t130_t19_t128_ = t0
+________In__t130_t2__t19_t4__t128_t5 = t0
+________Free_saved__ = t0
+__save__a7 = a7
+a6 = t5
+a7 = t4
+t3 = call t2()
+a7 = __save__a7
+________print_t126_ = t0
+print(t3)
+________t135__eq__12 = t0
+t2 = 12
+________if0_t19_goto_null = t0
+if0 t4 goto null
+________t136__eq___l_t19__p__0_r_ = t0
+t5 = [t4 + 0]
+________t137__eq___l_t136__p__68_r_ = t0
+t3 = [t5 + 68]
+________t133__eq__call_t137_t19_t135_ = t0
+________In__t137_t3__t19_t4__t135_t2 = t0
+________Free_saved__ = t0
+__save__a7 = a7
+a6 = t2
+a7 = t4
+t5 = call t3()
+a7 = __save__a7
+________print_t133_ = t0
+print(t5)
+________t142__eq__16 = t0
+t3 = 16
+________if0_t19_goto_null = t0
+if0 t4 goto null
+________t143__eq___l_t19__p__0_r_ = t0
+t2 = [t4 + 0]
+________t144__eq___l_t143__p__68_r_ = t0
+t5 = [t2 + 68]
+________t140__eq__call_t144_t19_t142_ = t0
+________In__t144_t5__t19_t4__t142_t3 = t0
+________Free_saved__ = t0
+__save__a7 = a7
+a6 = t3
+a7 = t4
+t2 = call t5()
+a7 = __save__a7
+________print_t140_ = t0
+print(t2)
+________t149__eq__50 = t0
+t5 = 50
+________if0_t19_goto_null = t0
+if0 t4 goto null
+________t150__eq___l_t19__p__0_r_ = t0
+t3 = [t4 + 0]
+________t151__eq___l_t150__p__68_r_ = t0
+t2 = [t3 + 68]
+________t147__eq__call_t151_t19_t149_ = t0
+________In__t151_t2__t19_t4__t149_t5 = t0
+________Free_saved__ = t0
+__save__a7 = a7
+a6 = t5
+a7 = t4
+t3 = call t2()
+a7 = __save__a7
+________print_t147_ = t0
+print(t3)
+________t156__eq__12 = t0
+t2 = 12
+________if0_t19_goto_null = t0
+if0 t4 goto null
+________t157__eq___l_t19__p__0_r_ = t0
+t5 = [t4 + 0]
+________t158__eq___l_t157__p__68_r_ = t0
+t3 = [t5 + 68]
+________t154__eq__call_t158_t19_t156_ = t0
+________In__t158_t3__t19_t4__t156_t2 = t0
+________Free_saved__ = t0
+__save__a7 = a7
+a6 = t2
+a7 = t4
+t5 = call t3()
+a7 = __save__a7
+________print_t154_ = t0
+print(t5)
+________t164__eq__12 = t0
+t3 = 12
+________if0_t19_goto_null = t0
+if0 t4 goto null
+________t165__eq___l_t19__p__0_r_ = t0
+t2 = [t4 + 0]
+________t166__eq___l_t165__p__52_r_ = t0
+t5 = [t2 + 52]
+________t162__eq__call_t166_t19_t164_ = t0
+________In__t166_t5__t19_t4__t164_t3 = t0
+________Free_saved__ = t0
+__save__a7 = a7
+a6 = t3
+a7 = t4
+t2 = call t5()
+a7 = __save__a7
+________t20__eq__t162 = t0
+________if0_t19_goto_null = t0
+if0 t4 goto null
+________t171__eq___l_t19__p__0_r_ = t0
+t5 = [t4 + 0]
+________t172__eq___l_t171__p__72_r_ = t0
+t3 = [t5 + 72]
+________t169__eq__call_t172_t19_ = t0
+________In__t172_t3__t19_t4 = t0
+________Free_saved__t2 = t0
+t2 = a7
+a7 = t4
+t5 = call t3()
+a7 = t2
+________t20__eq__t169 = t0
+________t177__eq__12 = t0
+t3 = 12
+________if0_t19_goto_null = t0
+if0 t4 goto null
+________t178__eq___l_t19__p__0_r_ = t0
+t5 = [t4 + 0]
+________t179__eq___l_t178__p__68_r_ = t0
+t2 = [t5 + 68]
+________t175__eq__call_t179_t19_t177_ = t0
+________In__t179_t2__t19_t4__t177_t3 = t0
+________Free_saved__ = t0
+__save__a7 = a7
+a6 = t3
+a7 = t4
+t5 = call t2()
+a7 = __save__a7
+________print_t175_ = t0
+print(t5)
+________t182__eq__0 = t0
+t2 = 0
+________goto_BT_Start_end = t0
+goto BT_Start_end
+________null = t0
+null:
+________error__null_pointer__ = t0
+error("null pointer")
+________array_index_out_of_bounds = t0
+array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
+error("array index out of bounds")
+________BT_Start_end = t0
+BT_Start_end:
+________ret = t0
+t182 = t2
+t4 = __save__t4
+t3 = __save__t3
+t5 = __save__t5
+t2 = __save__t2
+      return t182
+
+func Tree_Init()
+__save__t5 = t5
+________params = t0
+________t184__eq___l_self__p__12_r_ = t0
+_________l_self__p__12_r___eq__v_key_ = t0
+[a7 + 12] = a6
+________t186__eq___l_self__p__16_r_ = t0
+________t187__eq__0 = t0
+t5 = 0
+_________l_self__p__16_r___eq__t187 = t0
+[a7 + 16] = t5
+________t189__eq___l_self__p__20_r_ = t0
+________t190__eq__0 = t0
+t5 = 0
+_________l_self__p__20_r___eq__t190 = t0
+[a7 + 20] = t5
+________t191__eq__1 = t0
+t5 = 1
+________goto_Tree_Init_end = t0
+goto Tree_Init_end
+________null = t0
+null:
+________error__null_pointer__ = t0
+error("null pointer")
+________array_index_out_of_bounds = t0
+array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
+error("array index out of bounds")
+________Tree_Init_end = t0
+Tree_Init_end:
+________ret = t0
+t191 = t5
+t5 = __save__t5
+      return t191
+
+func Tree_SetRight()
+__save__t5 = t5
+________params = t0
+________t193__eq___l_self__p__8_r_ = t0
+_________l_self__p__8_r___eq__rn_ = t0
+[a7 + 8] = a6
+________t194__eq__1 = t0
+t5 = 1
+________goto_Tree_SetRight_end = t0
+goto Tree_SetRight_end
+________null = t0
+null:
+________error__null_pointer__ = t0
+error("null pointer")
+________array_index_out_of_bounds = t0
+array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
+error("array index out of bounds")
+________Tree_SetRight_end = t0
+Tree_SetRight_end:
+________ret = t0
+t194 = t5
+t5 = __save__t5
+      return t194
+
+func Tree_SetLeft()
+__save__t5 = t5
+________params = t0
+________t196__eq___l_self__p__4_r_ = t0
+_________l_self__p__4_r___eq__ln_ = t0
+[a7 + 4] = a6
+________t197__eq__1 = t0
+t5 = 1
+________goto_Tree_SetLeft_end = t0
+goto Tree_SetLeft_end
+________null = t0
+null:
+________error__null_pointer__ = t0
+error("null pointer")
+________array_index_out_of_bounds = t0
+array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
+error("array index out of bounds")
+________Tree_SetLeft_end = t0
+Tree_SetLeft_end:
+________ret = t0
+t197 = t5
+t5 = __save__t5
+      return t197
+
+func Tree_GetRight()
+__save__t5 = t5
+________params = t0
+________t198__eq___l_self__p__8_r_ = t0
+t5 = [a7 + 8]
+________goto_Tree_GetRight_end = t0
+goto Tree_GetRight_end
+________null = t0
+null:
+________error__null_pointer__ = t0
+error("null pointer")
+________array_index_out_of_bounds = t0
+array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
+error("array index out of bounds")
+________Tree_GetRight_end = t0
+Tree_GetRight_end:
+________ret = t0
+t198 = t5
+t5 = __save__t5
+      return t198
+
+func Tree_GetLeft()
+__save__t5 = t5
+________params = t0
+________t199__eq___l_self__p__4_r_ = t0
+t5 = [a7 + 4]
+________goto_Tree_GetLeft_end = t0
+goto Tree_GetLeft_end
+________null = t0
+null:
+________error__null_pointer__ = t0
+error("null pointer")
+________array_index_out_of_bounds = t0
+array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
+error("array index out of bounds")
+________Tree_GetLeft_end = t0
+Tree_GetLeft_end:
+________ret = t0
+t199 = t5
+t5 = __save__t5
+      return t199
+
+func Tree_GetKey()
+__save__t5 = t5
+________params = t0
+________t200__eq___l_self__p__12_r_ = t0
+t5 = [a7 + 12]
+________goto_Tree_GetKey_end = t0
+goto Tree_GetKey_end
+________null = t0
+null:
+________error__null_pointer__ = t0
+error("null pointer")
+________array_index_out_of_bounds = t0
+array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
+error("array index out of bounds")
+________Tree_GetKey_end = t0
+Tree_GetKey_end:
+________ret = t0
+t200 = t5
+t5 = __save__t5
+      return t200
+
+func Tree_SetKey()
+__save__t5 = t5
+________params = t0
+________t202__eq___l_self__p__12_r_ = t0
+_________l_self__p__12_r___eq__v_key_ = t0
+[a7 + 12] = a6
+________t203__eq__1 = t0
+t5 = 1
+________goto_Tree_SetKey_end = t0
+goto Tree_SetKey_end
+________null = t0
+null:
+________error__null_pointer__ = t0
+error("null pointer")
+________array_index_out_of_bounds = t0
+array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
+error("array index out of bounds")
+________Tree_SetKey_end = t0
+Tree_SetKey_end:
+________ret = t0
+t203 = t5
+t5 = __save__t5
+      return t203
+
+func Tree_GetHas_Right()
+__save__t5 = t5
+________params = t0
+________t204__eq___l_self__p__20_r_ = t0
+t5 = [a7 + 20]
+________goto_Tree_GetHas_Right_end = t0
+goto Tree_GetHas_Right_end
+________null = t0
+null:
+________error__null_pointer__ = t0
+error("null pointer")
+________array_index_out_of_bounds = t0
+array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
+error("array index out of bounds")
+________Tree_GetHas_Right_end = t0
+Tree_GetHas_Right_end:
+________ret = t0
+t204 = t5
+t5 = __save__t5
+      return t204
+
+func Tree_GetHas_Left()
+__save__t5 = t5
+________params = t0
+________t205__eq___l_self__p__16_r_ = t0
+t5 = [a7 + 16]
+________goto_Tree_GetHas_Left_end = t0
+goto Tree_GetHas_Left_end
+________null = t0
+null:
+________error__null_pointer__ = t0
+error("null pointer")
+________array_index_out_of_bounds = t0
+array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
+error("array index out of bounds")
+________Tree_GetHas_Left_end = t0
+Tree_GetHas_Left_end:
+________ret = t0
+t205 = t5
+t5 = __save__t5
+      return t205
+
+func Tree_SetHas_Left()
+__save__t5 = t5
+________params = t0
+________t207__eq___l_self__p__16_r_ = t0
+_________l_self__p__16_r___eq__val_ = t0
+[a7 + 16] = a6
+________t208__eq__1 = t0
+t5 = 1
+________goto_Tree_SetHas_Left_end = t0
+goto Tree_SetHas_Left_end
+________null = t0
+null:
+________error__null_pointer__ = t0
+error("null pointer")
+________array_index_out_of_bounds = t0
+array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
+error("array index out of bounds")
+________Tree_SetHas_Left_end = t0
+Tree_SetHas_Left_end:
+________ret = t0
+t208 = t5
+t5 = __save__t5
+      return t208
+
+func Tree_SetHas_Right()
+__save__t5 = t5
+________params = t0
+________t210__eq___l_self__p__20_r_ = t0
+_________l_self__p__20_r___eq__val_ = t0
+[a7 + 20] = a6
+________t211__eq__1 = t0
+t5 = 1
+________goto_Tree_SetHas_Right_end = t0
+goto Tree_SetHas_Right_end
+________null = t0
+null:
+________error__null_pointer__ = t0
+error("null pointer")
+________array_index_out_of_bounds = t0
+array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
+error("array index out of bounds")
+________Tree_SetHas_Right_end = t0
+Tree_SetHas_Right_end:
+________ret = t0
+t211 = t5
+t5 = __save__t5
+      return t211
+
+func Tree_Compare()
+__save__t3 = t3
+__save__t4 = t4
+__save__t2 = t2
+__save__t5 = t5
+________params = t0
+________ntb___eq__0 = t0
+t5 = 0
+________t212__eq__ntb_ = t0
+t3 = t5
+________nti___eq__0 = t0
+t5 = 0
+________t213__eq__nti_ = t0
+t5 = t5
+________t215__eq__0 = t0
+t5 = 0
+________t212__eq__t215 = t0
+t3 = t5
+________t218__eq__1 = t0
+t5 = 1
+________t217__eq__num2___p__t218 = t0
+t4 = a5 + t5
+________t213__eq__t217 = t0
+t5 = t4
+________t220__eq__num1___lt__num2_ = t0
+t4 = a6 < a5
+________if0_t220_goto_l233 = t0
+if0 t4 goto l233
+________t223__eq__0 = t0
+t4 = 0
+________t212__eq__t223 = t0
+t3 = t4
+________goto_l234 = t0
+goto l234
+________l233 = t0
+l233:
+________t225__eq__num1___lt__t213 = t0
+t4 = a6 < t5
+________t227__eq__1 = t0
+t5 = 1
+________t224__eq__t227__m__t225 = t0
+t2 = t5 - t4
+________if0_t224_goto_l231 = t0
+if0 t2 goto l231
+________t228__eq__0 = t0
+t5 = 0
+________t212__eq__t228 = t0
+t3 = t5
+________goto_l232 = t0
+goto l232
+________l231 = t0
+l231:
+________t230__eq__1 = t0
+t5 = 1
+________t212__eq__t230 = t0
+t3 = t5
+________l232 = t0
+l232:
+________l234 = t0
+l234:
+________goto_Tree_Compare_end = t0
+goto Tree_Compare_end
+________null = t0
+null:
+________error__null_pointer__ = t0
+error("null pointer")
+________array_index_out_of_bounds = t0
+array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
+error("array index out of bounds")
+________Tree_Compare_end = t0
+Tree_Compare_end:
+________ret = t0
+t212 = t3
+t3 = __save__t3
+t4 = __save__t4
+t2 = __save__t2
+t5 = __save__t5
+      return t212
+
+func Tree_Insert()
+__save__t4 = t4
+__save__t5 = t5
+__save__t2 = t2
 __save__s10 = s10
 __save__t3 = t3
-__save__t2 = t2
+__save__s11 = s11
+________params = t0
+________new_node___eq__0 = t0
 t5 = 0
+________t236__eq__new_node_ = t0
 t4 = t5
-if0 a7 goto null
-t5 = [a7 + 0]
-t4 = [t5 + 4]
-__save__a5 = a5
+________ntb___eq__0 = t0
+t5 = 0
+________t237__eq__ntb_ = t0
+________cont___eq__0 = t0
+t5 = 0
+________t238__eq__cont_ = t0
+t2 = t5
+________key_aux___eq__0 = t0
+t5 = 0
+________t239__eq__key_aux_ = t0
+s11 = t5
+________current_node___eq__0 = t0
+t5 = 0
+________t240__eq__current_node_ = t0
+t5 = t5
+________t243__eq__28 = t0
+t5 = 28
+________t244__eq__alloc_t243_ = t0
+t4 = alloc(t5)
+________t245__eq__80 = t0
+t5 = 80
+________vmt_Tree__eq__alloc_t245_ = t0
+t3 = alloc(t5)
+________t246__eq___fn_Tree_Init = t0
+t5 = @Tree_Init
+_________l_vmt_Tree__p__0_r___eq__t246 = t0
+[t3 + 0] = t5
+________t247__eq___fn_Tree_SetRight = t0
+t5 = @Tree_SetRight
+_________l_vmt_Tree__p__4_r___eq__t247 = t0
+[t3 + 4] = t5
+________t248__eq___fn_Tree_SetLeft = t0
+t5 = @Tree_SetLeft
+_________l_vmt_Tree__p__8_r___eq__t248 = t0
+[t3 + 8] = t5
+________t249__eq___fn_Tree_GetRight = t0
+t5 = @Tree_GetRight
+_________l_vmt_Tree__p__12_r___eq__t249 = t0
+[t3 + 12] = t5
+________t250__eq___fn_Tree_GetLeft = t0
+t5 = @Tree_GetLeft
+_________l_vmt_Tree__p__16_r___eq__t250 = t0
+[t3 + 16] = t5
+________t251__eq___fn_Tree_GetKey = t0
+t5 = @Tree_GetKey
+_________l_vmt_Tree__p__20_r___eq__t251 = t0
+[t3 + 20] = t5
+________t252__eq___fn_Tree_SetKey = t0
+t5 = @Tree_SetKey
+_________l_vmt_Tree__p__24_r___eq__t252 = t0
+[t3 + 24] = t5
+________t253__eq___fn_Tree_GetHas_Right = t0
+t5 = @Tree_GetHas_Right
+_________l_vmt_Tree__p__28_r___eq__t253 = t0
+[t3 + 28] = t5
+________t254__eq___fn_Tree_GetHas_Left = t0
+t5 = @Tree_GetHas_Left
+_________l_vmt_Tree__p__32_r___eq__t254 = t0
+[t3 + 32] = t5
+________t255__eq___fn_Tree_SetHas_Left = t0
+t5 = @Tree_SetHas_Left
+_________l_vmt_Tree__p__36_r___eq__t255 = t0
+[t3 + 36] = t5
+________t256__eq___fn_Tree_SetHas_Right = t0
+t5 = @Tree_SetHas_Right
+_________l_vmt_Tree__p__40_r___eq__t256 = t0
+[t3 + 40] = t5
+________t257__eq___fn_Tree_Compare = t0
+t5 = @Tree_Compare
+_________l_vmt_Tree__p__44_r___eq__t257 = t0
+[t3 + 44] = t5
+________t258__eq___fn_Tree_Insert = t0
+t5 = @Tree_Insert
+_________l_vmt_Tree__p__48_r___eq__t258 = t0
+[t3 + 48] = t5
+________t259__eq___fn_Tree_Delete = t0
+t5 = @Tree_Delete
+_________l_vmt_Tree__p__52_r___eq__t259 = t0
+[t3 + 52] = t5
+________t260__eq___fn_Tree_Remove = t0
+t5 = @Tree_Remove
+_________l_vmt_Tree__p__56_r___eq__t260 = t0
+[t3 + 56] = t5
+________t261__eq___fn_Tree_RemoveRight = t0
+t5 = @Tree_RemoveRight
+_________l_vmt_Tree__p__60_r___eq__t261 = t0
+[t3 + 60] = t5
+________t262__eq___fn_Tree_RemoveLeft = t0
+t5 = @Tree_RemoveLeft
+_________l_vmt_Tree__p__64_r___eq__t262 = t0
+[t3 + 64] = t5
+________t263__eq___fn_Tree_Search = t0
+t5 = @Tree_Search
+_________l_vmt_Tree__p__68_r___eq__t263 = t0
+[t3 + 68] = t5
+________t264__eq___fn_Tree_Print = t0
+t5 = @Tree_Print
+_________l_vmt_Tree__p__72_r___eq__t264 = t0
+[t3 + 72] = t5
+________t265__eq___fn_Tree_RecPrint = t0
+t5 = @Tree_RecPrint
+_________l_vmt_Tree__p__76_r___eq__t265 = t0
+[t3 + 76] = t5
+_________l_t244__p__0_r___eq__vmt_Tree = t0
+[t4 + 0] = t3
+________t242__eq__t244 = t0
+t3 = t4
+________t236__eq__t242 = t0
+t4 = t3
+________if0_t236_goto_null = t0
+if0 t4 goto null
+________t269__eq___l_t236__p__0_r_ = t0
+t3 = [t4 + 0]
+________t270__eq___l_t269__p__0_r_ = t0
+t5 = [t3 + 0]
+________t267__eq__call_t270_t236_v_key__ = t0
+________In__t270_t5__t236_t4__v_key__a6__self_a7 = t0
+________Free_saved__s11_s10_t2 = t0
+s11 = a7
+s10 = a6
+a6 = a6
+a7 = t4
+t3 = call t5()
+a7 = s11
+a6 = s10
+________t237__eq__t267 = t0
+________t240__eq__self = t0
+t5 = a7
+________t275__eq__1 = t0
+t3 = 1
+________t238__eq__t275 = t0
+t2 = t3
+________l349 = t0
+l349:
+________if0_t238_goto_l350 = t0
+if0 t2 goto l350
+________if0_t240_goto_null = t0
+if0 t5 goto null
+________t279__eq___l_t240__p__0_r_ = t0
+t3 = [t5 + 0]
+________t280__eq___l_t279__p__20_r_ = t0
+s11 = [t3 + 20]
+________t277__eq__call_t280_t240_ = t0
+________In__t280_s11__t240_t5__v_key__a6__t238_t2__t236_t4 = t0
+________Free_saved__s10 = t0
+__save__a6 = a6
+s10 = a7
+a7 = t5
+t3 = call s11()
+a6 = __save__a6
+a7 = s10
+________t239__eq__t277 = t0
+s11 = t3
+________t283__eq__v_key___lt__t239 = t0
+t3 = a6 < s11
+________if0_t283_goto_l347 = t0
+if0 t3 goto l347
+________if0_t240_goto_null = t0
+if0 t5 goto null
+________t287__eq___l_t240__p__0_r_ = t0
+s11 = [t5 + 0]
+________t288__eq___l_t287__p__32_r_ = t0
+t3 = [s11 + 32]
+________t285__eq__call_t288_t240_ = t0
+________In__t288_t3__t240_t5__t238_t2__v_key__a6__t236_t4 = t0
+________Free_saved__s10 = t0
+__save__a6 = a6
+s10 = a7
+a7 = t5
+s11 = call t3()
+a6 = __save__a6
+a7 = s10
+________if0_t285_goto_l314 = t0
+if0 s11 goto l314
+________if0_t240_goto_null = t0
+if0 t5 goto null
+________t294__eq___l_t240__p__0_r_ = t0
+t3 = [t5 + 0]
+________t295__eq___l_t294__p__16_r_ = t0
+s11 = [t3 + 16]
+________t292__eq__call_t295_t240_ = t0
+________In__t295_s11__t240_t5__t238_t2__v_key__a6__t236_t4 = t0
+________Free_saved__s10 = t0
+__save__a6 = a6
+s10 = a7
+a7 = t5
+t3 = call s11()
+a6 = __save__a6
+a7 = s10
+________t240__eq__t292 = t0
+t5 = t3
+________goto_l315 = t0
+goto l315
+________l314 = t0
+l314:
+________t299__eq__0 = t0
+s11 = 0
+________t238__eq__t299 = t0
+t2 = s11
+________t303__eq__1 = t0
+s11 = 1
+________if0_t240_goto_null = t0
+if0 t5 goto null
+________t304__eq___l_t240__p__0_r_ = t0
+t3 = [t5 + 0]
+________t305__eq___l_t304__p__36_r_ = t0
+s10 = [t3 + 36]
+________t301__eq__call_t305_t240_t303_ = t0
+________In__t305_s10__t240_t5__t303_s11__t236_t4__t238_t2__v_key__a6 = t0
+________Free_saved__ = t0
 __save__a6 = a6
 __save__a7 = a7
-a6 = a6
-a7 = a7
-t5 = call t4()
-a5 = __save__a5
+a6 = s11
+a7 = t5
+t3 = call s10()
 a6 = __save__a6
 a7 = __save__a7
-if0 t5 goto l53
-t4 = 1
-t5 = a5 + t4
-t4 = t5
-goto l54
-l53:
-if0 a7 goto null
-t5 = [a7 + 0]
-t3 = [t5 + 4]
-__save__a5 = a5
+________t237__eq__t301 = t0
+________if0_t240_goto_null = t0
+if0 t5 goto null
+________t310__eq___l_t240__p__0_r_ = t0
+s10 = [t5 + 0]
+________t311__eq___l_t310__p__8_r_ = t0
+s11 = [s10 + 8]
+________t308__eq__call_t311_t240_t236_ = t0
+________In__t311_s11__t240_t5__t236_t4__t238_t2__v_key__a6 = t0
+________Free_saved__t3 = t0
+__save__a6 = a6
+t3 = a7
+a6 = t4
+a7 = t5
+s10 = call s11()
+a6 = __save__a6
+a7 = t3
+________t237__eq__t308 = t0
+________l315 = t0
+l315:
+________goto_l348 = t0
+goto l348
+________l347 = t0
+l347:
+________if0_t240_goto_null = t0
+if0 t5 goto null
+________t318__eq___l_t240__p__0_r_ = t0
+s11 = [t5 + 0]
+________t319__eq___l_t318__p__28_r_ = t0
+s10 = [s11 + 28]
+________t316__eq__call_t319_t240_ = t0
+________In__t319_s10__t240_t5__t238_t2__v_key__a6__t236_t4 = t0
+________Free_saved__t3 = t0
+__save__a6 = a6
+t3 = a7
+a7 = t5
+s11 = call s10()
+a6 = __save__a6
+a7 = t3
+________if0_t316_goto_l345 = t0
+if0 s11 goto l345
+________if0_t240_goto_null = t0
+if0 t5 goto null
+________t325__eq___l_t240__p__0_r_ = t0
+s10 = [t5 + 0]
+________t326__eq___l_t325__p__12_r_ = t0
+s11 = [s10 + 12]
+________t323__eq__call_t326_t240_ = t0
+________In__t326_s11__t240_t5__t238_t2__v_key__a6__t236_t4 = t0
+________Free_saved__t3 = t0
+__save__a6 = a6
+t3 = a7
+a7 = t5
+s10 = call s11()
+a6 = __save__a6
+a7 = t3
+________t240__eq__t323 = t0
+t5 = s10
+________goto_l346 = t0
+goto l346
+________l345 = t0
+l345:
+________t330__eq__0 = t0
+s11 = 0
+________t238__eq__t330 = t0
+t2 = s11
+________t334__eq__1 = t0
+s11 = 1
+________if0_t240_goto_null = t0
+if0 t5 goto null
+________t335__eq___l_t240__p__0_r_ = t0
+s10 = [t5 + 0]
+________t336__eq___l_t335__p__40_r_ = t0
+t3 = [s10 + 40]
+________t332__eq__call_t336_t240_t334_ = t0
+________In__t336_t3__t240_t5__t334_s11__t236_t4__t238_t2__v_key__a6 = t0
+________Free_saved__ = t0
 __save__a6 = a6
 __save__a7 = a7
-a6 = a5
+a6 = s11
+a7 = t5
+s10 = call t3()
+a6 = __save__a6
+a7 = __save__a7
+________t237__eq__t332 = t0
+________if0_t240_goto_null = t0
+if0 t5 goto null
+________t341__eq___l_t240__p__0_r_ = t0
+t3 = [t5 + 0]
+________t342__eq___l_t341__p__4_r_ = t0
+s11 = [t3 + 4]
+________t339__eq__call_t342_t240_t236_ = t0
+________In__t342_s11__t240_t5__t236_t4__t238_t2__v_key__a6 = t0
+________Free_saved__s10 = t0
+__save__a6 = a6
+s10 = a7
+a6 = t4
+a7 = t5
+t3 = call s11()
+a6 = __save__a6
+a7 = s10
+________t237__eq__t339 = t0
+________l346 = t0
+l346:
+________l348 = t0
+l348:
+________goto_l349 = t0
+goto l349
+________l350 = t0
+l350:
+________t351__eq__1 = t0
+s11 = 1
+________goto_Tree_Insert_end = t0
+goto Tree_Insert_end
+________null = t0
+null:
+________error__null_pointer__ = t0
+error("null pointer")
+________array_index_out_of_bounds = t0
+array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
+error("array index out of bounds")
+________Tree_Insert_end = t0
+Tree_Insert_end:
+________ret = t0
+t351 = s11
+t4 = __save__t4
+t5 = __save__t5
+t2 = __save__t2
+s10 = __save__s10
+t3 = __save__t3
+s11 = __save__s11
+      return t351
+
+func Tree_Delete()
+__save__t5 = t5
+__save__t4 = t4
+__save__t2 = t2
+__save__s11 = s11
+__save__s10 = s10
+__save__t3 = t3
+__save__s9 = s9
+__save__s8 = s8
+__save__s7 = s7
+________params = t0
+________current_node___eq__0 = t0
+t5 = 0
+________t352__eq__current_node_ = t0
+t5 = t5
+________parent_node___eq__0 = t0
+t5 = 0
+________t353__eq__parent_node_ = t0
+t4 = t5
+________cont___eq__0 = t0
+t5 = 0
+________t354__eq__cont_ = t0
+t2 = t5
+________found___eq__0 = t0
+t5 = 0
+________t355__eq__found_ = t0
+s11 = t5
+________is_root___eq__0 = t0
+t5 = 0
+________t356__eq__is_root_ = t0
+s10 = t5
+________key_aux___eq__0 = t0
+t5 = 0
+________t357__eq__key_aux_ = t0
+s9 = t5
+________ntb___eq__0 = t0
+t5 = 0
+________t358__eq__ntb_ = t0
+________t352__eq__self = t0
+t5 = a7
+________t353__eq__self = t0
+t4 = a7
+________t362__eq__1 = t0
+t3 = 1
+________t354__eq__t362 = t0
+t2 = t3
+________t364__eq__0 = t0
+t3 = 0
+________t355__eq__t364 = t0
+s11 = t3
+________t366__eq__1 = t0
+t3 = 1
+________t356__eq__t366 = t0
+s10 = t3
+________l461 = t0
+l461:
+________if0_t354_goto_l462 = t0
+if0 t2 goto l462
+________if0_t352_goto_null = t0
+if0 t5 goto null
+________t370__eq___l_t352__p__0_r_ = t0
+t3 = [t5 + 0]
+________t371__eq___l_t370__p__20_r_ = t0
+s9 = [t3 + 20]
+________t368__eq__call_t371_t352_ = t0
+________In__t371_s9__t352_t5__v_key__a6__t354_t2__t355_s11__self_a7__t356_s10__t353_t4 = t0
+________Free_saved__s7_s8 = t0
+s7 = a7
+s8 = a6
+a7 = t5
+t3 = call s9()
+a7 = s7
+a6 = s8
+________t357__eq__t368 = t0
+s9 = t3
+________t374__eq__v_key___lt__t357 = t0
+t3 = a6 < s9
+________if0_t374_goto_l457 = t0
+if0 t3 goto l457
+________if0_t352_goto_null = t0
+if0 t5 goto null
+________t378__eq___l_t352__p__0_r_ = t0
+t3 = [t5 + 0]
+________t379__eq___l_t378__p__32_r_ = t0
+s8 = [t3 + 32]
+________t376__eq__call_t379_t352_ = t0
+________In__t379_s8__t352_t5__t354_t2__v_key__a6__self_a7__t355_s11__t353_t4 = t0
+________Free_saved__s7_s9_s10 = t0
+s7 = a7
+s9 = a6
+a7 = t5
+t3 = call s8()
+a7 = s7
+a6 = s9
+________if0_t376_goto_l392 = t0
+if0 t3 goto l392
+________t353__eq__t352 = t0
+t4 = t5
+________if0_t352_goto_null = t0
+if0 t5 goto null
+________t386__eq___l_t352__p__0_r_ = t0
+s8 = [t5 + 0]
+________t387__eq___l_t386__p__16_r_ = t0
+t3 = [s8 + 16]
+________t384__eq__call_t387_t352_ = t0
+________In__t387_t3__t352_t5__t354_t2__v_key__a6__self_a7__t353_t4__t355_s11 = t0
+________Free_saved__s7_s9_s10 = t0
+s7 = a7
+s9 = a6
+a7 = t5
+s8 = call t3()
+a7 = s7
+a6 = s9
+________t352__eq__t384 = t0
+t5 = s8
+________goto_l393 = t0
+goto l393
+________l392 = t0
+l392:
+________t391__eq__0 = t0
+t3 = 0
+________t354__eq__t391 = t0
+t2 = t3
+________l393 = t0
+l393:
+________goto_l458 = t0
+goto l458
+________l457 = t0
+l457:
+________t394__eq__t357__lt__v_key_ = t0
+t3 = s9 < a6
+________if0_t394_goto_l455 = t0
+if0 t3 goto l455
+________if0_t352_goto_null = t0
+if0 t5 goto null
+________t398__eq___l_t352__p__0_r_ = t0
+s9 = [t5 + 0]
+________t399__eq___l_t398__p__28_r_ = t0
+t3 = [s9 + 28]
+________t396__eq__call_t399_t352_ = t0
+________In__t399_t3__t352_t5__t354_t2__v_key__a6__self_a7__t355_s11__t353_t4 = t0
+________Free_saved__s7_s8_s10 = t0
+s7 = a7
+s8 = a6
+a7 = t5
+s9 = call t3()
+a7 = s7
+a6 = s8
+________if0_t396_goto_l412 = t0
+if0 s9 goto l412
+________t353__eq__t352 = t0
+t4 = t5
+________if0_t352_goto_null = t0
+if0 t5 goto null
+________t406__eq___l_t352__p__0_r_ = t0
+t3 = [t5 + 0]
+________t407__eq___l_t406__p__12_r_ = t0
+s9 = [t3 + 12]
+________t404__eq__call_t407_t352_ = t0
+________In__t407_s9__t352_t5__t354_t2__v_key__a6__self_a7__t353_t4__t355_s11 = t0
+________Free_saved__s7_s8_s10 = t0
+s7 = a7
+s8 = a6
+a7 = t5
+t3 = call s9()
+a7 = s7
+a6 = s8
+________t352__eq__t404 = t0
+t5 = t3
+________goto_l413 = t0
+goto l413
+________l412 = t0
+l412:
+________t411__eq__0 = t0
+s9 = 0
+________t354__eq__t411 = t0
+t2 = s9
+________l413 = t0
+l413:
+________goto_l456 = t0
+goto l456
+________l455 = t0
+l455:
+________if0_t356_goto_l449 = t0
+if0 s10 goto l449
+________if0_t352_goto_null = t0
+if0 t5 goto null
+________t418__eq___l_t352__p__0_r_ = t0
+s9 = [t5 + 0]
+________t419__eq___l_t418__p__28_r_ = t0
+t3 = [s9 + 28]
+________t416__eq__call_t419_t352_ = t0
+________In__t419_t3__t352_t5__self_a7__t353_t4__v_key__a6 = t0
+________Free_saved__s7_s8_s10_s11_t2 = t0
+s7 = a7
+s8 = a6
+a7 = t5
+s9 = call t3()
+a7 = s7
+a6 = s8
+________t422__eq__1 = t0
+t3 = 1
+________t415__eq__t422__m__t416 = t0
+s8 = t3 - s9
+________if0_t415_goto_l422 = t0
+if0 s8 goto l422
+________if0_t352_goto_null = t0
+if0 t5 goto null
+________t426__eq___l_t352__p__0_r_ = t0
+t3 = [t5 + 0]
+________t427__eq___l_t426__p__32_r_ = t0
+s9 = [t3 + 32]
+________t424__eq__call_t427_t352_ = t0
+________In__t427_s9__t352_t5__v_key__a6__self_a7__t353_t4 = t0
+________Free_saved__s7_s8_s10_s11_t2 = t0
+s7 = a7
+s8 = a6
+a7 = t5
+t3 = call s9()
+a7 = s7
+a6 = s8
+________t430__eq__1 = t0
+s9 = 1
+________t423__eq__t430__m__t424 = t0
+s7 = s9 - t3
+________t414__eq__t423 = t0
+s9 = s7
+________goto_l430 = t0
+goto l430
+________l422 = t0
+l422:
+________t414__eq__t415 = t0
+s9 = s8
+________l430 = t0
+l430:
+________if0_t414_goto_l440 = t0
+if0 s9 goto l440
+________t432__eq__1 = t0
+s7 = 1
+________t358__eq__t432 = t0
+________goto_l441 = t0
+goto l441
+________l440 = t0
+l440:
+________if0_self_goto_null = t0
+if0 a7 goto null
+________t436__eq___l_self__p__0_r_ = t0
+s7 = [a7 + 0]
+________t437__eq___l_t436__p__56_r_ = t0
+s8 = [s7 + 56]
+________t434__eq__call_t437_self_t353_t352_ = t0
+________In__t437_s8__self_a7__t353_t4__t352_t5__v_key__a6 = t0
+________Free_saved__s9_t3_s10_s11_t2 = t0
+s9 = a7
+t3 = a6
+a5 = t5
+a6 = t4
 a7 = a7
+s7 = call s8()
+a7 = s9
+a6 = t3
+________t358__eq__t434 = t0
+________l441 = t0
+l441:
+________goto_l450 = t0
+goto l450
+________l449 = t0
+l449:
+________if0_self_goto_null = t0
+if0 a7 goto null
+________t445__eq___l_self__p__0_r_ = t0
+s8 = [a7 + 0]
+________t446__eq___l_t445__p__56_r_ = t0
+s7 = [s8 + 56]
+________t443__eq__call_t446_self_t353_t352_ = t0
+________In__t446_s7__self_a7__t353_t4__t352_t5__v_key__a6 = t0
+________Free_saved__s9_t3_s10_s11_t2 = t0
+s9 = a7
+t3 = a6
+a5 = t5
+a6 = t4
+a7 = a7
+s8 = call s7()
+a7 = s9
+a6 = t3
+________t358__eq__t443 = t0
+________l450 = t0
+l450:
+________t452__eq__1 = t0
+s7 = 1
+________t355__eq__t452 = t0
+s11 = s7
+________t454__eq__0 = t0
+s7 = 0
+________t354__eq__t454 = t0
+t2 = s7
+________l456 = t0
+l456:
+________l458 = t0
+l458:
+________t460__eq__0 = t0
+s7 = 0
+________t356__eq__t460 = t0
+s10 = s7
+________goto_l461 = t0
+goto l461
+________l462 = t0
+l462:
+________goto_Tree_Delete_end = t0
+goto Tree_Delete_end
+________null = t0
+null:
+________error__null_pointer__ = t0
+error("null pointer")
+________array_index_out_of_bounds = t0
+array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
+error("array index out of bounds")
+________Tree_Delete_end = t0
+Tree_Delete_end:
+________ret = t0
+t355 = s11
+t5 = __save__t5
+t4 = __save__t4
+t2 = __save__t2
+s11 = __save__s11
+s10 = __save__s10
+t3 = __save__t3
+s9 = __save__s9
+s8 = __save__s8
+s7 = __save__s7
+      return t355
+
+func Tree_Remove()
+__save__t3 = t3
+__save__t5 = t5
+__save__t2 = t2
+__save__t4 = t4
+________params = t0
+________ntb___eq__0 = t0
+t5 = 0
+________t464__eq__ntb_ = t0
+________auxkey1___eq__0 = t0
+t5 = 0
+________t465__eq__auxkey1_ = t0
+t4 = t5
+________auxkey2___eq__0 = t0
+t5 = 0
+________t466__eq__auxkey2_ = t0
+t2 = t5
+________if0_c_node__goto_null = t0
+if0 a5 goto null
+________t469__eq___l_c_node___p__0_r_ = t0
+t5 = [a5 + 0]
+________t470__eq___l_t469__p__32_r_ = t0
+t4 = [t5 + 32]
+________t467__eq__call_t470_c_node__ = t0
+________In__t470_t4__c_node__a5__self_a7__p_node__a6 = t0
+________Free_saved__t2_t3 = t0
+__save__a5 = a5
+t2 = a7
+t3 = a6
+a7 = a5
+t5 = call t4()
+a5 = __save__a5
+a7 = t2
+a6 = t3
+________if0_t467_goto_l551 = t0
+if0 t5 goto l551
+________if0_self_goto_null = t0
+if0 a7 goto null
+________t476__eq___l_self__p__0_r_ = t0
+t4 = [a7 + 0]
+________t477__eq___l_t476__p__64_r_ = t0
+t5 = [t4 + 64]
+________t474__eq__call_t477_self_p_node__c_node__ = t0
+________In__t477_t5__self_a7__p_node__a6__c_node__a5 = t0
+________Free_saved__t2_t3 = t0
+__save__a5 = a5
+t2 = a7
+t3 = a6
+a5 = a5
+a6 = a6
+a7 = a7
+t4 = call t5()
+a5 = __save__a5
+a7 = t2
+a6 = t3
+________t464__eq__t474 = t0
+________goto_l552 = t0
+goto l552
+________l551 = t0
+l551:
+________if0_c_node__goto_null = t0
+if0 a5 goto null
+________t482__eq___l_c_node___p__0_r_ = t0
+t5 = [a5 + 0]
+________t483__eq___l_t482__p__28_r_ = t0
+t4 = [t5 + 28]
+________t480__eq__call_t483_c_node__ = t0
+________In__t483_t4__c_node__a5__self_a7__p_node__a6 = t0
+________Free_saved__t2_t3 = t0
+__save__a5 = a5
+t2 = a7
+t3 = a6
+a7 = a5
+t5 = call t4()
+a5 = __save__a5
+a7 = t2
+a6 = t3
+________if0_t480_goto_l549 = t0
+if0 t5 goto l549
+________if0_self_goto_null = t0
+if0 a7 goto null
+________t489__eq___l_self__p__0_r_ = t0
+t4 = [a7 + 0]
+________t490__eq___l_t489__p__60_r_ = t0
+t5 = [t4 + 60]
+________t487__eq__call_t490_self_p_node__c_node__ = t0
+________In__t490_t5__self_a7__p_node__a6__c_node__a5 = t0
+________Free_saved__t2_t3 = t0
+__save__a5 = a5
+t2 = a7
+t3 = a6
+a5 = a5
+a6 = a6
+a7 = a7
+t4 = call t5()
+a5 = __save__a5
+a7 = t2
+a6 = t3
+________t464__eq__t487 = t0
+________goto_l550 = t0
+goto l550
+________l549 = t0
+l549:
+________if0_c_node__goto_null = t0
+if0 a5 goto null
+________t496__eq___l_c_node___p__0_r_ = t0
+t5 = [a5 + 0]
+________t497__eq___l_t496__p__20_r_ = t0
+t4 = [t5 + 20]
+________t494__eq__call_t497_c_node__ = t0
+________In__t497_t4__c_node__a5__p_node__a6__self_a7 = t0
+________Free_saved__t2_t3 = t0
+__save__a5 = a5
+t2 = a7
+t3 = a6
+a7 = a5
+t5 = call t4()
+a5 = __save__a5
+a7 = t2
+a6 = t3
+________t465__eq__t494 = t0
+t4 = t5
+________if0_p_node__goto_null = t0
+if0 a6 goto null
+________t504__eq___l_p_node___p__0_r_ = t0
+t5 = [a6 + 0]
+________t505__eq___l_t504__p__16_r_ = t0
+t3 = [t5 + 16]
+________t502__eq__call_t505_p_node__ = t0
+________In__t505_t3__p_node__a6__self_a7__t465_t4 = t0
+________Free_saved__t2 = t0
+__save__a5 = a5
+__save__a6 = a6
+t2 = a7
+a7 = a6
 t5 = call t3()
 a5 = __save__a5
 a6 = __save__a6
-a7 = __save__a7
-if0 t5 goto l51
-t3 = 1
-t5 = a6 - t3
-t3 = 1
-if0 a7 goto null
-t2 = [a7 + 0]
-s11 = [t2 + 0]
+a7 = t2
+________if0_t502_goto_null = t0
+if0 t5 goto null
+________t509__eq___l_t502__p__0_r_ = t0
+t3 = [t5 + 0]
+________t510__eq___l_t509__p__20_r_ = t0
+t2 = [t3 + 20]
+________t501__eq__call_t510_t502_ = t0
+________In__t510_t2__t502_t5__self_a7__t465_t4__p_node__a6 = t0
+________Free_saved__ = t0
 __save__a5 = a5
 __save__a6 = a6
 __save__a7 = a7
-a5 = t3
-a6 = t5
-a7 = a7
-t2 = call s11()
+a7 = t5
+t3 = call t2()
 a5 = __save__a5
 a6 = __save__a6
 a7 = __save__a7
-t4 = t2
-goto l52
-l51:
-t3 = 1
-t5 = a6 - t3
-t3 = 1
-t2 = a5 - t3
+________t466__eq__t501 = t0
+t2 = t3
+________if0_self_goto_null = t0
 if0 a7 goto null
+________t515__eq___l_self__p__0_r_ = t0
 t3 = [a7 + 0]
-s10 = [t3 + 0]
+________t516__eq___l_t515__p__44_r_ = t0
+t5 = [t3 + 44]
+________t513__eq__call_t516_self_t465_t466_ = t0
+________In__t516_t5__self_a7__t465_t4__t466_t2__p_node__a6 = t0
+________Free_saved__ = t0
 __save__a5 = a5
 __save__a6 = a6
 __save__a7 = a7
 a5 = t2
-a6 = a6
+a6 = t4
 a7 = a7
-t3 = call s10()
+t3 = call t5()
 a5 = __save__a5
 a6 = __save__a6
 a7 = __save__a7
-if0 a7 goto null
-s10 = [a7 + 0]
-t2 = [s10 + 0]
+________if0_t513_goto_l547 = t0
+if0 t3 goto l547
+________t522__eq___l_self__p__24_r_ = t0
+t5 = [a7 + 24]
+________if0_p_node__goto_null = t0
+if0 a6 goto null
+________t523__eq___l_p_node___p__0_r_ = t0
+t2 = [a6 + 0]
+________t524__eq___l_t523__p__8_r_ = t0
+t4 = [t2 + 8]
+________t520__eq__call_t524_p_node__t522_ = t0
+________In__t524_t4__p_node__a6__t522_t5 = t0
+________Free_saved__t3 = t0
 __save__a5 = a5
 __save__a6 = a6
-__save__a7 = a7
-a5 = t3
+t3 = a7
 a6 = t5
-a7 = a7
-s11 = call t2()
+a7 = __save__a6
+t2 = call t4()
 a5 = __save__a5
 a6 = __save__a6
-a7 = __save__a7
-t4 = s11
-l52:
-l54:
-goto A_ackermann_end
+a7 = t3
+________t464__eq__t520 = t0
+________t529__eq__0 = t0
+t4 = 0
+________if0_p_node__goto_null = t0
+if0 a6 goto null
+________t530__eq___l_p_node___p__0_r_ = t0
+t5 = [a6 + 0]
+________t531__eq___l_t530__p__36_r_ = t0
+t2 = [t5 + 36]
+________t527__eq__call_t531_p_node__t529_ = t0
+________In__t531_t2__p_node__a6__t529_t4 = t0
+________Free_saved__t3 = t0
+__save__a5 = a5
+__save__a6 = a6
+t3 = a7
+a6 = t4
+a7 = __save__a6
+t5 = call t2()
+a5 = __save__a5
+a6 = __save__a6
+a7 = t3
+________t464__eq__t527 = t0
+________goto_l548 = t0
+goto l548
+________l547 = t0
+l547:
+________t536__eq___l_self__p__24_r_ = t0
+t2 = [a7 + 24]
+________if0_p_node__goto_null = t0
+if0 a6 goto null
+________t537__eq___l_p_node___p__0_r_ = t0
+t4 = [a6 + 0]
+________t538__eq___l_t537__p__4_r_ = t0
+t5 = [t4 + 4]
+________t534__eq__call_t538_p_node__t536_ = t0
+________In__t538_t5__p_node__a6__t536_t2 = t0
+________Free_saved__t3 = t0
+__save__a5 = a5
+__save__a6 = a6
+t3 = a7
+a6 = t2
+a7 = __save__a6
+t4 = call t5()
+a5 = __save__a5
+a6 = __save__a6
+a7 = t3
+________t464__eq__t534 = t0
+________t543__eq__0 = t0
+t5 = 0
+________if0_p_node__goto_null = t0
+if0 a6 goto null
+________t544__eq___l_p_node___p__0_r_ = t0
+t2 = [a6 + 0]
+________t545__eq___l_t544__p__40_r_ = t0
+t4 = [t2 + 40]
+________t541__eq__call_t545_p_node__t543_ = t0
+________In__t545_t4__p_node__a6__t543_t5 = t0
+________Free_saved__t3 = t0
+__save__a5 = a5
+__save__a6 = a6
+t3 = a7
+a6 = t5
+a7 = __save__a6
+t2 = call t4()
+a5 = __save__a5
+a6 = __save__a6
+a7 = t3
+________t464__eq__t541 = t0
+________l548 = t0
+l548:
+________l550 = t0
+l550:
+________l552 = t0
+l552:
+________t553__eq__1 = t0
+t4 = 1
+________goto_Tree_Remove_end = t0
+goto Tree_Remove_end
+________null = t0
 null:
+________error__null_pointer__ = t0
 error("null pointer")
+________array_index_out_of_bounds = t0
 array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
 error("array index out of bounds")
-A_ackermann_end:
-t20 = t4
-t4 = __save__t4
-s11 = __save__s11
-t5 = __save__t5
-s10 = __save__s10
+________Tree_Remove_end = t0
+Tree_Remove_end:
+________ret = t0
+t553 = t4
 t3 = __save__t3
+t5 = __save__t5
 t2 = __save__t2
-      return t20
+t4 = __save__t4
+      return t553
 
-func A_isZero()
+func Tree_RemoveRight()
+__save__t5 = t5
 __save__t4 = t4
+__save__t2 = t2
+__save__t3 = t3
+__save__s11 = s11
+________params = t0
+________ntb___eq__0 = t0
+t5 = 0
+________t554__eq__ntb_ = t0
+________l576 = t0
+l576:
+________if0_c_node__goto_null = t0
+if0 a5 goto null
+________t557__eq___l_c_node___p__0_r_ = t0
+t5 = [a5 + 0]
+________t558__eq___l_t557__p__28_r_ = t0
+t4 = [t5 + 28]
+________t555__eq__call_t558_c_node__ = t0
+________In__t558_t4__c_node__a5__self_a7__p_node__a6 = t0
+________Free_saved__s11_t3_t2 = t0
+s11 = a7
+t3 = a6
+t2 = a5
+a7 = a5
+t5 = call t4()
+a7 = s11
+a6 = t3
+a5 = t2
+________if0_t555_goto_l577 = t0
+if0 t5 goto l577
+________if0_c_node__goto_null = t0
+if0 a5 goto null
+________t567__eq___l_c_node___p__0_r_ = t0
+t4 = [a5 + 0]
+________t568__eq___l_t567__p__12_r_ = t0
+t5 = [t4 + 12]
+________t565__eq__call_t568_c_node__ = t0
+________In__t568_t5__c_node__a5__self_a7 = t0
+________Free_saved__s11_t3_t2 = t0
+s11 = a7
+t3 = a6
+t2 = a5
+a7 = a5
+t4 = call t5()
+a7 = s11
+a6 = t3
+a5 = t2
+________if0_t565_goto_null = t0
+if0 t4 goto null
+________t572__eq___l_t565__p__0_r_ = t0
+t5 = [t4 + 0]
+________t573__eq___l_t572__p__20_r_ = t0
+t3 = [t5 + 20]
+________t564__eq__call_t573_t565_ = t0
+________In__t573_t3__t565_t4__c_node__a5__self_a7 = t0
+________Free_saved__s11_t5 = t0
+__save__a5 = a5
+s11 = a7
+t5 = a6
+a7 = t4
+t2 = call t3()
+a5 = __save__a5
+a7 = s11
+a6 = t5
+________if0_c_node__goto_null = t0
+if0 a5 goto null
+________t576__eq___l_c_node___p__0_r_ = t0
+t4 = [a5 + 0]
+________t577__eq___l_t576__p__24_r_ = t0
+s11 = [t4 + 24]
+________t562__eq__call_t577_c_node__t564_ = t0
+________In__t577_s11__c_node__a5__t564_t2__self_a7 = t0
+________Free_saved__t3_t5 = t0
+__save__a5 = a5
+t3 = a7
+t5 = a6
+a6 = t2
+a7 = a5
+t4 = call s11()
+a5 = __save__a5
+a7 = t3
+a6 = t5
+________t554__eq__t562 = t0
+________p_node___eq__c_node_ = t0
+a6 = a5
+________if0_c_node__goto_null = t0
+if0 a5 goto null
+________t572__eq___l_c_node___p__0_r_ = t0
+t5 = [a5 + 0]
+________t573__eq___l_t572__p__12_r_ = t0
+t3 = [t5 + 12]
+________t570__eq__call_t573_c_node__ = t0
+________In__t573_t3__c_node__a5__self_a7__p_node__a6 = t0
+________Free_saved__t2_t4_t5 = t0
+t2 = a7
+t4 = a6
+t5 = a5
+a7 = a5
+s11 = call t3()
+a7 = t2
+a6 = t4
+a5 = t5
+________c_node___eq__t570 = t0
+a5 = s11
+________goto_l576 = t0
+goto l576
+________l577 = t0
+l577:
+________t581__eq___l_self__p__24_r_ = t0
+t3 = [a7 + 24]
+________if0_p_node__goto_null = t0
+if0 a6 goto null
+________t582__eq___l_p_node___p__0_r_ = t0
+s11 = [a6 + 0]
+________t583__eq___l_t582__p__4_r_ = t0
+t2 = [s11 + 4]
+________t579__eq__call_t583_p_node__t581_ = t0
+________In__t583_t2__p_node__a6__t581_t3 = t0
+________Free_saved__t4_t5 = t0
+__save__a5 = a5
+t4 = a7
+t5 = a6
+a6 = t3
+a7 = __save__a6
+s11 = call t2()
+a5 = __save__a5
+a7 = t4
+a6 = t5
+________t554__eq__t579 = t0
+________t588__eq__0 = t0
+t2 = 0
+________if0_p_node__goto_null = t0
+if0 a6 goto null
+________t589__eq___l_p_node___p__0_r_ = t0
+t3 = [a6 + 0]
+________t590__eq___l_t589__p__40_r_ = t0
+s11 = [t3 + 40]
+________t586__eq__call_t590_p_node__t588_ = t0
+________In__t590_s11__p_node__a6__t588_t2 = t0
+________Free_saved__t4_t5 = t0
+__save__a5 = a5
+t4 = a7
+t5 = a6
+a6 = t2
+a7 = __save__a6
+t3 = call s11()
+a5 = __save__a5
+a7 = t4
+a6 = t5
+________t554__eq__t586 = t0
+________t592__eq__1 = t0
+s11 = 1
+________goto_Tree_RemoveRight_end = t0
+goto Tree_RemoveRight_end
+________null = t0
+null:
+________error__null_pointer__ = t0
+error("null pointer")
+________array_index_out_of_bounds = t0
+array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
+error("array index out of bounds")
+________Tree_RemoveRight_end = t0
+Tree_RemoveRight_end:
+________ret = t0
+t592 = s11
+t5 = __save__t5
+t4 = __save__t4
+t2 = __save__t2
+t3 = __save__t3
+s11 = __save__s11
+      return t592
+
+func Tree_RemoveLeft()
+__save__t5 = t5
+__save__t4 = t4
+__save__t2 = t2
+__save__t3 = t3
+__save__s11 = s11
+________params = t0
+________ntb___eq__0 = t0
+t5 = 0
+________t593__eq__ntb_ = t0
+________l615 = t0
+l615:
+________if0_c_node__goto_null = t0
+if0 a5 goto null
+________t596__eq___l_c_node___p__0_r_ = t0
+t5 = [a5 + 0]
+________t597__eq___l_t596__p__32_r_ = t0
+t4 = [t5 + 32]
+________t594__eq__call_t597_c_node__ = t0
+________In__t597_t4__c_node__a5__self_a7__p_node__a6 = t0
+________Free_saved__s11_t3_t2 = t0
+s11 = a7
+t3 = a6
+t2 = a5
+a7 = a5
+t5 = call t4()
+a7 = s11
+a6 = t3
+a5 = t2
+________if0_t594_goto_l616 = t0
+if0 t5 goto l616
+________if0_c_node__goto_null = t0
+if0 a5 goto null
+________t606__eq___l_c_node___p__0_r_ = t0
+t4 = [a5 + 0]
+________t607__eq___l_t606__p__16_r_ = t0
+t5 = [t4 + 16]
+________t604__eq__call_t607_c_node__ = t0
+________In__t607_t5__c_node__a5__self_a7 = t0
+________Free_saved__s11_t3_t2 = t0
+s11 = a7
+t3 = a6
+t2 = a5
+a7 = a5
+t4 = call t5()
+a7 = s11
+a6 = t3
+a5 = t2
+________if0_t604_goto_null = t0
+if0 t4 goto null
+________t611__eq___l_t604__p__0_r_ = t0
+t5 = [t4 + 0]
+________t612__eq___l_t611__p__20_r_ = t0
+t3 = [t5 + 20]
+________t603__eq__call_t612_t604_ = t0
+________In__t612_t3__t604_t4__c_node__a5__self_a7 = t0
+________Free_saved__s11_t5 = t0
+__save__a5 = a5
+s11 = a7
+t5 = a6
+a7 = t4
+t2 = call t3()
+a5 = __save__a5
+a7 = s11
+a6 = t5
+________if0_c_node__goto_null = t0
+if0 a5 goto null
+________t615__eq___l_c_node___p__0_r_ = t0
+t4 = [a5 + 0]
+________t616__eq___l_t615__p__24_r_ = t0
+s11 = [t4 + 24]
+________t601__eq__call_t616_c_node__t603_ = t0
+________In__t616_s11__c_node__a5__t603_t2__self_a7 = t0
+________Free_saved__t3_t5 = t0
+__save__a5 = a5
+t3 = a7
+t5 = a6
+a6 = t2
+a7 = a5
+t4 = call s11()
+a5 = __save__a5
+a7 = t3
+a6 = t5
+________t593__eq__t601 = t0
+________p_node___eq__c_node_ = t0
+a6 = a5
+________if0_c_node__goto_null = t0
+if0 a5 goto null
+________t611__eq___l_c_node___p__0_r_ = t0
+t5 = [a5 + 0]
+________t612__eq___l_t611__p__16_r_ = t0
+t3 = [t5 + 16]
+________t609__eq__call_t612_c_node__ = t0
+________In__t612_t3__c_node__a5__self_a7__p_node__a6 = t0
+________Free_saved__t2_t4_t5 = t0
+t2 = a7
+t4 = a6
+t5 = a5
+a7 = a5
+s11 = call t3()
+a7 = t2
+a6 = t4
+a5 = t5
+________c_node___eq__t609 = t0
+a5 = s11
+________goto_l615 = t0
+goto l615
+________l616 = t0
+l616:
+________t620__eq___l_self__p__24_r_ = t0
+t3 = [a7 + 24]
+________if0_p_node__goto_null = t0
+if0 a6 goto null
+________t621__eq___l_p_node___p__0_r_ = t0
+s11 = [a6 + 0]
+________t622__eq___l_t621__p__8_r_ = t0
+t2 = [s11 + 8]
+________t618__eq__call_t622_p_node__t620_ = t0
+________In__t622_t2__p_node__a6__t620_t3 = t0
+________Free_saved__t4_t5 = t0
+__save__a5 = a5
+t4 = a7
+t5 = a6
+a6 = t3
+a7 = __save__a6
+s11 = call t2()
+a5 = __save__a5
+a7 = t4
+a6 = t5
+________t593__eq__t618 = t0
+________t627__eq__0 = t0
+t2 = 0
+________if0_p_node__goto_null = t0
+if0 a6 goto null
+________t628__eq___l_p_node___p__0_r_ = t0
+t3 = [a6 + 0]
+________t629__eq___l_t628__p__36_r_ = t0
+s11 = [t3 + 36]
+________t625__eq__call_t629_p_node__t627_ = t0
+________In__t629_s11__p_node__a6__t627_t2 = t0
+________Free_saved__t4_t5 = t0
+__save__a5 = a5
+t4 = a7
+t5 = a6
+a6 = t2
+a7 = __save__a6
+t3 = call s11()
+a5 = __save__a5
+a7 = t4
+a6 = t5
+________t593__eq__t625 = t0
+________t631__eq__1 = t0
+s11 = 1
+________goto_Tree_RemoveLeft_end = t0
+goto Tree_RemoveLeft_end
+________null = t0
+null:
+________error__null_pointer__ = t0
+error("null pointer")
+________array_index_out_of_bounds = t0
+array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
+error("array index out of bounds")
+________Tree_RemoveLeft_end = t0
+Tree_RemoveLeft_end:
+________ret = t0
+t631 = s11
+t5 = __save__t5
+t4 = __save__t4
+t2 = __save__t2
+t3 = __save__t3
+s11 = __save__s11
+      return t631
+
+func Tree_Search()
 __save__t5 = t5
 __save__t3 = t3
 __save__t2 = t2
-t5 = 1
-t4 = a6 < t5
-if0 t4 goto l60
+__save__s10 = s10
+__save__t4 = t4
+__save__s11 = s11
+________params = t0
+________cont___eq__0 = t0
 t5 = 0
-t3 = 1
-t2 = t5 - t3
-t3 = t2 < a6
-t2 = t3
-goto l67
-l60:
+________t632__eq__cont_ = t0
+t3 = t5
+________ifound___eq__0 = t0
+t5 = 0
+________t633__eq__ifound_ = t0
+t2 = t5
+________current_node___eq__0 = t0
+t5 = 0
+________t634__eq__current_node_ = t0
+t5 = t5
+________key_aux___eq__0 = t0
+t5 = 0
+________t635__eq__key_aux_ = t0
+s11 = t5
+________t634__eq__self = t0
+t5 = a7
+________t638__eq__1 = t0
+t4 = 1
+________t632__eq__t638 = t0
+t3 = t4
+________t640__eq__0 = t0
+t4 = 0
+________t633__eq__t640 = t0
 t2 = t4
-l67:
-goto A_isZero_end
+________l694 = t0
+l694:
+________if0_t632_goto_l695 = t0
+if0 t3 goto l695
+________if0_t634_goto_null = t0
+if0 t5 goto null
+________t644__eq___l_t634__p__0_r_ = t0
+t4 = [t5 + 0]
+________t645__eq___l_t644__p__20_r_ = t0
+s11 = [t4 + 20]
+________t642__eq__call_t645_t634_ = t0
+________In__t645_s11__t634_t5__v_key__a6__t632_t3__t633_t2 = t0
+________Free_saved__s10 = t0
+__save__a6 = a6
+s10 = a7
+a7 = t5
+t4 = call s11()
+a6 = __save__a6
+a7 = s10
+________t635__eq__t642 = t0
+s11 = t4
+________t648__eq__v_key___lt__t635 = t0
+t4 = a6 < s11
+________if0_t648_goto_l692 = t0
+if0 t4 goto l692
+________if0_t634_goto_null = t0
+if0 t5 goto null
+________t652__eq___l_t634__p__0_r_ = t0
+t4 = [t5 + 0]
+________t653__eq___l_t652__p__32_r_ = t0
+s10 = [t4 + 32]
+________t650__eq__call_t653_t634_ = t0
+________In__t653_s10__t634_t5__t632_t3__v_key__a6__t633_t2 = t0
+________Free_saved__s11 = t0
+__save__a6 = a6
+s11 = a7
+a7 = t5
+t4 = call s10()
+a6 = __save__a6
+a7 = s11
+________if0_t650_goto_l665 = t0
+if0 t4 goto l665
+________if0_t634_goto_null = t0
+if0 t5 goto null
+________t659__eq___l_t634__p__0_r_ = t0
+s10 = [t5 + 0]
+________t660__eq___l_t659__p__16_r_ = t0
+t4 = [s10 + 16]
+________t657__eq__call_t660_t634_ = t0
+________In__t660_t4__t634_t5__t632_t3__v_key__a6__t633_t2 = t0
+________Free_saved__s11 = t0
+__save__a6 = a6
+s11 = a7
+a7 = t5
+s10 = call t4()
+a6 = __save__a6
+a7 = s11
+________t634__eq__t657 = t0
+t5 = s10
+________goto_l666 = t0
+goto l666
+________l665 = t0
+l665:
+________t664__eq__0 = t0
+t4 = 0
+________t632__eq__t664 = t0
+t3 = t4
+________l666 = t0
+l666:
+________goto_l693 = t0
+goto l693
+________l692 = t0
+l692:
+________t667__eq__t635__lt__v_key_ = t0
+t4 = s11 < a6
+________if0_t667_goto_l690 = t0
+if0 t4 goto l690
+________if0_t634_goto_null = t0
+if0 t5 goto null
+________t671__eq___l_t634__p__0_r_ = t0
+s11 = [t5 + 0]
+________t672__eq___l_t671__p__28_r_ = t0
+t4 = [s11 + 28]
+________t669__eq__call_t672_t634_ = t0
+________In__t672_t4__t634_t5__t632_t3__v_key__a6__t633_t2 = t0
+________Free_saved__s10 = t0
+__save__a6 = a6
+s10 = a7
+a7 = t5
+s11 = call t4()
+a6 = __save__a6
+a7 = s10
+________if0_t669_goto_l684 = t0
+if0 s11 goto l684
+________if0_t634_goto_null = t0
+if0 t5 goto null
+________t678__eq___l_t634__p__0_r_ = t0
+t4 = [t5 + 0]
+________t679__eq___l_t678__p__12_r_ = t0
+s11 = [t4 + 12]
+________t676__eq__call_t679_t634_ = t0
+________In__t679_s11__t634_t5__t632_t3__v_key__a6__t633_t2 = t0
+________Free_saved__s10 = t0
+__save__a6 = a6
+s10 = a7
+a7 = t5
+t4 = call s11()
+a6 = __save__a6
+a7 = s10
+________t634__eq__t676 = t0
+t5 = t4
+________goto_l685 = t0
+goto l685
+________l684 = t0
+l684:
+________t683__eq__0 = t0
+s11 = 0
+________t632__eq__t683 = t0
+t3 = s11
+________l685 = t0
+l685:
+________goto_l691 = t0
+goto l691
+________l690 = t0
+l690:
+________t687__eq__1 = t0
+s11 = 1
+________t633__eq__t687 = t0
+t2 = s11
+________t689__eq__0 = t0
+s11 = 0
+________t632__eq__t689 = t0
+t3 = s11
+________l691 = t0
+l691:
+________l693 = t0
+l693:
+________goto_l694 = t0
+goto l694
+________l695 = t0
+l695:
+________goto_Tree_Search_end = t0
+goto Tree_Search_end
+________null = t0
 null:
+________error__null_pointer__ = t0
 error("null pointer")
+________array_index_out_of_bounds = t0
 array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
 error("array index out of bounds")
-A_isZero_end:
-t56 = t2
-t4 = __save__t4
+________Tree_Search_end = t0
+Tree_Search_end:
+________ret = t0
+t633 = t2
 t5 = __save__t5
 t3 = __save__t3
 t2 = __save__t2
-      return t56
+s10 = __save__s10
+t4 = __save__t4
+s11 = __save__s11
+      return t633
+
+func Tree_Print()
+__save__t5 = t5
+__save__t4 = t4
+__save__t3 = t3
+________params = t0
+________current_node___eq__0 = t0
+t5 = 0
+________t697__eq__current_node_ = t0
+t5 = t5
+________ntb___eq__0 = t0
+t5 = 0
+________t698__eq__ntb_ = t0
+________t697__eq__self = t0
+t5 = a7
+________if0_self_goto_null = t0
+if0 a7 goto null
+________t703__eq___l_self__p__0_r_ = t0
+t4 = [a7 + 0]
+________t704__eq___l_t703__p__76_r_ = t0
+t3 = [t4 + 76]
+________t701__eq__call_t704_self_t697_ = t0
+________In__t704_t3__self_a7__t697_t5 = t0
+________Free_saved__ = t0
+__save__a7 = a7
+a6 = t5
+a7 = a7
+t4 = call t3()
+a7 = __save__a7
+________t698__eq__t701 = t0
+________t707__eq__1 = t0
+t3 = 1
+________goto_Tree_Print_end = t0
+goto Tree_Print_end
+________null = t0
+null:
+________error__null_pointer__ = t0
+error("null pointer")
+________array_index_out_of_bounds = t0
+array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
+error("array index out of bounds")
+________Tree_Print_end = t0
+Tree_Print_end:
+________ret = t0
+t707 = t3
+t5 = __save__t5
+t4 = __save__t4
+t3 = __save__t3
+      return t707
+
+func Tree_RecPrint()
+__save__t3 = t3
+__save__t4 = t4
+__save__t5 = t5
+________params = t0
+________ntb___eq__0 = t0
+t5 = 0
+________t708__eq__ntb_ = t0
+________if0_node__goto_null = t0
+if0 a6 goto null
+________t711__eq___l_node___p__0_r_ = t0
+t5 = [a6 + 0]
+________t712__eq___l_t711__p__32_r_ = t0
+t4 = [t5 + 32]
+________t709__eq__call_t712_node__ = t0
+________In__t712_t4__node__a6__self_a7 = t0
+________Free_saved__t3 = t0
+__save__a6 = a6
+t3 = a7
+a7 = a6
+t5 = call t4()
+a6 = __save__a6
+a7 = t3
+________if0_t709_goto_l724 = t0
+if0 t5 goto l724
+________if0_node__goto_null = t0
+if0 a6 goto null
+________t720__eq___l_node___p__0_r_ = t0
+t4 = [a6 + 0]
+________t721__eq___l_t720__p__16_r_ = t0
+t5 = [t4 + 16]
+________t718__eq__call_t721_node__ = t0
+________In__t721_t5__node__a6__self_a7 = t0
+________Free_saved__t3 = t0
+__save__a6 = a6
+t3 = a7
+a7 = a6
+t4 = call t5()
+a6 = __save__a6
+a7 = t3
+________if0_self_goto_null = t0
+if0 a7 goto null
+________t724__eq___l_self__p__0_r_ = t0
+t5 = [a7 + 0]
+________t725__eq___l_t724__p__76_r_ = t0
+t3 = [t5 + 76]
+________t716__eq__call_t725_self_t718_ = t0
+________In__t725_t3__self_a7__t718_t4__node__a6 = t0
+________Free_saved__ = t0
+__save__a6 = a6
+__save__a7 = a7
+a6 = t4
+a7 = a7
+t5 = call t3()
+a6 = __save__a6
+a7 = __save__a7
+________t708__eq__t716 = t0
+________goto_l725 = t0
+goto l725
+________l724 = t0
+l724:
+________t723__eq__1 = t0
+t3 = 1
+________t708__eq__t723 = t0
+________l725 = t0
+l725:
+________if0_node__goto_null = t0
+if0 a6 goto null
+________t728__eq___l_node___p__0_r_ = t0
+t3 = [a6 + 0]
+________t729__eq___l_t728__p__20_r_ = t0
+t4 = [t3 + 20]
+________t726__eq__call_t729_node__ = t0
+________In__t729_t4__node__a6__self_a7 = t0
+________Free_saved__t5 = t0
+__save__a6 = a6
+t5 = a7
+a7 = a6
+t3 = call t4()
+a6 = __save__a6
+a7 = t5
+________print_t726_ = t0
+print(t3)
+________if0_node__goto_null = t0
+if0 a6 goto null
+________t735__eq___l_node___p__0_r_ = t0
+t4 = [a6 + 0]
+________t736__eq___l_t735__p__28_r_ = t0
+t3 = [t4 + 28]
+________t733__eq__call_t736_node__ = t0
+________In__t736_t3__node__a6__self_a7 = t0
+________Free_saved__t5 = t0
+__save__a6 = a6
+t5 = a7
+a7 = a6
+t4 = call t3()
+a6 = __save__a6
+a7 = t5
+________if0_t733_goto_l748 = t0
+if0 t4 goto l748
+________if0_node__goto_null = t0
+if0 a6 goto null
+________t744__eq___l_node___p__0_r_ = t0
+t3 = [a6 + 0]
+________t745__eq___l_t744__p__12_r_ = t0
+t4 = [t3 + 12]
+________t742__eq__call_t745_node__ = t0
+________In__t745_t4__node__a6__self_a7 = t0
+________Free_saved__t5 = t0
+__save__a6 = a6
+t5 = a7
+a7 = a6
+t3 = call t4()
+a6 = __save__a6
+a7 = t5
+________if0_self_goto_null = t0
+if0 a7 goto null
+________t748__eq___l_self__p__0_r_ = t0
+t4 = [a7 + 0]
+________t749__eq___l_t748__p__76_r_ = t0
+t5 = [t4 + 76]
+________t740__eq__call_t749_self_t742_ = t0
+________In__t749_t5__self_a7__t742_t3 = t0
+________Free_saved__ = t0
+__save__a6 = a6
+__save__a7 = a7
+a6 = t3
+a7 = a7
+t4 = call t5()
+a6 = __save__a6
+a7 = __save__a7
+________t708__eq__t740 = t0
+________goto_l749 = t0
+goto l749
+________l748 = t0
+l748:
+________t747__eq__1 = t0
+t5 = 1
+________t708__eq__t747 = t0
+________l749 = t0
+l749:
+________t750__eq__1 = t0
+t5 = 1
+________goto_Tree_RecPrint_end = t0
+goto Tree_RecPrint_end
+________null = t0
+null:
+________error__null_pointer__ = t0
+error("null pointer")
+________array_index_out_of_bounds = t0
+array_index_out_of_bounds:
+________error__array_index_out_of_bounds__ = t0
+error("array index out of bounds")
+________Tree_RecPrint_end = t0
+Tree_RecPrint_end:
+________ret = t0
+t750 = t5
+t3 = __save__t3
+t4 = __save__t4
+t5 = __save__t5
+      return t750
 
 

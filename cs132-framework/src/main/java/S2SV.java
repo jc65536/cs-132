@@ -114,7 +114,9 @@ public class S2SV {
 
             final var zip = List.zip(params, Regs.argRegs);
 
-            final var alloc = linScanRegAlloc(liveRanges, new RegAlloc(Regs.all.join(zip.c)));
+            final var alloc = linScanRegAlloc(liveRanges, new RegAlloc(Regs.all
+            .join(zip.c)
+            ));
 
             final var check = alloc.regs.forAll(t -> {
                 final var range = liveRanges.find(r -> Util.nameEq(r.id, t.a)).get();
@@ -136,7 +138,7 @@ public class S2SV {
                 System.out.println("Sanity check passed");
             }
 
-            return new FunctionInfo(fn.functionName, params, alloc, cfGraph,
+            return new FunctionInfo(fn.functionName, params, alloc, fixed,
                     fn.block.return_id, deadVars);
         });
 

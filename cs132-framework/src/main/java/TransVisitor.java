@@ -1,3 +1,4 @@
+import java.util.Optional;
 import java.util.function.*;
 
 import cs132.IR.sparrow.*;
@@ -10,6 +11,12 @@ import cs132.IR.sparrowv.Move_Reg_Reg;
 import cs132.IR.token.*;
 
 public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruction>, List<Instruction>>> {
+    final NodeInOut nio;
+
+    TransVisitor(NodeInOut nio) {
+        this.nio = nio;
+    }
+
     @Override
     public Function<List<Instruction>, List<Instruction>> visit(LabelInstr arg0, FunctionInfo arg1) {
         return tl -> tl.cons(new cs132.IR.sparrowv.LabelInstr(arg0.label));
@@ -170,9 +177,22 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
         final var callee = arg1.regLookup(arg0.callee);
         final var calleeReg = callee.map(t -> t.b).orElse(Regs.t0);
 
-        final var regsToSave = Regs.argRegs.filter(r -> arg1.allRegs.exists(t -> t.b == r));
+        final var regsToSave = Regs.argRegs.filter(r -> arg1.usedRegs.exists(t -> t.b == r));
 
-        final var callerSave = regsToSave.map(TransVisitor::saveReg);
+        final var liveRegs = nio.in.join(nio.out)
+                .unique(Util::nameEq)
+                .map(arg1::regLookup)
+                .filter(Optional::isPresent)
+                .map(t -> t.get().b);
+
+        final var freeSavedRegs = arg1.regLocals.map(t -> t.b)
+                .filter(r -> !liveRegs.exists(r2 -> r == r2))
+                .unique(Util::nameEq);
+
+        final var zip2 = List.zip(regsToSave, freeSavedRegs);
+
+        final var callerSave = zip2.a.<Instruction>map(t -> new Move_Reg_Reg(t.b, t.a))
+                .join(zip2.b.map(TransVisitor::saveReg));
 
         final var setMemArgs = zip.b.fold(List.<Instruction>nul(), (acc, id) -> arg1
                 .regLookup(id)
@@ -180,17 +200,24 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
                 .orElse(acc));
 
         final var setRegArgs = zip.a.fold(new T2<>(List.<Register>nul(), List.<Instruction>nul()),
-                (acc, t) -> {
-                    final var ins = arg1.regLookup(t.a).<Instruction>map(t2 -> acc.a.find(r -> r == t2.b)
-                            .<Instruction>map(u -> new Move_Reg_Id(t.b, saveId(t2.b)))
-                            .orElseGet(() -> new Move_Reg_Reg(t.b, t2.b)))
-                            .orElseGet(() -> new Move_Reg_Id(t.b, t.a));
-                    return new T2<>(acc.a.cons(t.b), acc.b.cons(ins));
+                (acc, arg) -> {
+                    final var ins = arg1.regLookup(arg.a)
+                            .<Instruction>map(t -> acc.a.find(r -> r == t.b)
+                                    .<Instruction>map(u -> zip2.a.find(v -> v.a == u)
+                                            .<Instruction>map(v -> new Move_Reg_Reg(arg.b, v.b))
+                                            .orElseGet(() -> new Move_Reg_Id(arg.b, saveId(t.b))))
+                                    .orElseGet(() -> new Move_Reg_Reg(arg.b, t.b)))
+                            .orElseGet(() -> new Move_Reg_Id(arg.b, arg.a));
+                    return new T2<>(acc.a.cons(arg.b), acc.b.cons(ins));
                 }).b;
 
-        final var callerRestore = regsToSave.map(TransVisitor::restoreReg);
+        final var callerRestore = zip2.a.<Instruction>map(t -> new Move_Reg_Reg(t.a, t.b))
+                .join(zip2.b.map(TransVisitor::restoreReg));
 
         return ident
+                .andThen(S2SV.DEBUG >= 1
+                        ? tr -> tr.cons(Util.comment("Free_saved__" + freeSavedRegs.strJoin("_")))
+                        : ident)
                 .andThen(callerSave::join)
                 .andThen(setMemArgs::join)
                 .andThen(setRegArgs::join)

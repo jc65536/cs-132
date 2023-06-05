@@ -1,6 +1,6 @@
 #!/bin/bash
 
-file="testcases/hw4/custom/$1.sparrow"
+file="testcases/hw4/$1.sparrow"
 
 ./sparrow vb < $file > strace
 

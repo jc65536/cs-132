@@ -32,7 +32,8 @@ public class CFNode {
     final List<Identifier> def;
     final List<Identifier> use;
 
-    CFNode(cs132.IR.sparrow.Instruction ins, List<? extends CFNode> succ, List<Identifier> defIds, List<Identifier> useIds,
+    CFNode(cs132.IR.sparrow.Instruction ins, List<? extends CFNode> succ, List<Identifier> defIds,
+            List<Identifier> useIds,
             List<CFNode> rest) {
         this.ins = ins;
         this.succ = succ;
@@ -41,7 +42,8 @@ public class CFNode {
     }
 
     Function<List<Instruction>, List<Instruction>> translate(FunctionInfo fi) {
-        return ins.accept(new TransVisitor(), fi);
+        final var nio = fi.body.find(n -> n.node == this).get();
+        return ins.accept(new TransVisitor(nio), fi);
     }
 }
 

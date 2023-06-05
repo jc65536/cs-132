@@ -13,14 +13,17 @@ public class FunctionInfo {
     final List<Identifier> memParams;
 
     final List<T2<Identifier, Register>> regLocals;
-    final List<T2<Identifier, Register>> allRegs;
+    final List<T2<Identifier, Register>> usedRegs;
 
-    final List<CFNode> body;
+    final List<NodeInOut> body;
     final Identifier retId;
 
     final List<Identifier> dead;
 
-    public FunctionInfo(FunctionName functionName, List<Identifier> params, RegAlloc alloc, List<CFNode> body,
+    public FunctionInfo(FunctionName functionName,
+            List<Identifier> params,
+            RegAlloc alloc,
+            List<NodeInOut> body,
             Identifier retId,
             List<Identifier> dead) {
         this.functionName = functionName;
@@ -31,7 +34,7 @@ public class FunctionInfo {
         this.regParams = zip.a;
         this.memParams = zip.b;
 
-        this.allRegs = regLocals.join(regParams);
+        this.usedRegs = regLocals.join(regParams);
 
         this.body = body;
         this.retId = retId;
@@ -47,9 +50,9 @@ public class FunctionInfo {
                 : x -> x;
 
         final Function<List<Instruction>, List<Instruction>> transBody = body
-                .fold(Function.identity(), (acc, node) -> acc
-                        .andThen(tr -> S2SV.DEBUG >= 1 ? tr.cons(Util.comment(node.ins)) : tr)
-                        .andThen(node.translate(this)));
+                .fold(Function.identity(), (acc, nio) -> acc
+                        .andThen(tr -> S2SV.DEBUG >= 1 ? tr.cons(Util.comment(nio.node.ins)) : tr)
+                        .andThen(nio.node.translate(this)));
 
         final Function<List<Instruction>, List<Instruction>> calleeRestore = saveRegs
                 ? regLocals.map(t -> t.b)
@@ -58,7 +61,7 @@ public class FunctionInfo {
                 : x -> x;
 
         final var ins = calleeSave.andThen(transBody)
-                .andThen(tr -> allRegs.find(v -> Util.nameEq(v.a, retId))
+                .andThen(tr -> usedRegs.find(v -> Util.nameEq(v.a, retId))
                         .map(t -> tr.cons(new Move_Id_Reg(retId, t.b)))
                         .orElse(tr))
                 .andThen(calleeRestore)
@@ -85,6 +88,6 @@ public class FunctionInfo {
     }
 
     Optional<T2<Identifier, Register>> regLookup(Identifier id) {
-        return allRegs.find(t -> Util.nameEq(t.a, id));
+        return usedRegs.find(t -> Util.nameEq(t.a, id));
     }
 }
