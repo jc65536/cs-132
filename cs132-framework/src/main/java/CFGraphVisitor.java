@@ -1,8 +1,7 @@
-import java.util.*;
 import java.util.function.*;
 
 import cs132.IR.sparrow.*;
-import cs132.IR.token.Identifier;
+import cs132.IR.token.*;
 
 public class CFGraphVisitor extends ARVisitor<T2<List<CFNode>, List<LabelNode>>, T2<List<CFNode>, List<LabelNode>>> {
     @Override

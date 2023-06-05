@@ -1,0 +1,208 @@
+Main
+    t8 = 4
+    t9 = alloc(t8)
+    t10 = 8
+    vmt_MT4 = alloc(t10)
+    t11 = @MT4_Start
+    [vmt_MT4 + 0] = t11
+    t12 = @MT4_Change
+    [vmt_MT4 + 4] = t12
+    [t9 + 0] = vmt_MT4
+    t7 = t9
+    t14 = 1
+    t15 = 2
+    t16 = 3
+    t17 = 4
+    t18 = 5
+    t19 = 6
+    if0 t7 goto null
+    t20 = [t7 + 0]
+    t21 = [t20 + 0]
+    a = 3
+    t6 = call t21(t7 t14 t15 t16 t17 t18 t19 a)
+MT4_Start
+    aux_ = 0
+    t20 = aux_
+    print(p1_)
+1
+    print(p2_)
+2
+    print(p3_)
+3
+    print(p4_)
+4
+    print(p5_)
+5
+    print(p6_)
+6
+    if0 self goto null
+    t30 = [self + 0]
+    t31 = [t30 + 4]
+    t28 = call t31(self p6_ p5_ p4_ p3_ p2_ p1_)
+MT4_Change
+    print(p1_)
+6
+    print(p2_)
+5
+    print(p3_)
+4
+    print(p4_)
+3
+    print(p5_)
+2
+    print(p6_)
+1
+    t41 = 0
+    return t41
+    y = 0
+    x = y < p7_
+    if0 x goto MT4_Start_end
+    t20 = [self + 0]
+    t21 = [t20 + 0]
+    a = 1
+    z = p7_ - a
+    t28 = call t21(self p6_ p5_ p4_ p3_ p2_ p1_ z)
+MT4_Start
+    aux_ = 0
+    t20 = aux_
+    print(p1_)
+6
+    print(p2_)
+5
+    print(p3_)
+4
+    print(p4_)
+3
+    print(p5_)
+2
+    print(p6_)
+1
+    if0 self goto null
+    t30 = [self + 0]
+    t31 = [t30 + 4]
+    t28 = call t31(self p6_ p5_ p4_ p3_ p2_ p1_)
+MT4_Change
+    print(p1_)
+1
+    print(p2_)
+2
+    print(p3_)
+3
+    print(p4_)
+4
+    print(p5_)
+5
+    print(p6_)
+6
+    t41 = 0
+    return t41
+    y = 0
+    x = y < p7_
+    if0 x goto MT4_Start_end
+    t20 = [self + 0]
+    t21 = [t20 + 0]
+    a = 1
+    z = p7_ - a
+    t28 = call t21(self p6_ p5_ p4_ p3_ p2_ p1_ z)
+MT4_Start
+    aux_ = 0
+    t20 = aux_
+    print(p1_)
+1
+    print(p2_)
+2
+    print(p3_)
+3
+    print(p4_)
+4
+    print(p5_)
+5
+    print(p6_)
+6
+    if0 self goto null
+    t30 = [self + 0]
+    t31 = [t30 + 4]
+    t28 = call t31(self p6_ p5_ p4_ p3_ p2_ p1_)
+MT4_Change
+    print(p1_)
+6
+    print(p2_)
+5
+    print(p3_)
+4
+    print(p4_)
+3
+    print(p5_)
+2
+    print(p6_)
+1
+    t41 = 0
+    return t41
+    y = 0
+    x = y < p7_
+    if0 x goto MT4_Start_end
+    t20 = [self + 0]
+    t21 = [t20 + 0]
+    a = 1
+    z = p7_ - a
+    t28 = call t21(self p6_ p5_ p4_ p3_ p2_ p1_ z)
+MT4_Start
+    aux_ = 0
+    t20 = aux_
+    print(p1_)
+6
+    print(p2_)
+5
+    print(p3_)
+4
+    print(p4_)
+3
+    print(p5_)
+2
+    print(p6_)
+1
+    if0 self goto null
+    t30 = [self + 0]
+    t31 = [t30 + 4]
+    t28 = call t31(self p6_ p5_ p4_ p3_ p2_ p1_)
+MT4_Change
+    print(p1_)
+1
+    print(p2_)
+2
+    print(p3_)
+3
+    print(p4_)
+4
+    print(p5_)
+5
+    print(p6_)
+6
+    t41 = 0
+    return t41
+    y = 0
+    x = y < p7_
+    if0 x goto MT4_Start_end
+    MT4_Start_end:
+    return t28
+    print(t28)
+0
+    goto MT4_Start_end
+    MT4_Start_end:
+    return t28
+    print(t28)
+0
+    goto MT4_Start_end
+    MT4_Start_end:
+    return t28
+    print(t28)
+0
+    goto MT4_Start_end
+    MT4_Start_end:
+    return t28
+    print(t6)
+0
+    goto Main_end
+    Main_end:
+    t25 = 0
+    return t25

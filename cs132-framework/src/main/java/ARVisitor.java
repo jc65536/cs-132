@@ -1,5 +1,5 @@
 import cs132.IR.sparrow.*;
-import cs132.IR.sparrow.visitor.ArgRetVisitor;
+import cs132.IR.sparrow.visitor.*;
 
 public abstract class ARVisitor<A, R> implements ArgRetVisitor<A, R> {
     @Override

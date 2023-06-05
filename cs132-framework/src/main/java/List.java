@@ -109,16 +109,8 @@ public class List<T> extends Lazy<Optional<Pair<T>>> implements ListInt<T> {
         return new List<>(() -> Optional.of(new Pair<>(val, this)));
     }
 
-    List<T> consOpt(Optional<? extends T> opt) {
-        return opt.map(this::cons).orElse(this);
-    }
-
     static <T> List<T> of(T val) {
         return List.<T>nul().cons(val);
-    }
-
-    static <T> List<T> ofOpt(Optional<T> opt) {
-        return opt.map(List::of).orElse(List.nul());
     }
 
     @Override

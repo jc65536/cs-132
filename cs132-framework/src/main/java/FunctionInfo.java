@@ -9,13 +9,12 @@ import cs132.IR.token.Register;
 public class FunctionInfo {
     final List<FunctionInfo> allFns;
     final FunctionName functionName;
+
     final List<T2<Identifier, Register>> regParams;
     final List<Identifier> memParams;
-    final List<T2<Identifier, Register>> regLocals;
-    final List<Identifier> memLocals;
 
-    final List<T2<Identifier, Register>> regs;
-    final List<Identifier> mems;
+    final List<T2<Identifier, Register>> regLocals;
+    final List<T2<Identifier, Register>> allRegs;
 
     final List<CFNode> body;
     final Identifier retId;
@@ -28,15 +27,13 @@ public class FunctionInfo {
             List<Identifier> dead) {
         this.functionName = functionName;
         this.regLocals = alloc.regs;
-        this.memLocals = alloc.mems;
 
         final var zip = List.zip(params, Regs.argRegs);
 
         this.regParams = zip.a;
         this.memParams = zip.b;
 
-        this.regs = regLocals.join(regParams);
-        this.mems = memLocals.join(memParams);
+        this.allRegs = regLocals.join(regParams);
 
         this.body = body;
         this.retId = retId;
@@ -51,24 +48,10 @@ public class FunctionInfo {
                 .unique(Util::nameEq)
                 .map(TransVisitor::saveReg)::join;
 
-        final Function<List<Instruction>, List<Instruction>> transBody = tr -> body
-                .fold(tr, (acc, node) -> node.ins.accept(new TransVisitor(), this)
-                        .apply(S2SV.DEBUG >= 1 ? acc.cons(new Move_Id_Reg(
-                                new Identifier("________" + node.ins.toString()
-                                        .replace(' ', '_')
-                                        .replace("=", "_eq_")
-                                        .replace("+", "_p_")
-                                        .replace("-", "_m_")
-                                        .replace("*", "_t_")
-                                        .replace("<", "_lt_")
-                                        .replace("[", "_l_")
-                                        .replace("]", "_r_")
-                                        .replace(":", "")
-                                        .replace("@", "_fn_")
-                                        .replace('(', '_')
-                                        .replace(')', '_')),
-                                Regs.t0))
-                                : acc));
+        final Function<List<Instruction>, List<Instruction>> transBody = body
+                .fold(Function.identity(), (acc, node) -> acc
+                        .andThen(tr -> S2SV.DEBUG >= 1 ? tr.cons(Util.comment(node.ins)) : tr)
+                        .andThen(node.translate(this)));
 
         final Function<List<Instruction>, List<Instruction>> calleeRestore = regLocals
                 .map(t -> t.b)
@@ -76,7 +59,7 @@ public class FunctionInfo {
                 .map(TransVisitor::restoreReg)::join;
 
         final var ins = calleeSave.andThen(transBody)
-                .andThen(tr -> regs.find(v -> Util.nameEq(v.a, retId))
+                .andThen(tr -> allRegs.find(v -> Util.nameEq(v.a, retId))
                         .map(t -> tr.cons(new Move_Id_Reg(retId, t.b)))
                         .orElse(tr))
                 .andThen(calleeRestore)
@@ -92,11 +75,10 @@ public class FunctionInfo {
 
     @Override
     public String toString() {
-        return String.format("Reg params: %s\nMem params: %s\nReg locals: %s\nMem locals: %s\n",
+        return String.format("Reg params: %s\nMem params: %s\nReg locals: %s\n",
                 regParams.map(t -> String.format("%s -> %s", t.a, t.b)).strJoin(", "),
                 memParams.strJoin(", "),
-                regLocals.map(t -> String.format("%s -> %s", t.a, t.b)).strJoin(", "),
-                memLocals.strJoin(", "));
+                regLocals.map(t -> String.format("%s -> %s", t.a, t.b)).strJoin(", "));
     }
 
     boolean isDead(Identifier id) {
@@ -104,6 +86,6 @@ public class FunctionInfo {
     }
 
     Optional<T2<Identifier, Register>> regLookup(Identifier id) {
-        return regs.find(t -> Util.nameEq(t.a, id));
+        return allRegs.find(t -> Util.nameEq(t.a, id));
     }
 }

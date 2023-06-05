@@ -1,5 +1,3 @@
-import java.util.function.*;
-
 import cs132.IR.SparrowParser;
 import cs132.IR.sparrowv.Program;
 import cs132.IR.visitor.SparrowConstructor;
@@ -29,14 +27,14 @@ public class S2SV {
         }
 
         return ranges.get()
-                .map(p -> {
-                    final var i = p.val;
+                .map(rangePair -> {
+                    final var i = rangePair.val;
                     final var state2 = expOldInts(i, state);
                     if (state2.freeRegs.count() == 0) {
-                        return linScanRegAlloc(p.next, spillAtInt(i, state2));
+                        return linScanRegAlloc(rangePair.next, spillAtInt(i, state2));
                     } else {
                         final var pair = state2.freeRegs.get().get();
-                        return linScanRegAlloc(p.next, state2.setFreeRegs(pair.next)
+                        return linScanRegAlloc(rangePair.next, state2.setFreeRegs(pair.next)
                                 .cons(new T2<>(i.id, pair.val))
                                 .cons(i));
                     }
@@ -136,15 +134,10 @@ public class S2SV {
                 System.out.println("Sanity check passed");
             }
 
-            // System.out.println("Function " + fn.functionName.name);
-            // System.out.println(fixed.fold("", (acc, n) -> acc + n));
-            // liveRanges.map(r -> System.out.printf("%s", r)).reverse();
-
             return new FunctionInfo(fn.functionName, params, alloc, cfGraph,
                     fn.block.return_id,
                     new List<>(z.bind(x -> x)),
                     deadVars);
-
         })).get();
 
         final var prgmv = new Program(functionInfos.map(f -> {
