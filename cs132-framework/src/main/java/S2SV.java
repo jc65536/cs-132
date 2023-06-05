@@ -57,10 +57,10 @@ public class S2SV {
     static RegAlloc spillAtInt(LiveRange i, RegAlloc state) {
         final var spill = state.active.max((r1, r2) -> r1.end - r2.end).get();
         if (spill.end > i.end) {
-            final var newReg = state.regs.map(t -> t.a == spill.id ? new T2<>(i.id, t.b) : t);
-            final var newMem = state.mems.cons(spill.id);
+            final var newRegs = state.regs.map(t -> t.a == spill.id ? new T2<>(i.id, t.b) : t);
+            final var newMems = state.mems.cons(spill.id);
             final var newActive = state.active.map(r -> r == spill ? i : r);
-            return new RegAlloc(newReg, newMem, newActive, state.freeRegs);
+            return new RegAlloc(newRegs, newMems, newActive, state.freeRegs);
         } else {
             return state.cons(i.id);
         }
@@ -72,8 +72,6 @@ public class S2SV {
         SparrowParser.Program().accept(ctor);
         final var prgm = ctor.getProgram();
         final var fns = List.fromJavaList(prgm.funDecls);
-
-        final var mainFnDecl = fns.head().get();
 
         final var functionInfos = fns.map(fn -> {
             final var cfGraph_ = new Lazy<T2<List<CFNode>, List<LabelNode>>>(
@@ -114,9 +112,9 @@ public class S2SV {
                 System.out.printf("Live ranges:\n%s", liveRanges.strJoin(""));
             }
 
-            final var alloc = linScanRegAlloc(liveRanges, new RegAlloc(
-                fn == mainFnDecl ? Regs.all.join(Regs.argRegs) : Regs.all
-            ));
+            final var zip = List.zip(params, Regs.argRegs);
+
+            final var alloc = linScanRegAlloc(liveRanges, new RegAlloc(Regs.all.join(zip.c)));
 
             final var check = alloc.regs.forAll(t -> {
                 final var range = liveRanges.find(r -> Util.nameEq(r.id, t.a)).get();

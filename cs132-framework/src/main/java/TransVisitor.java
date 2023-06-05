@@ -170,12 +170,9 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
         final var callee = arg1.regLookup(arg0.callee);
         final var calleeReg = callee.map(t -> t.b).orElse(Regs.t0);
 
-        final var regsToSave = zip.a.map(t -> t.b)
-            .filter(r -> arg1.allRegs.exists(t -> t.b == r));
+        final var regsToSave = Regs.argRegs.filter(r -> arg1.allRegs.exists(t -> t.b == r));
 
-        final var callerSave = zip.a.map(t -> t.b)
-                .unique(Util::nameEq)
-                .map(TransVisitor::saveReg);
+        final var callerSave = regsToSave.map(TransVisitor::saveReg);
 
         final var setMemArgs = zip.b.fold(List.<Instruction>nul(), (acc, id) -> arg1
                 .regLookup(id)
@@ -191,9 +188,7 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
                     return new T2<>(acc.a.cons(t.b), acc.b.cons(ins));
                 }).b;
 
-        final var callerRestore = zip.a.map(t -> t.b)
-                .unique(Util::nameEq)
-                .map(TransVisitor::restoreReg);
+        final var callerRestore = regsToSave.map(TransVisitor::restoreReg);
 
         return ident
                 .andThen(callerSave::join)
