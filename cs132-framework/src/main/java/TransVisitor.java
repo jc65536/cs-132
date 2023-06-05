@@ -172,18 +172,13 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
         final var args = List.fromJavaList(arg0.args);
         final var zip = List.zip(args, Regs.argRegs);
 
-        final var lhs = arg1.regLookup(arg0.lhs);
-        final var lhsReg = lhs.orElse(Regs.t1);
-        final var callee = arg1.regLookup(arg0.callee);
-        final var calleeReg = callee.orElse(Regs.t0);
-
         final var liveRegs = nio.in.join(nio.out)
                 .unique(Util::nameEq)
                 .map(arg1::regLookup)
                 .filter(Optional::isPresent)
                 .map(t -> t.get());
 
-        final var regsToSave = Regs.argRegs.filter(r -> liveRegs.exists(r::equals));
+        final var regsToSave = zip.a.map(t -> t.b).filter(r -> liveRegs.exists(r::equals));
 
         final var freeSavedRegs = arg1.regLocals.map(t -> t.b)
                 .filter(r -> !liveRegs.exists(r2 -> r == r2))
@@ -214,18 +209,30 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
         final var callerRestore = zip2.a.<Instruction>map(t -> new Move_Reg_Reg(t.a, t.b))
                 .join(zip2.b.map(TransVisitor::restoreReg));
 
+        final var lhs = arg1.regLookup(arg0.lhs);
+        final var lhsReg = lhs.filter(r -> !regsToSave.exists(r::equals))
+                .orElse(Regs.t1);
+        final var callee = arg1.regLookup(arg0.callee);
+        final var calleeReg = callee.filter(r -> !regsToSave.exists(r::equals))
+                .orElse(Regs.t0);
+
         return ident
                 .andThen(S2SV.DEBUG >= 1
                         ? tr -> tr.cons(Util.comment("Free_saved__" + freeSavedRegs.strJoin("_")))
                         : ident)
+                .andThen(tr -> callee.map(r -> regsToSave.find(r::equals)
+                        .map(u -> tr.cons(new Move_Reg_Reg(calleeReg, r)))
+                        .orElse(tr))
+                        .orElseGet(() -> tr.cons(new Move_Reg_Id(calleeReg, arg0.callee))))
                 .andThen(callerSave::join)
                 .andThen(setMemArgs::join)
                 .andThen(setRegArgs::join)
-                .andThen(tr -> callee.map(u -> tr)
-                        .orElseGet(() -> tr.cons(new Move_Reg_Id(calleeReg, arg0.callee))))
                 .andThen(tr -> tr.cons(new cs132.IR.sparrowv.Call(lhsReg, calleeReg, zip.b.toJavaList())))
-                .andThen(tr -> lhs.map(u -> tr).orElseGet(() -> tr.cons(new Move_Id_Reg(arg0.lhs, lhsReg))))
-                .andThen(callerRestore::join);
+                .andThen(callerRestore::join)
+                .andThen(tr -> lhs.map(r -> regsToSave.find(r::equals)
+                        .map(u -> tr.cons(new Move_Reg_Reg(r, lhsReg)))
+                        .orElse(tr))
+                        .orElseGet(() -> tr.cons(new Move_Id_Reg(arg0.lhs, lhsReg))));
     }
 
     static Function<List<Instruction>, List<Instruction>> binop(Identifier lhsId, Identifier op1Id, Identifier op2Id,

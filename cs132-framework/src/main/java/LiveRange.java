@@ -10,8 +10,11 @@ public class LiveRange {
         this.id = var;
         this.begin = cfGraph.firstIndex(n -> n.out
                 .exists(v -> Util.nameEq(id, v))).orElse(-1);
-        this.end = cfGraph.count() - cfGraph.reverse().firstIndex(n -> n.in
-                .exists(v -> Util.nameEq(id, v))).orElse(-1);
+        
+        final var count = cfGraph.count();
+
+        this.end = count - cfGraph.reverse().firstIndex(n -> n.in
+                .exists(v -> Util.nameEq(id, v))).orElse(count + 1);
     }
 
     @Override

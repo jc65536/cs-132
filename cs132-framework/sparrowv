@@ -41,15 +41,13 @@ t4 = t5
 if0 a7 goto null
 t5 = [a7 + 0]
 t4 = [t5 + 4]
-t2 = a7
-t3 = a6
-s10 = a5
+t2 = a6
+t3 = a7
 a6 = a6
 a7 = a7
 t5 = call t4()
-a7 = t2
-a6 = t3
-a5 = s10
+a6 = t2
+a7 = t3
 if0 t5 goto l53
 t4 = 1
 t5 = a5 + t4
@@ -59,15 +57,13 @@ l53:
 if0 a7 goto null
 t5 = [a7 + 0]
 t3 = [t5 + 4]
-t2 = a7
-s10 = a6
-s11 = a5
+t2 = a6
+s10 = a7
 a6 = a5
 a7 = a7
 t5 = call t3()
-a7 = t2
-a6 = s10
-a5 = s11
+a6 = t2
+a7 = s10
 if0 t5 goto l51
 t3 = 1
 t5 = a6 - t3
@@ -75,16 +71,12 @@ t3 = 1
 if0 a7 goto null
 t2 = [a7 + 0]
 s11 = [t2 + 0]
-__save__a5 = a5
 s10 = a7
-t4 = a6
 a5 = t3
 a6 = t5
 a7 = a7
 t2 = call s11()
-a5 = __save__a5
 a7 = s10
-a6 = t4
 t4 = t2
 goto l52
 l51:
@@ -95,29 +87,23 @@ t2 = a5 - t3
 if0 a7 goto null
 t3 = [a7 + 0]
 s10 = [t3 + 0]
-__save__a5 = a5
-s11 = a7
-t4 = a6
+s11 = a6
+t4 = a7
 a5 = t2
 a6 = a6
 a7 = a7
 t3 = call s10()
-a5 = __save__a5
-a7 = s11
-a6 = t4
+a6 = s11
+a7 = t4
 if0 a7 goto null
 s10 = [a7 + 0]
 t2 = [s10 + 0]
-__save__a5 = a5
 s10 = a7
-t4 = a6
 a5 = t3
 a6 = t5
 a7 = a7
 s11 = call t2()
-a5 = __save__a5
 a7 = s10
-a6 = t4
 t4 = s11
 l52:
 l54:

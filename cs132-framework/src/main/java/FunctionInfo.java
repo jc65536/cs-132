@@ -43,28 +43,26 @@ public class FunctionInfo {
     }
 
     FunctionDecl translate(boolean saveRegs) {
-        final Function<List<Instruction>, List<Instruction>> calleeSave = saveRegs
-                ? regLocals.map(t -> t.b)
+        final List<Instruction> calleeSave = regLocals.map(t -> t.b)
                         .unique(Util::nameEq)
-                        .map(TransVisitor::saveReg)::join
-                : x -> x;
+                        .map(TransVisitor::saveReg);
 
         final var transBody = body
                 .fold(TransVisitor.ident, (acc, nio) -> acc
                         .andThen(tr -> S2SV.DEBUG >= 1 ? tr.cons(Util.comment(nio.node.ins)) : tr)
                         .andThen(nio.node.translate(this)));
 
-        final Function<List<Instruction>, List<Instruction>> calleeRestore = saveRegs
-                ? regLocals.map(t -> t.b)
+        final List<Instruction> calleeRestore =regLocals.map(t -> t.b)
                         .unique(Util::nameEq)
-                        .map(TransVisitor::restoreReg)::join
-                : x -> x;
+                        .map(TransVisitor::restoreReg);
 
-        final var ins = calleeSave.andThen(transBody)
+        final var ins = TransVisitor.ident
+                .andThen(saveRegs ? calleeSave::join : TransVisitor.ident)
+                .andThen(transBody)
                 .andThen(tr -> regLookup(retId)
                         .map(r -> tr.cons(new Move_Id_Reg(retId, r)))
                         .orElse(tr))
-                .andThen(calleeRestore)
+                .andThen(saveRegs ? calleeRestore::join : TransVisitor.ident)
                 .apply(List.nul())
                 .reverse()
                 .toJavaList();

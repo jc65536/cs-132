@@ -104,18 +104,18 @@ public class S2SV {
             }
 
             final var liveRanges_ = locals.map(v -> new LiveRange(v, fixed))
-                    .partition(r -> r.begin != -1 && r.end != -1);
-            final var liveRanges = liveRanges_.a.sort((r1, r2) -> r1.begin - r2.begin);
-            final var deadVars = liveRanges_.b.map(r -> r.id);
+                    .partition(r -> r.begin == -1 || r.end == -1);
+            final var deadVars = liveRanges_.a.map(r -> r.id);
+            final var liveRanges = liveRanges_.b.sort((r1, r2) -> r1.begin - r2.begin);
 
             if (DEBUG >= 2) {
                 System.out.printf("Live ranges:\n%s", liveRanges.strJoin(""));
             }
 
-            final var zip = List.zip(params, Regs.argRegs);
+            // final var zip = List.zip(params, Regs.argRegs);
 
             final var alloc = linScanRegAlloc(liveRanges, new RegAlloc(Regs.all
-            .join(zip.c)
+            // .join(zip.c)
             ));
 
             final var check = alloc.regs.forAll(t -> {
