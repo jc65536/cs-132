@@ -1,0 +1,244 @@
+func Main()
+a_ = 0
+t6 = a_
+arr_ = 0
+t7 = arr_
+t10 = 12
+t11 = alloc(t10)
+t12 = 24
+vmt_A = alloc(t12)
+t13 = @A_setX
+[vmt_A + 0] = t13
+t14 = @A_getX
+[vmt_A + 4] = t14
+t15 = @A_sideEffectX
+[vmt_A + 8] = t15
+t16 = @A_setArr
+[vmt_A + 12] = t16
+t17 = @A_getArr
+[vmt_A + 16] = t17
+t18 = @A_sideEffectArr
+[vmt_A + 20] = t18
+[t11 + 0] = vmt_A
+t9 = t11
+t6 = t9
+t21 = 0
+if0 t6 goto null
+t22 = [t6 + 0]
+t23 = [t22 + 0]
+t19 = call t23(t6 t21)
+print(t19)
+if0 t6 goto null
+t29 = [t6 + 0]
+t30 = [t29 + 4]
+t27 = call t30(t6)
+if0 t6 goto null
+t35 = [t6 + 0]
+t36 = [t35 + 8]
+t33 = call t36(t6)
+t26 = t27 < t33
+if0 t26 goto l44
+t40 = 111
+print(t40)
+goto l45
+l44:
+t42 = 222
+print(t42)
+l45:
+if0 t6 goto null
+t49 = [t6 + 0]
+t50 = [t49 + 4]
+t47 = call t50(t6)
+if0 t6 goto null
+t55 = [t6 + 0]
+t56 = [t55 + 8]
+t53 = call t56(t6)
+t46 = t47 + t53
+print(t46)
+if0 t6 goto null
+t64 = [t6 + 0]
+t65 = [t64 + 4]
+t62 = call t65(t6)
+if0 t6 goto null
+t70 = [t6 + 0]
+t71 = [t70 + 8]
+t68 = call t71(t6)
+t61 = t62 - t68
+print(t61)
+if0 t6 goto null
+t79 = [t6 + 0]
+t80 = [t79 + 4]
+t77 = call t80(t6)
+if0 t6 goto null
+t85 = [t6 + 0]
+t86 = [t85 + 8]
+t83 = call t86(t6)
+t76 = t77 * t83
+print(t76)
+t93 = 1
+t94 = 0
+t92 = 1
+t92 = t94 - t92
+t92 = t92 < t93
+if0 t92 goto array_index_out_of_bounds
+t94 = 1
+t94 = t93 + t94
+t92 = 4
+t94 = t94 * t92
+t92 = alloc(t94)
+[t92 + 0] = t93
+t7 = t92
+t96 = 0
+t97 = 6
+if0 t7 goto null
+t95 = [t7 + 0]
+t99 = t96 < t95
+if0 t99 goto array_index_out_of_bounds
+t95 = 0
+t99 = 1
+t99 = t95 - t99
+t99 = t99 < t96
+if0 t99 goto array_index_out_of_bounds
+t95 = 1
+t99 = t96 + t95
+t95 = 4
+t99 = t99 * t95
+t99 = t7 + t99
+[t99 + 0] = t97
+if0 t6 goto null
+t102 = [t6 + 0]
+t103 = [t102 + 12]
+t100 = call t103(t6 t7)
+print(t100)
+if0 t6 goto null
+t110 = [t6 + 0]
+t111 = [t110 + 16]
+t108 = call t111(t6)
+if0 t6 goto null
+t116 = [t6 + 0]
+t117 = [t116 + 20]
+t114 = call t117(t6)
+if0 t108 goto null
+t107 = [t108 + 0]
+t121 = t114 < t107
+if0 t121 goto array_index_out_of_bounds
+t107 = 0
+t121 = 1
+t121 = t107 - t121
+t121 = t121 < t114
+if0 t121 goto array_index_out_of_bounds
+t107 = 1
+t121 = t114 + t107
+t107 = 4
+t121 = t121 * t107
+t121 = t108 + t121
+t107 = [t121 + 0]
+print(t107)
+goto main_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+main_end:
+t123 = 0
+      return t123
+
+func A_setX(self val_)
+t125 = [self + 4]
+[self + 4] = val_
+goto A_setX_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_setX_end:
+      return val_
+
+func A_getX(self)
+t127 = [self + 4]
+goto A_getX_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_getX_end:
+      return t127
+
+func A_sideEffectX(self)
+t129 = [self + 4]
+t131 = [self + 4]
+t132 = 1
+t130 = t131 + t132
+[self + 4] = t130
+t134 = [self + 4]
+goto A_sideEffectX_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_sideEffectX_end:
+      return t134
+
+func A_setArr(self a_)
+t136 = [self + 8]
+[self + 8] = a_
+t137 = 0
+goto A_setArr_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_setArr_end:
+      return t137
+
+func A_getArr(self)
+t138 = [self + 8]
+goto A_getArr_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_getArr_end:
+      return t138
+
+func A_sideEffectArr(self)
+t140 = [self + 8]
+t142 = 1
+t143 = 0
+t141 = 1
+t141 = t143 - t141
+t141 = t141 < t142
+if0 t141 goto array_index_out_of_bounds
+t143 = 1
+t143 = t142 + t143
+t141 = 4
+t143 = t143 * t141
+t141 = alloc(t143)
+[t141 + 0] = t142
+[self + 8] = t141
+t145 = [self + 8]
+t146 = 0
+t147 = 999
+if0 t145 goto null
+t144 = [t145 + 0]
+t149 = t146 < t144
+if0 t149 goto array_index_out_of_bounds
+t144 = 0
+t149 = 1
+t149 = t144 - t149
+t149 = t149 < t146
+if0 t149 goto array_index_out_of_bounds
+t144 = 1
+t149 = t146 + t144
+t144 = 4
+t149 = t149 * t144
+t149 = t145 + t149
+[t149 + 0] = t147
+t150 = 0
+goto A_sideEffectArr_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_sideEffectArr_end:
+      return t150

@@ -1,0 +1,103 @@
+func Main()
+to_call = @Test
+x = 1
+y = x + x
+z = y + y
+b = z + z
+c = b + b
+d = c + c
+e = d + d
+f = e + e
+a = call to_call(x y z b c d e f)
+print(a)
+print(x)
+print(y)
+print(z)
+print(b)
+print(c)
+print(d)
+print(e)
+print(f)
+return x
+
+
+func Test(one two three four five six seven eight)
+a = 0
+b = four
+c = 2
+d = 3
+e = 4
+f = 5
+g = 6
+h = 7
+i = 8
+j = 9
+k = 10
+l = 11
+m = 12
+n = 13
+o = 14
+p = 15
+q = 16
+r = 17
+s = 18
+t = 19
+u = 20
+print(a)
+print(b)
+print(c)
+print(d)
+print(e)
+print(f)
+print(g)
+print(h)
+print(i)
+print(j)
+print(k)
+print(l)
+print(m)
+print(n)
+print(o)
+print(p)
+print(q)
+print(r)
+print(s)
+print(t)
+print(u)
+print(one)
+print(two)
+print(three)
+print(four)
+print(five)
+print(six)
+print(seven)
+print(eight)
+a = b + u
+b = s + t
+c = r + q
+d = p + o
+e = n + m
+f = l + k
+g = j + i
+h = h + g
+i = f + e
+j = d + c
+k = b + a
+print(a)
+print(b)
+print(c)
+print(d)
+print(e)
+print(f)
+print(g)
+print(h)
+print(i)
+print(j)
+print(k)
+a = @Ret
+foo = call a(c)
+return foo
+
+func Ret(h)
+h = 0
+return h

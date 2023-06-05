@@ -1,9 +1,11 @@
+import cs132.IR.token.Identifier;
+
 public class NodeInOut {
     final CFNode node;
-    final List<Var> in;
-    final List<Var> out;
+    final List<Identifier> in;
+    final List<Identifier> out;
 
-    NodeInOut(CFNode node, List<Var> in, List<Var> out) {
+    NodeInOut(CFNode node, List<Identifier> in, List<Identifier> out) {
         this.node = node;
         this.in = in;
         this.out = out;

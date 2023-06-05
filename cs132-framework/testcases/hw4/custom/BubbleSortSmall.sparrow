@@ -1,0 +1,368 @@
+func Main()
+t8 = 12
+t9 = alloc(t8)
+t10 = 16
+vmt_BBS = alloc(t10)
+t11 = @BBS_Start
+[vmt_BBS + 0] = t11
+t12 = @BBS_Sort
+[vmt_BBS + 4] = t12
+t13 = @BBS_Print
+[vmt_BBS + 8] = t13
+t14 = @BBS_Init
+[vmt_BBS + 12] = t14
+[t9 + 0] = vmt_BBS
+t7 = t9
+t16 = 4
+if0 t7 goto null
+t17 = [t7 + 0]
+t18 = [t17 + 0]
+t6 = call t18(t7 t16)
+print(t6)
+goto main_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+main_end:
+t21 = 0
+      return t21
+
+func BBS_Start(self sz_)
+aux01_ = 0
+t22 = aux01_
+if0 self goto null
+t26 = [self + 0]
+t27 = [t26 + 12]
+t24 = call t27(self sz_)
+t22 = t24
+if0 self goto null
+t33 = [self + 0]
+t34 = [t33 + 8]
+t31 = call t34(self)
+t22 = t31
+t37 = 99999
+print(t37)
+if0 self goto null
+t42 = [self + 0]
+t43 = [t42 + 4]
+t40 = call t43(self)
+t22 = t40
+if0 self goto null
+t49 = [self + 0]
+t50 = [t49 + 8]
+t47 = call t50(self)
+t22 = t47
+t53 = 0
+goto BBS_Start_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+BBS_Start_end:
+      return t53
+
+func BBS_Sort(self)
+nt_ = 0
+t54 = nt_
+i_ = 0
+t55 = i_
+aux02_ = 0
+t56 = aux02_
+aux04_ = 0
+t57 = aux04_
+aux05_ = 0
+t58 = aux05_
+aux06_ = 0
+t59 = aux06_
+aux07_ = 0
+t60 = aux07_
+j_ = 0
+t61 = j_
+t_ = 0
+t62 = t_
+t65 = [self + 8]
+t66 = 1
+t64 = t65 - t66
+t55 = t64
+t70 = 0
+t71 = 1
+t69 = t70 - t71
+t56 = t69
+l133:
+t73 = t56 < t55
+if0 t73 goto l134
+t76 = 1
+t61 = t76
+l127:
+t79 = 1
+t78 = t55 + t79
+t77 = t61 < t78
+if0 t77 goto l128
+t84 = 1
+t83 = t61 - t84
+t60 = t83
+t88 = [self + 4]
+if0 t88 goto null
+t87 = [t88 + 0]
+t90 = t60 < t87
+if0 t90 goto array_index_out_of_bounds
+t87 = 0
+t90 = 1
+t90 = t87 - t90
+t90 = t90 < t60
+if0 t90 goto array_index_out_of_bounds
+t87 = 1
+t90 = t60 + t87
+t87 = 4
+t90 = t90 * t87
+t90 = t88 + t90
+t87 = [t90 + 0]
+t57 = t87
+t93 = [self + 4]
+if0 t93 goto null
+t92 = [t93 + 0]
+t95 = t61 < t92
+if0 t95 goto array_index_out_of_bounds
+t92 = 0
+t95 = 1
+t95 = t92 - t95
+t95 = t95 < t61
+if0 t95 goto array_index_out_of_bounds
+t92 = 1
+t95 = t61 + t92
+t92 = 4
+t95 = t95 * t92
+t95 = t93 + t95
+t92 = [t95 + 0]
+t58 = t92
+t96 = t58 < t57
+if0 t96 goto l121
+t100 = 1
+t99 = t61 - t100
+t59 = t99
+t104 = [self + 4]
+if0 t104 goto null
+t103 = [t104 + 0]
+t106 = t59 < t103
+if0 t106 goto array_index_out_of_bounds
+t103 = 0
+t106 = 1
+t106 = t103 - t106
+t106 = t106 < t59
+if0 t106 goto array_index_out_of_bounds
+t103 = 1
+t106 = t59 + t103
+t103 = 4
+t106 = t106 * t103
+t106 = t104 + t106
+t103 = [t106 + 0]
+t62 = t103
+t108 = [self + 4]
+t110 = [self + 4]
+if0 t110 goto null
+t109 = [t110 + 0]
+t112 = t61 < t109
+if0 t112 goto array_index_out_of_bounds
+t109 = 0
+t112 = 1
+t112 = t109 - t112
+t112 = t112 < t61
+if0 t112 goto array_index_out_of_bounds
+t109 = 1
+t112 = t61 + t109
+t109 = 4
+t112 = t112 * t109
+t112 = t110 + t112
+t109 = [t112 + 0]
+if0 t108 goto null
+t107 = [t108 + 0]
+t114 = t59 < t107
+if0 t114 goto array_index_out_of_bounds
+t107 = 0
+t114 = 1
+t114 = t107 - t114
+t114 = t114 < t59
+if0 t114 goto array_index_out_of_bounds
+t107 = 1
+t114 = t59 + t107
+t107 = 4
+t114 = t114 * t107
+t114 = t108 + t114
+[t114 + 0] = t109
+t116 = [self + 4]
+if0 t116 goto null
+t115 = [t116 + 0]
+t118 = t61 < t115
+if0 t118 goto array_index_out_of_bounds
+t115 = 0
+t118 = 1
+t118 = t115 - t118
+t118 = t118 < t61
+if0 t118 goto array_index_out_of_bounds
+t115 = 1
+t118 = t61 + t115
+t115 = 4
+t118 = t118 * t115
+t118 = t116 + t118
+[t118 + 0] = t62
+goto l122
+l121:
+t120 = 0
+t54 = t120
+l122:
+t125 = 1
+t124 = t61 + t125
+t61 = t124
+goto l127
+l128:
+t131 = 1
+t130 = t55 - t131
+t55 = t130
+goto l133
+l134:
+t135 = 0
+goto BBS_Sort_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+BBS_Sort_end:
+      return t135
+
+func BBS_Print(self)
+j_ = 0
+t136 = j_
+t138 = 0
+t136 = t138
+l151:
+t140 = [self + 8]
+t139 = t136 < t140
+if0 t139 goto l152
+t143 = [self + 4]
+if0 t143 goto null
+t142 = [t143 + 0]
+t145 = t136 < t142
+if0 t145 goto array_index_out_of_bounds
+t142 = 0
+t145 = 1
+t145 = t142 - t145
+t145 = t145 < t136
+if0 t145 goto array_index_out_of_bounds
+t142 = 1
+t145 = t136 + t142
+t142 = 4
+t145 = t145 * t142
+t145 = t143 + t145
+t142 = [t145 + 0]
+print(t142)
+t149 = 1
+t148 = t136 + t149
+t136 = t148
+goto l151
+l152:
+t153 = 0
+goto BBS_Print_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+BBS_Print_end:
+      return t153
+
+func BBS_Init(self sz_)
+t155 = [self + 8]
+[self + 8] = sz_
+t157 = [self + 4]
+t159 = 0
+t158 = 1
+t158 = t159 - t158
+t158 = t158 < sz_
+if0 t158 goto array_index_out_of_bounds
+t159 = 1
+t159 = sz_ + t159
+t158 = 4
+t159 = t159 * t158
+t158 = alloc(t159)
+[t158 + 0] = sz_
+[self + 4] = t158
+t161 = [self + 4]
+t162 = 0
+t163 = 20
+if0 t161 goto null
+t160 = [t161 + 0]
+t165 = t162 < t160
+if0 t165 goto array_index_out_of_bounds
+t160 = 0
+t165 = 1
+t165 = t160 - t165
+t165 = t165 < t162
+if0 t165 goto array_index_out_of_bounds
+t160 = 1
+t165 = t162 + t160
+t160 = 4
+t165 = t165 * t160
+t165 = t161 + t165
+[t165 + 0] = t163
+t167 = [self + 4]
+t168 = 1
+t169 = 7
+if0 t167 goto null
+t166 = [t167 + 0]
+t171 = t168 < t166
+if0 t171 goto array_index_out_of_bounds
+t166 = 0
+t171 = 1
+t171 = t166 - t171
+t171 = t171 < t168
+if0 t171 goto array_index_out_of_bounds
+t166 = 1
+t171 = t168 + t166
+t166 = 4
+t171 = t171 * t166
+t171 = t167 + t171
+[t171 + 0] = t169
+t173 = [self + 4]
+t174 = 2
+t175 = 12
+if0 t173 goto null
+t172 = [t173 + 0]
+t177 = t174 < t172
+if0 t177 goto array_index_out_of_bounds
+t172 = 0
+t177 = 1
+t177 = t172 - t177
+t177 = t177 < t174
+if0 t177 goto array_index_out_of_bounds
+t172 = 1
+t177 = t174 + t172
+t172 = 4
+t177 = t177 * t172
+t177 = t173 + t177
+[t177 + 0] = t175
+t179 = [self + 4]
+t180 = 3
+t181 = 18
+if0 t179 goto null
+t178 = [t179 + 0]
+t183 = t180 < t178
+if0 t183 goto array_index_out_of_bounds
+t178 = 0
+t183 = 1
+t183 = t178 - t183
+t183 = t183 < t180
+if0 t183 goto array_index_out_of_bounds
+t178 = 1
+t183 = t180 + t178
+t178 = 4
+t183 = t183 * t178
+t183 = t179 + t183
+[t183 + 0] = t181
+t184 = 0
+goto BBS_Init_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+BBS_Init_end:
+      return t184

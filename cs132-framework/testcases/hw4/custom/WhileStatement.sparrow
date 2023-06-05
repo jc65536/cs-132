@@ -1,0 +1,41 @@
+func Main()
+x_ = 0
+t6 = x_
+y_ = 0
+t7 = y_
+b_ = 0
+t8 = b_
+t10 = 1
+t6 = t10
+t12 = 0
+t7 = t12
+t14 = 0
+t8 = t14
+l22:
+if0 t6 goto l16
+t15 = t7
+goto l17
+l16:
+t15 = t6
+l17:
+if0 t15 goto l23
+t20 = 1
+t19 = t8 + t20
+t8 = t19
+goto l22
+l23:
+l26:
+if0 t6 goto l27
+t25 = 0
+t6 = t25
+goto l26
+l27:
+print(t8)
+goto main_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+main_end:
+t29 = 0
+      return t29

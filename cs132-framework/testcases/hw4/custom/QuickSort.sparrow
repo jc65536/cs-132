@@ -1,0 +1,619 @@
+func Main()
+t8 = 12
+t9 = alloc(t8)
+t10 = 16
+vmt_QS = alloc(t10)
+t11 = @QS_Start
+[vmt_QS + 0] = t11
+t12 = @QS_Sort
+[vmt_QS + 4] = t12
+t13 = @QS_Print
+[vmt_QS + 8] = t13
+t14 = @QS_Init
+[vmt_QS + 12] = t14
+[t9 + 0] = vmt_QS
+t7 = t9
+t16 = 10
+if0 t7 goto null
+t17 = [t7 + 0]
+t18 = [t17 + 0]
+t6 = call t18(t7 t16)
+print(t6)
+goto main_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+main_end:
+t21 = 0
+      return t21
+
+func QS_Start(self sz_)
+aux01_ = 0
+t22 = aux01_
+if0 self goto null
+t26 = [self + 0]
+t27 = [t26 + 12]
+t24 = call t27(self sz_)
+t22 = t24
+if0 self goto null
+t33 = [self + 0]
+t34 = [t33 + 8]
+t31 = call t34(self)
+t22 = t31
+t37 = 9999
+print(t37)
+t41 = [self + 8]
+t42 = 1
+t40 = t41 - t42
+t22 = t40
+t47 = 0
+if0 self goto null
+t48 = [self + 0]
+t49 = [t48 + 4]
+t45 = call t49(self t47 t22)
+t22 = t45
+if0 self goto null
+t54 = [self + 0]
+t55 = [t54 + 8]
+t52 = call t55(self)
+t22 = t52
+t58 = 0
+goto QS_Start_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+QS_Start_end:
+      return t58
+
+func QS_Sort(self left_ right_)
+v_ = 0
+t59 = v_
+i_ = 0
+t60 = i_
+j_ = 0
+t61 = j_
+nt_ = 0
+t62 = nt_
+t_ = 0
+t63 = t_
+cont01_ = 0
+t64 = cont01_
+cont02_ = 0
+t65 = cont02_
+aux03_ = 0
+t66 = aux03_
+t68 = 0
+t63 = t68
+t69 = left_ < right_
+if0 t69 goto l193
+t73 = [self + 4]
+if0 t73 goto null
+t72 = [t73 + 0]
+t75 = right_ < t72
+if0 t75 goto array_index_out_of_bounds
+t72 = 0
+t75 = 1
+t75 = t72 - t75
+t75 = t75 < right_
+if0 t75 goto array_index_out_of_bounds
+t72 = 1
+t75 = right_ + t72
+t72 = 4
+t75 = t75 * t72
+t75 = t73 + t75
+t72 = [t75 + 0]
+t59 = t72
+t78 = 1
+t77 = left_ - t78
+t60 = t77
+t61 = right_
+t82 = 1
+t64 = t82
+l155:
+if0 t64 goto l156
+t84 = 1
+t65 = t84
+l103:
+if0 t65 goto l104
+t87 = 1
+t86 = t60 + t87
+t60 = t86
+t91 = [self + 4]
+if0 t91 goto null
+t90 = [t91 + 0]
+t93 = t60 < t90
+if0 t93 goto array_index_out_of_bounds
+t90 = 0
+t93 = 1
+t93 = t90 - t93
+t93 = t93 < t60
+if0 t93 goto array_index_out_of_bounds
+t90 = 1
+t93 = t60 + t90
+t90 = 4
+t93 = t93 * t90
+t93 = t91 + t93
+t90 = [t93 + 0]
+t66 = t90
+t95 = t66 < t59
+t97 = 1
+t94 = t97 - t95
+if0 t94 goto l101
+t98 = 0
+t65 = t98
+goto l102
+l101:
+t100 = 1
+t65 = t100
+l102:
+goto l103
+l104:
+t106 = 1
+t65 = t106
+l125:
+if0 t65 goto l126
+t109 = 1
+t108 = t61 - t109
+t61 = t108
+t113 = [self + 4]
+if0 t113 goto null
+t112 = [t113 + 0]
+t115 = t61 < t112
+if0 t115 goto array_index_out_of_bounds
+t112 = 0
+t115 = 1
+t115 = t112 - t115
+t115 = t115 < t61
+if0 t115 goto array_index_out_of_bounds
+t112 = 1
+t115 = t61 + t112
+t112 = 4
+t115 = t115 * t112
+t115 = t113 + t115
+t112 = [t115 + 0]
+t66 = t112
+t117 = t59 < t66
+t119 = 1
+t116 = t119 - t117
+if0 t116 goto l123
+t120 = 0
+t65 = t120
+goto l124
+l123:
+t122 = 1
+t65 = t122
+l124:
+goto l125
+l126:
+t129 = [self + 4]
+if0 t129 goto null
+t128 = [t129 + 0]
+t131 = t60 < t128
+if0 t131 goto array_index_out_of_bounds
+t128 = 0
+t131 = 1
+t131 = t128 - t131
+t131 = t131 < t60
+if0 t131 goto array_index_out_of_bounds
+t128 = 1
+t131 = t60 + t128
+t128 = 4
+t131 = t131 * t128
+t131 = t129 + t131
+t128 = [t131 + 0]
+t63 = t128
+t133 = [self + 4]
+t135 = [self + 4]
+if0 t135 goto null
+t134 = [t135 + 0]
+t137 = t61 < t134
+if0 t137 goto array_index_out_of_bounds
+t134 = 0
+t137 = 1
+t137 = t134 - t137
+t137 = t137 < t61
+if0 t137 goto array_index_out_of_bounds
+t134 = 1
+t137 = t61 + t134
+t134 = 4
+t137 = t137 * t134
+t137 = t135 + t137
+t134 = [t137 + 0]
+if0 t133 goto null
+t132 = [t133 + 0]
+t139 = t60 < t132
+if0 t139 goto array_index_out_of_bounds
+t132 = 0
+t139 = 1
+t139 = t132 - t139
+t139 = t139 < t60
+if0 t139 goto array_index_out_of_bounds
+t132 = 1
+t139 = t60 + t132
+t132 = 4
+t139 = t139 * t132
+t139 = t133 + t139
+[t139 + 0] = t134
+t141 = [self + 4]
+if0 t141 goto null
+t140 = [t141 + 0]
+t143 = t61 < t140
+if0 t143 goto array_index_out_of_bounds
+t140 = 0
+t143 = 1
+t143 = t140 - t143
+t143 = t143 < t61
+if0 t143 goto array_index_out_of_bounds
+t140 = 1
+t143 = t61 + t140
+t140 = 4
+t143 = t143 * t140
+t143 = t141 + t143
+[t143 + 0] = t63
+t146 = 1
+t145 = t60 + t146
+t144 = t61 < t145
+if0 t144 goto l153
+t150 = 0
+t64 = t150
+goto l154
+l153:
+t152 = 1
+t64 = t152
+l154:
+goto l155
+l156:
+t158 = [self + 4]
+t160 = [self + 4]
+if0 t160 goto null
+t159 = [t160 + 0]
+t162 = t60 < t159
+if0 t162 goto array_index_out_of_bounds
+t159 = 0
+t162 = 1
+t162 = t159 - t162
+t162 = t162 < t60
+if0 t162 goto array_index_out_of_bounds
+t159 = 1
+t162 = t60 + t159
+t159 = 4
+t162 = t162 * t159
+t162 = t160 + t162
+t159 = [t162 + 0]
+if0 t158 goto null
+t157 = [t158 + 0]
+t164 = t61 < t157
+if0 t164 goto array_index_out_of_bounds
+t157 = 0
+t164 = 1
+t164 = t157 - t164
+t164 = t164 < t61
+if0 t164 goto array_index_out_of_bounds
+t157 = 1
+t164 = t61 + t157
+t157 = 4
+t164 = t164 * t157
+t164 = t158 + t164
+[t164 + 0] = t159
+t166 = [self + 4]
+t168 = [self + 4]
+if0 t168 goto null
+t167 = [t168 + 0]
+t170 = right_ < t167
+if0 t170 goto array_index_out_of_bounds
+t167 = 0
+t170 = 1
+t170 = t167 - t170
+t170 = t170 < right_
+if0 t170 goto array_index_out_of_bounds
+t167 = 1
+t170 = right_ + t167
+t167 = 4
+t170 = t170 * t167
+t170 = t168 + t170
+t167 = [t170 + 0]
+if0 t166 goto null
+t165 = [t166 + 0]
+t172 = t60 < t165
+if0 t172 goto array_index_out_of_bounds
+t165 = 0
+t172 = 1
+t172 = t165 - t172
+t172 = t172 < t60
+if0 t172 goto array_index_out_of_bounds
+t165 = 1
+t172 = t60 + t165
+t165 = 4
+t172 = t172 * t165
+t172 = t166 + t172
+[t172 + 0] = t167
+t174 = [self + 4]
+if0 t174 goto null
+t173 = [t174 + 0]
+t176 = right_ < t173
+if0 t176 goto array_index_out_of_bounds
+t173 = 0
+t176 = 1
+t176 = t173 - t176
+t176 = t176 < right_
+if0 t176 goto array_index_out_of_bounds
+t173 = 1
+t176 = right_ + t173
+t173 = 4
+t176 = t176 * t173
+t176 = t174 + t176
+[t176 + 0] = t63
+t181 = 1
+t180 = t60 - t181
+if0 self goto null
+t183 = [self + 0]
+t184 = [t183 + 4]
+t178 = call t184(self left_ t180)
+t62 = t178
+t188 = 1
+t187 = t60 + t188
+if0 self goto null
+t190 = [self + 0]
+t191 = [t190 + 4]
+t185 = call t191(self t187 right_)
+t62 = t185
+goto l194
+l193:
+t192 = 0
+t62 = t192
+l194:
+t195 = 0
+goto QS_Sort_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+QS_Sort_end:
+      return t195
+
+func QS_Print(self)
+j_ = 0
+t196 = j_
+t198 = 0
+t196 = t198
+l211:
+t200 = [self + 8]
+t199 = t196 < t200
+if0 t199 goto l212
+t203 = [self + 4]
+if0 t203 goto null
+t202 = [t203 + 0]
+t205 = t196 < t202
+if0 t205 goto array_index_out_of_bounds
+t202 = 0
+t205 = 1
+t205 = t202 - t205
+t205 = t205 < t196
+if0 t205 goto array_index_out_of_bounds
+t202 = 1
+t205 = t196 + t202
+t202 = 4
+t205 = t205 * t202
+t205 = t203 + t205
+t202 = [t205 + 0]
+print(t202)
+t209 = 1
+t208 = t196 + t209
+t196 = t208
+goto l211
+l212:
+t213 = 0
+goto QS_Print_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+QS_Print_end:
+      return t213
+
+func QS_Init(self sz_)
+t215 = [self + 8]
+[self + 8] = sz_
+t217 = [self + 4]
+t219 = 0
+t218 = 1
+t218 = t219 - t218
+t218 = t218 < sz_
+if0 t218 goto array_index_out_of_bounds
+t219 = 1
+t219 = sz_ + t219
+t218 = 4
+t219 = t219 * t218
+t218 = alloc(t219)
+[t218 + 0] = sz_
+[self + 4] = t218
+t221 = [self + 4]
+t222 = 0
+t223 = 20
+if0 t221 goto null
+t220 = [t221 + 0]
+t225 = t222 < t220
+if0 t225 goto array_index_out_of_bounds
+t220 = 0
+t225 = 1
+t225 = t220 - t225
+t225 = t225 < t222
+if0 t225 goto array_index_out_of_bounds
+t220 = 1
+t225 = t222 + t220
+t220 = 4
+t225 = t225 * t220
+t225 = t221 + t225
+[t225 + 0] = t223
+t227 = [self + 4]
+t228 = 1
+t229 = 7
+if0 t227 goto null
+t226 = [t227 + 0]
+t231 = t228 < t226
+if0 t231 goto array_index_out_of_bounds
+t226 = 0
+t231 = 1
+t231 = t226 - t231
+t231 = t231 < t228
+if0 t231 goto array_index_out_of_bounds
+t226 = 1
+t231 = t228 + t226
+t226 = 4
+t231 = t231 * t226
+t231 = t227 + t231
+[t231 + 0] = t229
+t233 = [self + 4]
+t234 = 2
+t235 = 12
+if0 t233 goto null
+t232 = [t233 + 0]
+t237 = t234 < t232
+if0 t237 goto array_index_out_of_bounds
+t232 = 0
+t237 = 1
+t237 = t232 - t237
+t237 = t237 < t234
+if0 t237 goto array_index_out_of_bounds
+t232 = 1
+t237 = t234 + t232
+t232 = 4
+t237 = t237 * t232
+t237 = t233 + t237
+[t237 + 0] = t235
+t239 = [self + 4]
+t240 = 3
+t241 = 18
+if0 t239 goto null
+t238 = [t239 + 0]
+t243 = t240 < t238
+if0 t243 goto array_index_out_of_bounds
+t238 = 0
+t243 = 1
+t243 = t238 - t243
+t243 = t243 < t240
+if0 t243 goto array_index_out_of_bounds
+t238 = 1
+t243 = t240 + t238
+t238 = 4
+t243 = t243 * t238
+t243 = t239 + t243
+[t243 + 0] = t241
+t245 = [self + 4]
+t246 = 4
+t247 = 2
+if0 t245 goto null
+t244 = [t245 + 0]
+t249 = t246 < t244
+if0 t249 goto array_index_out_of_bounds
+t244 = 0
+t249 = 1
+t249 = t244 - t249
+t249 = t249 < t246
+if0 t249 goto array_index_out_of_bounds
+t244 = 1
+t249 = t246 + t244
+t244 = 4
+t249 = t249 * t244
+t249 = t245 + t249
+[t249 + 0] = t247
+t251 = [self + 4]
+t252 = 5
+t253 = 11
+if0 t251 goto null
+t250 = [t251 + 0]
+t255 = t252 < t250
+if0 t255 goto array_index_out_of_bounds
+t250 = 0
+t255 = 1
+t255 = t250 - t255
+t255 = t255 < t252
+if0 t255 goto array_index_out_of_bounds
+t250 = 1
+t255 = t252 + t250
+t250 = 4
+t255 = t255 * t250
+t255 = t251 + t255
+[t255 + 0] = t253
+t257 = [self + 4]
+t258 = 6
+t259 = 6
+if0 t257 goto null
+t256 = [t257 + 0]
+t261 = t258 < t256
+if0 t261 goto array_index_out_of_bounds
+t256 = 0
+t261 = 1
+t261 = t256 - t261
+t261 = t261 < t258
+if0 t261 goto array_index_out_of_bounds
+t256 = 1
+t261 = t258 + t256
+t256 = 4
+t261 = t261 * t256
+t261 = t257 + t261
+[t261 + 0] = t259
+t263 = [self + 4]
+t264 = 7
+t265 = 9
+if0 t263 goto null
+t262 = [t263 + 0]
+t267 = t264 < t262
+if0 t267 goto array_index_out_of_bounds
+t262 = 0
+t267 = 1
+t267 = t262 - t267
+t267 = t267 < t264
+if0 t267 goto array_index_out_of_bounds
+t262 = 1
+t267 = t264 + t262
+t262 = 4
+t267 = t267 * t262
+t267 = t263 + t267
+[t267 + 0] = t265
+t269 = [self + 4]
+t270 = 8
+t271 = 19
+if0 t269 goto null
+t268 = [t269 + 0]
+t273 = t270 < t268
+if0 t273 goto array_index_out_of_bounds
+t268 = 0
+t273 = 1
+t273 = t268 - t273
+t273 = t273 < t270
+if0 t273 goto array_index_out_of_bounds
+t268 = 1
+t273 = t270 + t268
+t268 = 4
+t273 = t273 * t268
+t273 = t269 + t273
+[t273 + 0] = t271
+t275 = [self + 4]
+t276 = 9
+t277 = 5
+if0 t275 goto null
+t274 = [t275 + 0]
+t279 = t276 < t274
+if0 t279 goto array_index_out_of_bounds
+t274 = 0
+t279 = 1
+t279 = t274 - t279
+t279 = t279 < t276
+if0 t279 goto array_index_out_of_bounds
+t274 = 1
+t279 = t276 + t274
+t274 = 4
+t279 = t279 * t274
+t279 = t275 + t279
+[t279 + 0] = t277
+t280 = 0
+goto QS_Init_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+QS_Init_end:
+      return t280

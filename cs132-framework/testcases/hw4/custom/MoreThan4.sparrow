@@ -1,0 +1,58 @@
+func Main()
+t8 = 4
+t9 = alloc(t8)
+t10 = 8
+vmt_MT4 = alloc(t10)
+t11 = @MT4_Start
+[vmt_MT4 + 0] = t11
+t12 = @MT4_Change
+[vmt_MT4 + 4] = t12
+[t9 + 0] = vmt_MT4
+t7 = t9
+t14 = 1
+t15 = 2
+t16 = 3
+t17 = 4
+t18 = 5
+t19 = 6
+if0 t7 goto null
+t20 = [t7 + 0]
+t21 = [t20 + 0]
+t6 = call t21(t7 t14 t15 t16 t17 t18 t19)
+print(t6)
+goto Main_end
+null:
+error("null pointer")
+Main_end:
+t25 = 0
+      return t25
+
+func MT4_Start(self p1_ p2_ p3_ p4_ p5_ p6_)
+aux_ = 0
+t20 = aux_
+print(p1_)
+print(p2_)
+print(p3_)
+print(p4_)
+print(p5_)
+print(p6_)
+if0 self goto null
+t30 = [self + 0]
+t31 = [t30 + 4]
+t28 = call t31(self p6_ p5_ p4_ p3_ p2_ p1_)
+t20 = t28
+goto MT4_Start_end
+null:
+error("null pointer")
+MT4_Start_end:
+      return t20
+
+func MT4_Change(self p1_ p2_ p3_ p4_ p5_ p6_)
+print(p1_)
+print(p2_)
+print(p3_)
+print(p4_)
+print(p5_)
+print(p6_)
+t41 = 0
+      return t41

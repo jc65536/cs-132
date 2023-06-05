@@ -1,0 +1,271 @@
+func Main()
+t8 = 12
+t9 = alloc(t8)
+t10 = 16
+vmt_LS = alloc(t10)
+t11 = @LS_Start
+[vmt_LS + 0] = t11
+t12 = @LS_Print
+[vmt_LS + 4] = t12
+t13 = @LS_Search
+[vmt_LS + 8] = t13
+t14 = @LS_Init
+[vmt_LS + 12] = t14
+[t9 + 0] = vmt_LS
+t7 = t9
+t16 = 10
+if0 t7 goto null
+t17 = [t7 + 0]
+t18 = [t17 + 0]
+t6 = call t18(t7 t16)
+print(t6)
+goto main_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+main_end:
+t21 = 0
+      return t21
+
+func LS_Start(self sz_)
+aux01_ = 0
+t22 = aux01_
+aux02_ = 0
+t23 = aux02_
+if0 self goto null
+t27 = [self + 0]
+t28 = [t27 + 12]
+t25 = call t28(self sz_)
+t22 = t25
+if0 self goto null
+t34 = [self + 0]
+t35 = [t34 + 4]
+t32 = call t35(self)
+t23 = t32
+t38 = 9999
+print(t38)
+t42 = 8
+if0 self goto null
+t43 = [self + 0]
+t44 = [t43 + 8]
+t40 = call t44(self t42)
+print(t40)
+t49 = 12
+if0 self goto null
+t50 = [self + 0]
+t51 = [t50 + 8]
+t47 = call t51(self t49)
+print(t47)
+t56 = 17
+if0 self goto null
+t57 = [self + 0]
+t58 = [t57 + 8]
+t54 = call t58(self t56)
+print(t54)
+t63 = 50
+if0 self goto null
+t64 = [self + 0]
+t65 = [t64 + 8]
+t61 = call t65(self t63)
+print(t61)
+t68 = 55
+goto LS_Start_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+LS_Start_end:
+      return t68
+
+func LS_Print(self)
+j_ = 0
+t69 = j_
+t71 = 1
+t69 = t71
+l84:
+t73 = [self + 8]
+t72 = t69 < t73
+if0 t72 goto l85
+t76 = [self + 4]
+if0 t76 goto null
+t75 = [t76 + 0]
+t78 = t69 < t75
+if0 t78 goto array_index_out_of_bounds
+t75 = 0
+t78 = 1
+t78 = t75 - t78
+t78 = t78 < t69
+if0 t78 goto array_index_out_of_bounds
+t75 = 1
+t78 = t69 + t75
+t75 = 4
+t78 = t78 * t75
+t78 = t76 + t78
+t75 = [t78 + 0]
+print(t75)
+t82 = 1
+t81 = t69 + t82
+t69 = t81
+goto l84
+l85:
+t86 = 0
+goto LS_Print_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+LS_Print_end:
+      return t86
+
+func LS_Search(self num_)
+j_ = 0
+t87 = j_
+ls01_ = 0
+t88 = ls01_
+ifound_ = 0
+t89 = ifound_
+aux01_ = 0
+t90 = aux01_
+aux02_ = 0
+t91 = aux02_
+nt_ = 0
+t92 = nt_
+t94 = 1
+t87 = t94
+t96 = 0
+t88 = t96
+t98 = 0
+t89 = t98
+l134:
+t100 = [self + 8]
+t99 = t87 < t100
+if0 t99 goto l135
+t104 = [self + 4]
+if0 t104 goto null
+t103 = [t104 + 0]
+t106 = t87 < t103
+if0 t106 goto array_index_out_of_bounds
+t103 = 0
+t106 = 1
+t106 = t103 - t106
+t106 = t106 < t87
+if0 t106 goto array_index_out_of_bounds
+t103 = 1
+t106 = t87 + t103
+t103 = 4
+t106 = t106 * t103
+t106 = t104 + t106
+t103 = [t106 + 0]
+t90 = t103
+t109 = 1
+t108 = num_ + t109
+t91 = t108
+t111 = t90 < num_
+if0 t111 goto l128
+t114 = 0
+t92 = t114
+goto l129
+l128:
+t116 = t90 < t91
+t118 = 1
+t115 = t118 - t116
+if0 t115 goto l126
+t119 = 0
+t92 = t119
+goto l127
+l126:
+t121 = 1
+t88 = t121
+t123 = 1
+t89 = t123
+t125 = [self + 8]
+t87 = t125
+l127:
+l129:
+t132 = 1
+t131 = t87 + t132
+t87 = t131
+goto l134
+l135:
+goto LS_Search_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+LS_Search_end:
+      return t89
+
+func LS_Init(self sz_)
+j_ = 0
+t137 = j_
+k_ = 0
+t138 = k_
+aux01_ = 0
+t139 = aux01_
+aux02_ = 0
+t140 = aux02_
+t142 = [self + 8]
+[self + 8] = sz_
+t144 = [self + 4]
+t146 = 0
+t145 = 1
+t145 = t146 - t145
+t145 = t145 < sz_
+if0 t145 goto array_index_out_of_bounds
+t146 = 1
+t146 = sz_ + t146
+t145 = 4
+t146 = t146 * t145
+t145 = alloc(t146)
+[t145 + 0] = sz_
+[self + 4] = t145
+t148 = 1
+t137 = t148
+t151 = [self + 8]
+t152 = 1
+t150 = t151 + t152
+t138 = t150
+l179:
+t155 = [self + 8]
+t154 = t137 < t155
+if0 t154 goto l180
+t159 = 2
+t158 = t159 * t137
+t139 = t158
+t163 = 3
+t162 = t138 - t163
+t140 = t162
+t166 = [self + 4]
+t167 = t139 + t140
+if0 t166 goto null
+t165 = [t166 + 0]
+t170 = t137 < t165
+if0 t170 goto array_index_out_of_bounds
+t165 = 0
+t170 = 1
+t170 = t165 - t170
+t170 = t170 < t137
+if0 t170 goto array_index_out_of_bounds
+t165 = 1
+t170 = t137 + t165
+t165 = 4
+t170 = t170 * t165
+t170 = t166 + t170
+[t170 + 0] = t167
+t173 = 1
+t172 = t137 + t173
+t137 = t172
+t177 = 1
+t176 = t138 - t177
+t138 = t176
+goto l179
+l180:
+t181 = 0
+goto LS_Init_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+LS_Init_end:
+      return t181

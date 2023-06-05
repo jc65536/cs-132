@@ -1,0 +1,98 @@
+func Main()
+t8 = 4
+t9 = alloc(t8)
+t10 = 8
+vmt_A = alloc(t10)
+t11 = @A_ackermann
+[vmt_A + 0] = t11
+t12 = @A_isZero
+[vmt_A + 4] = t12
+[t9 + 0] = vmt_A
+t7 = t9
+t14 = 3
+t15 = 4
+if0 t7 goto null
+t16 = [t7 + 0]
+t17 = [t16 + 0]
+t6 = call t17(t7 t14 t15)
+print(t6)
+goto main_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+main_end:
+t19 = 0
+      return t19
+
+func A_ackermann(self m_ n_)
+retVal_ = 0
+t20 = retVal_
+if0 self goto null
+t23 = [self + 0]
+t24 = [t23 + 4]
+t21 = call t24(self m_)
+if0 t21 goto l53
+t29 = 1
+t28 = n_ + t29
+t20 = t28
+goto l54
+l53:
+if0 self goto null
+t33 = [self + 0]
+t34 = [t33 + 4]
+t31 = call t34(self n_)
+if0 t31 goto l51
+t41 = 1
+t40 = m_ - t41
+t43 = 1
+if0 self goto null
+t44 = [self + 0]
+t45 = [t44 + 0]
+t38 = call t45(self t40 t43)
+t20 = t38
+goto l52
+l51:
+t48 = 1
+t47 = m_ - t48
+t53 = 1
+t52 = n_ - t53
+if0 self goto null
+t55 = [self + 0]
+t56 = [t55 + 0]
+t50 = call t56(self m_ t52)
+if0 self goto null
+t56 = [self + 0]
+t57 = [t56 + 0]
+t45 = call t57(self t47 t50)
+t20 = t45
+l52:
+l54:
+goto A_ackermann_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_ackermann_end:
+      return t20
+
+func A_isZero(self x_)
+t58 = 1
+t57 = x_ < t58
+if0 t57 goto l60
+t63 = 0
+t64 = 1
+t62 = t63 - t64
+t61 = t62 < x_
+t56 = t61
+goto l67
+l60:
+t56 = t57
+l67:
+goto A_isZero_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_isZero_end:
+      return t56

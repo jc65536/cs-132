@@ -1,0 +1,79 @@
+func Main()
+t8 = 4
+t9 = alloc(t8)
+t10 = 4
+vmt_A = alloc(t10)
+t11 = @A_run
+[vmt_A + 0] = t11
+[t9 + 0] = vmt_A
+t7 = t9
+if0 t7 goto null
+t13 = [t7 + 0]
+t14 = [t13 + 0]
+t6 = call t14(t7)
+print(t6)
+goto main_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+main_end:
+t18 = 0
+      return t18
+
+func A_run(self)
+a_ = 0
+t19 = a_
+t22 = 20
+t23 = 0
+t21 = 1
+t21 = t23 - t21
+t21 = t21 < t22
+if0 t21 goto array_index_out_of_bounds
+t23 = 1
+t23 = t22 + t23
+t21 = 4
+t23 = t23 * t21
+t21 = alloc(t23)
+[t21 + 0] = t22
+t19 = t21
+t25 = 10
+if0 t19 goto null
+t24 = [t19 + 0]
+t27 = t25 < t24
+if0 t27 goto array_index_out_of_bounds
+t24 = 0
+t27 = 1
+t27 = t24 - t27
+t27 = t27 < t25
+if0 t27 goto array_index_out_of_bounds
+t24 = 1
+t27 = t25 + t24
+t24 = 4
+t27 = t27 * t24
+t27 = t19 + t27
+t24 = [t27 + 0]
+print(t24)
+t30 = 40
+if0 t19 goto null
+t29 = [t19 + 0]
+t32 = t30 < t29
+if0 t32 goto array_index_out_of_bounds
+t29 = 0
+t32 = 1
+t32 = t29 - t32
+t32 = t32 < t30
+if0 t32 goto array_index_out_of_bounds
+t29 = 1
+t32 = t30 + t29
+t29 = 4
+t32 = t32 * t29
+t32 = t19 + t32
+t29 = [t32 + 0]
+goto A_run_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_run_end:
+      return t29

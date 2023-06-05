@@ -1,3 +1,4 @@
+import java.util.Optional;
 import java.util.function.Function;
 
 import cs132.IR.sparrowv.*;
@@ -8,18 +9,23 @@ import cs132.IR.token.Register;
 public class FunctionInfo {
     final List<FunctionInfo> allFns;
     final FunctionName functionName;
-    final List<T2<Var, Register>> regParams;
-    final List<Var> memParams;
-    final List<T2<Var, Register>> regLocals;
-    final List<Var> memLocals;
+    final List<T2<Identifier, Register>> regParams;
+    final List<Identifier> memParams;
+    final List<T2<Identifier, Register>> regLocals;
+    final List<Identifier> memLocals;
 
-    final List<T2<Var, Register>> regs;
-    final List<Var> mems;
+    final List<T2<Identifier, Register>> regs;
+    final List<Identifier> mems;
 
     final List<CFNode> body;
-    final Var retId;
+    final Identifier retId;
 
-    public FunctionInfo(FunctionName functionName, List<Var> params, RegAlloc alloc, List<CFNode> body, Var retId, List<FunctionInfo> allFns) {
+    final List<Identifier> dead;
+
+    public FunctionInfo(FunctionName functionName, List<Identifier> params, RegAlloc alloc, List<CFNode> body,
+            Identifier retId,
+            List<FunctionInfo> allFns,
+            List<Identifier> dead) {
         this.functionName = functionName;
         this.regLocals = alloc.regs;
         this.memLocals = alloc.mems;
@@ -35,50 +41,53 @@ public class FunctionInfo {
         this.body = body;
         this.retId = retId;
         this.allFns = allFns;
-    }
 
-    boolean nameEquals(FunctionInfo other) {
-        return functionName.toString().equals(other.functionName.toString());
+        this.dead = dead;
     }
 
     FunctionDecl translate() {
         final Function<List<Instruction>, List<Instruction>> calleeSave = regLocals
-                .map(t -> TransVisitor.saveReg(t.b))::join;
+                .map(t -> t.b)
+                .unique(Util::nameEq)
+                .map(TransVisitor::saveReg)::join;
 
         final Function<List<Instruction>, List<Instruction>> transBody = tr -> body
-                .fold(tr, (acc, node) -> node.ins.accept(new TransVisitor(), this).apply(S2SV.DEBUG >= 1
-                ? acc.cons(new Move_Id_Reg(
-                    new Identifier("________" + node.ins.toString()
-                    .replace(' ', '_')
-                    .replace("=", "_eq_")
-                    .replace("+", "_p_")
-                    .replace("-", "_m_")
-                    .replace("*", "_t_")
-                    .replace("<", "_lt_")
-                    .replace("[", "_l_")
-                    .replace("]", "_r_")
-                    .replace(":", "")
-                    .replace("@", "_fn_")
-                    .replace('(', '_')
-                    .replace(')', '_')), Regs.t0))
-                : acc));
+                .fold(tr, (acc, node) -> node.ins.accept(new TransVisitor(), this)
+                        .apply(S2SV.DEBUG >= 1 ? acc.cons(new Move_Id_Reg(
+                                new Identifier("________" + node.ins.toString()
+                                        .replace(' ', '_')
+                                        .replace("=", "_eq_")
+                                        .replace("+", "_p_")
+                                        .replace("-", "_m_")
+                                        .replace("*", "_t_")
+                                        .replace("<", "_lt_")
+                                        .replace("[", "_l_")
+                                        .replace("]", "_r_")
+                                        .replace(":", "")
+                                        .replace("@", "_fn_")
+                                        .replace('(', '_')
+                                        .replace(')', '_')),
+                                Regs.t0))
+                                : acc));
 
         final Function<List<Instruction>, List<Instruction>> calleeRestore = regLocals
-                .map(t -> TransVisitor.restoreReg(t.b))::join;
+                .map(t -> t.b)
+                .unique(Util::nameEq)
+                .map(TransVisitor::restoreReg)::join;
 
         final var ins = calleeSave.andThen(transBody)
-                .andThen(tr -> regs.find(v -> v.a.nameEquals(retId))
-                        .map(t -> tr.cons(new Move_Id_Reg(retId.id, t.b)))
+                .andThen(tr -> regs.find(v -> Util.nameEq(v.a, retId))
+                        .map(t -> tr.cons(new Move_Id_Reg(retId, t.b)))
                         .orElse(tr))
                 .andThen(calleeRestore)
                 .apply(List.nul())
                 .reverse()
                 .toJavaList();
 
-        final var block = new Block(ins, retId.id);
+        final var block = new Block(ins, retId);
 
         return new FunctionDecl(functionName,
-                memParams.map(v -> v.id).toJavaList(), block);
+                memParams.toJavaList(), block);
     }
 
     @Override
@@ -88,5 +97,13 @@ public class FunctionInfo {
                 memParams.strJoin(", "),
                 regLocals.map(t -> String.format("%s -> %s", t.a, t.b)).strJoin(", "),
                 memLocals.strJoin(", "));
+    }
+
+    boolean isDead(Identifier id) {
+        return dead.exists(v -> Util.nameEq(v, id));
+    }
+
+    Optional<T2<Identifier, Register>> regLookup(Identifier id) {
+        return regs.find(t -> Util.nameEq(t.a, id));
     }
 }

@@ -1,4 +1,3 @@
-import java.util.Optional;
 import java.util.function.*;
 
 import cs132.IR.sparrow.Instruction;
@@ -21,26 +20,15 @@ class ParamsNode extends CFNode {
 public class CFNode {
     final Instruction ins;
     final List<? extends CFNode> succ;
-    final List<Var> def;
-    final List<Var> use;
+    final List<Identifier> def;
+    final List<Identifier> use;
 
     CFNode(Instruction ins, List<? extends CFNode> succ, List<Identifier> defIds, List<Identifier> useIds,
             List<CFNode> rest) {
         this.ins = ins;
         this.succ = succ;
-        def = defIds.map(Var::new).unique(Var::nameEquals);
-        use = useIds.map(Var::new).unique(Var::nameEquals);
-    }
-
-    @Override
-    public String toString() {
-        final BiFunction<String, Var, String> commaJoin = (acc, v) -> acc + v.id + ", ";
-        return String.format("====\nNode: %s\t(%s)\nSuccessors: %s\nDef: %s\nUse: %s\n",
-                ins,
-                this.hashCode(),
-                succ.fold("", (acc, s) -> acc + s.hashCode() + ", "),
-                def.fold("", commaJoin),
-                use.fold("", commaJoin));
+        def = defIds.unique(Util::nameEq);
+        use = useIds.unique(Util::nameEq);
     }
 }
 
@@ -50,9 +38,5 @@ class LabelNode extends CFNode {
     LabelNode(LabelInstr ins, List<CFNode> succ, List<CFNode> rest) {
         super(ins, succ, List.nul(), List.nul(), rest);
         this.label = ins.label;
-    }
-
-    boolean equalsLabel(Label l) {
-        return label.toString().equals(l.toString());
     }
 }

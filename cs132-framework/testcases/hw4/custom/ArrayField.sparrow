@@ -1,0 +1,115 @@
+func Main()
+x_ = 0
+t6 = x_
+y_ = 0
+t7 = y_
+z_ = 0
+t8 = z_
+a_ = 0
+t9 = a_
+t13 = 12
+t14 = alloc(t13)
+t15 = 12
+vmt_A = alloc(t15)
+t16 = @A_getA
+[vmt_A + 0] = t16
+t17 = @A_setArr
+[vmt_A + 4] = t17
+t18 = @A_getArr
+[vmt_A + 8] = t18
+[t14 + 0] = vmt_A
+t12 = t14
+if0 t12 goto null
+t20 = [t12 + 0]
+t21 = [t20 + 0]
+t11 = call t21(t12)
+t9 = t11
+if0 t9 goto null
+t27 = [t9 + 0]
+t28 = [t27 + 8]
+t25 = call t28(t9)
+t6 = t25
+t34 = 4
+if0 t9 goto null
+t35 = [t9 + 0]
+t36 = [t35 + 4]
+t32 = call t36(t9 t34)
+t8 = t32
+if0 t6 goto null
+t38 = [t6 + 0]
+print(t38)
+if0 t9 goto null
+t43 = [t9 + 0]
+t44 = [t43 + 8]
+t41 = call t44(t9)
+t6 = t41
+if0 t6 goto null
+t47 = [t6 + 0]
+print(t47)
+goto main_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+main_end:
+t49 = 0
+      return t49
+
+func A_getA(self)
+t51 = [self + 8]
+t53 = 10
+t54 = 0
+t52 = 1
+t52 = t54 - t52
+t52 = t52 < t53
+if0 t52 goto array_index_out_of_bounds
+t54 = 1
+t54 = t53 + t54
+t52 = 4
+t54 = t54 * t52
+t52 = alloc(t54)
+[t52 + 0] = t53
+[self + 8] = t52
+goto A_getA_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_getA_end:
+      return self
+
+func A_setArr(self len_)
+t57 = [self + 4]
+t58 = 10
+[self + 4] = t58
+t60 = [self + 8]
+t62 = 0
+t61 = 1
+t61 = t62 - t61
+t61 = t61 < len_
+if0 t61 goto array_index_out_of_bounds
+t62 = 1
+t62 = len_ + t62
+t61 = 4
+t62 = t62 * t61
+t61 = alloc(t62)
+[t61 + 0] = len_
+[self + 8] = t61
+t63 = 2
+goto A_setArr_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_setArr_end:
+      return t63
+
+func A_getArr(self)
+t64 = [self + 8]
+goto A_getArr_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_getArr_end:
+      return t64

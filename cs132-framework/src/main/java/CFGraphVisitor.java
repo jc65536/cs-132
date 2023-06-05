@@ -112,7 +112,7 @@ class CFNodeVisitor
             T2<List<CFNode>, List<LabelNode>> arg1) {
         return (next, labels) -> new T2<>(
                 new CFNode(arg0,
-                        arg1.b.filter(lNode -> lNode.equalsLabel(arg0.label)),
+                        arg1.b.filter(lNode -> Util.nameEq(lNode.label, arg0.label)),
                         List.nul(),
                         List.nul(),
                         arg1.a),
@@ -124,7 +124,7 @@ class CFNodeVisitor
             T2<List<CFNode>, List<LabelNode>> arg1) {
         return (next, labels) -> new T2<>(
                 new CFNode(arg0,
-                        List.of(next).join(arg1.b.filter(lNode -> lNode.equalsLabel(arg0.label))),
+                        List.of(next).join(arg1.b.filter(lNode -> Util.nameEq(lNode.label, arg0.label))),
                         List.nul(),
                         List.of(arg0.condition),
                         arg1.a),

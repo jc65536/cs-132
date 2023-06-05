@@ -78,7 +78,7 @@ interface ListInt<T> {
 
     Optional<Integer> firstIndex(int i, Predicate<? super T> p);
 
-    List<T> unique(List<T> hist, BiPredicate<T, T> eq);
+    List<T> unique(List<T> hist, BiPredicate<? super T, ? super T> eq);
 }
 
 // Lazy linked list implementation
@@ -194,11 +194,11 @@ public class List<T> extends Lazy<Optional<Pair<T>>> implements ListInt<T> {
     }
 
     @Override
-    public List<T> unique(List<T> hist, BiPredicate<T, T> eq) {
+    public List<T> unique(List<T> hist, BiPredicate<? super T, ? super T> eq) {
         return new List<>(bind(opt -> opt.map(n -> n.unique(hist, eq)).orElse(List.nul())));
     }
 
-    List<T> unique(BiPredicate<T, T> eq) {
+    List<T> unique(BiPredicate<? super T, ? super T> eq) {
         return unique(List.nul(), eq);
     }
 
@@ -311,7 +311,7 @@ class Pair<T> implements ListInt<T> {
     }
 
     @Override
-    public List<T> unique(List<T> hist, BiPredicate<T, T> eq) {
+    public List<T> unique(List<T> hist, BiPredicate<? super T, ? super T> eq) {
         return hist.find(v -> eq.test(v, val))
                 .map(u -> next.unique(hist, eq))
                 .orElseGet(() -> next.unique(hist.cons(val), eq).cons(val));

@@ -1,0 +1,44 @@
+func Main()
+x = 0
+a = 0
+a:
+z = 4
+y = x < z
+if0 y goto c
+e = 1
+x = x + e
+b:
+print(x)
+t = z + e
+goto a
+c:
+x = 0
+b = 1
+a = a + b
+c = 3
+c = a < c
+if0 c goto d
+print(x)
+goto b
+d:
+f = @foo
+g = call f(x)
+print(g)
+z = 0
+return z
+
+func foo(z)
+a:
+h = 1
+z = z - h
+t = 0
+s = t < z
+if0 s goto b
+b:
+p = s
+if0 p goto end
+print(z)
+goto a
+end:
+t = 9
+return t

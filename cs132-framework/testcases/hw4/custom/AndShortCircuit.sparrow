@@ -1,0 +1,51 @@
+func Main()
+a_ = 0
+t6 = a_
+t9 = 4
+t10 = alloc(t9)
+t11 = 4
+vmt_A = alloc(t11)
+t12 = @A_sideEffect
+[vmt_A + 0] = t12
+[t10 + 0] = vmt_A
+t8 = t10
+t6 = t8
+t14 = 0
+if0 t14 goto l15
+if0 t6 goto null
+t18 = [t6 + 0]
+t19 = [t18 + 0]
+t16 = call t19(t6)
+t13 = t16
+goto l22
+l15:
+t13 = t14
+l22:
+if0 t13 goto l27
+t23 = 1
+print(t23)
+goto l28
+l27:
+t25 = 2
+print(t25)
+l28:
+goto main_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+main_end:
+t29 = 0
+      return t29
+
+func A_sideEffect(self)
+t30 = 999
+print(t30)
+t32 = 1
+goto A_sideEffect_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_sideEffect_end:
+      return t32

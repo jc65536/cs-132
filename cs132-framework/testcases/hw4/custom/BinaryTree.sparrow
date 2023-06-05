@@ -1,0 +1,968 @@
+func Main()
+t8 = 4
+t9 = alloc(t8)
+t10 = 4
+vmt_BT = alloc(t10)
+t11 = @BT_Start
+[vmt_BT + 0] = t11
+[t9 + 0] = vmt_BT
+t7 = t9
+if0 t7 goto null
+t13 = [t7 + 0]
+t14 = [t13 + 0]
+t6 = call t14(t7)
+print(t6)
+t18 = 0
+goto main_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+main_end:
+      return t18
+
+func BT_Start(self)
+root_ = 0
+t19 = root_
+ntb_ = 0
+t20 = ntb_
+nti_ = 0
+t21 = nti_
+t24 = 28
+t25 = alloc(t24)
+t26 = 80
+vmt_Tree = alloc(t26)
+t27 = @Tree_Init
+[vmt_Tree + 0] = t27
+t28 = @Tree_SetRight
+[vmt_Tree + 4] = t28
+t29 = @Tree_SetLeft
+[vmt_Tree + 8] = t29
+t30 = @Tree_GetRight
+[vmt_Tree + 12] = t30
+t31 = @Tree_GetLeft
+[vmt_Tree + 16] = t31
+t32 = @Tree_GetKey
+[vmt_Tree + 20] = t32
+t33 = @Tree_SetKey
+[vmt_Tree + 24] = t33
+t34 = @Tree_GetHas_Right
+[vmt_Tree + 28] = t34
+t35 = @Tree_GetHas_Left
+[vmt_Tree + 32] = t35
+t36 = @Tree_SetHas_Left
+[vmt_Tree + 36] = t36
+t37 = @Tree_SetHas_Right
+[vmt_Tree + 40] = t37
+t38 = @Tree_Compare
+[vmt_Tree + 44] = t38
+t39 = @Tree_Insert
+[vmt_Tree + 48] = t39
+t40 = @Tree_Delete
+[vmt_Tree + 52] = t40
+t41 = @Tree_Remove
+[vmt_Tree + 56] = t41
+t42 = @Tree_RemoveRight
+[vmt_Tree + 60] = t42
+t43 = @Tree_RemoveLeft
+[vmt_Tree + 64] = t43
+t44 = @Tree_Search
+[vmt_Tree + 68] = t44
+t45 = @Tree_Print
+[vmt_Tree + 72] = t45
+t46 = @Tree_RecPrint
+[vmt_Tree + 76] = t46
+[t25 + 0] = vmt_Tree
+t23 = t25
+t19 = t23
+t50 = 16
+if0 t19 goto null
+t51 = [t19 + 0]
+t52 = [t51 + 0]
+t48 = call t52(t19 t50)
+t20 = t48
+if0 t19 goto null
+t57 = [t19 + 0]
+t58 = [t57 + 72]
+t55 = call t58(t19)
+t20 = t55
+t61 = 100000000
+print(t61)
+t66 = 8
+if0 t19 goto null
+t67 = [t19 + 0]
+t68 = [t67 + 48]
+t64 = call t68(t19 t66)
+t20 = t64
+if0 t19 goto null
+t73 = [t19 + 0]
+t74 = [t73 + 72]
+t71 = call t74(t19)
+t20 = t71
+t80 = 24
+if0 t19 goto null
+t81 = [t19 + 0]
+t82 = [t81 + 48]
+t78 = call t82(t19 t80)
+t20 = t78
+t87 = 4
+if0 t19 goto null
+t88 = [t19 + 0]
+t89 = [t88 + 48]
+t85 = call t89(t19 t87)
+t20 = t85
+t94 = 12
+if0 t19 goto null
+t95 = [t19 + 0]
+t96 = [t95 + 48]
+t92 = call t96(t19 t94)
+t20 = t92
+t101 = 20
+if0 t19 goto null
+t102 = [t19 + 0]
+t103 = [t102 + 48]
+t99 = call t103(t19 t101)
+t20 = t99
+t108 = 28
+if0 t19 goto null
+t109 = [t19 + 0]
+t110 = [t109 + 48]
+t106 = call t110(t19 t108)
+t20 = t106
+t115 = 14
+if0 t19 goto null
+t116 = [t19 + 0]
+t117 = [t116 + 48]
+t113 = call t117(t19 t115)
+t20 = t113
+if0 t19 goto null
+t122 = [t19 + 0]
+t123 = [t122 + 72]
+t120 = call t123(t19)
+t20 = t120
+t128 = 24
+if0 t19 goto null
+t129 = [t19 + 0]
+t130 = [t129 + 68]
+t126 = call t130(t19 t128)
+print(t126)
+t135 = 12
+if0 t19 goto null
+t136 = [t19 + 0]
+t137 = [t136 + 68]
+t133 = call t137(t19 t135)
+print(t133)
+t142 = 16
+if0 t19 goto null
+t143 = [t19 + 0]
+t144 = [t143 + 68]
+t140 = call t144(t19 t142)
+print(t140)
+t149 = 50
+if0 t19 goto null
+t150 = [t19 + 0]
+t151 = [t150 + 68]
+t147 = call t151(t19 t149)
+print(t147)
+t156 = 12
+if0 t19 goto null
+t157 = [t19 + 0]
+t158 = [t157 + 68]
+t154 = call t158(t19 t156)
+print(t154)
+t164 = 12
+if0 t19 goto null
+t165 = [t19 + 0]
+t166 = [t165 + 52]
+t162 = call t166(t19 t164)
+t20 = t162
+if0 t19 goto null
+t171 = [t19 + 0]
+t172 = [t171 + 72]
+t169 = call t172(t19)
+t20 = t169
+t177 = 12
+if0 t19 goto null
+t178 = [t19 + 0]
+t179 = [t178 + 68]
+t175 = call t179(t19 t177)
+print(t175)
+t182 = 0
+goto BT_Start_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+BT_Start_end:
+      return t182
+
+func Tree_Init(self v_key_)
+t184 = [self + 12]
+[self + 12] = v_key_
+t186 = [self + 16]
+t187 = 0
+[self + 16] = t187
+t189 = [self + 20]
+t190 = 0
+[self + 20] = t190
+t191 = 1
+goto Tree_Init_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_Init_end:
+      return t191
+
+func Tree_SetRight(self rn_)
+t193 = [self + 8]
+[self + 8] = rn_
+t194 = 1
+goto Tree_SetRight_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_SetRight_end:
+      return t194
+
+func Tree_SetLeft(self ln_)
+t196 = [self + 4]
+[self + 4] = ln_
+t197 = 1
+goto Tree_SetLeft_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_SetLeft_end:
+      return t197
+
+func Tree_GetRight(self)
+t198 = [self + 8]
+goto Tree_GetRight_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_GetRight_end:
+      return t198
+
+func Tree_GetLeft(self)
+t199 = [self + 4]
+goto Tree_GetLeft_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_GetLeft_end:
+      return t199
+
+func Tree_GetKey(self)
+t200 = [self + 12]
+goto Tree_GetKey_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_GetKey_end:
+      return t200
+
+func Tree_SetKey(self v_key_)
+t202 = [self + 12]
+[self + 12] = v_key_
+t203 = 1
+goto Tree_SetKey_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_SetKey_end:
+      return t203
+
+func Tree_GetHas_Right(self)
+t204 = [self + 20]
+goto Tree_GetHas_Right_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_GetHas_Right_end:
+      return t204
+
+func Tree_GetHas_Left(self)
+t205 = [self + 16]
+goto Tree_GetHas_Left_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_GetHas_Left_end:
+      return t205
+
+func Tree_SetHas_Left(self val_)
+t207 = [self + 16]
+[self + 16] = val_
+t208 = 1
+goto Tree_SetHas_Left_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_SetHas_Left_end:
+      return t208
+
+func Tree_SetHas_Right(self val_)
+t210 = [self + 20]
+[self + 20] = val_
+t211 = 1
+goto Tree_SetHas_Right_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_SetHas_Right_end:
+      return t211
+
+func Tree_Compare(self num1_ num2_)
+ntb_ = 0
+t212 = ntb_
+nti_ = 0
+t213 = nti_
+t215 = 0
+t212 = t215
+t218 = 1
+t217 = num2_ + t218
+t213 = t217
+t220 = num1_ < num2_
+if0 t220 goto l233
+t223 = 0
+t212 = t223
+goto l234
+l233:
+t225 = num1_ < t213
+t227 = 1
+t224 = t227 - t225
+if0 t224 goto l231
+t228 = 0
+t212 = t228
+goto l232
+l231:
+t230 = 1
+t212 = t230
+l232:
+l234:
+goto Tree_Compare_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_Compare_end:
+      return t212
+
+func Tree_Insert(self v_key_)
+new_node_ = 0
+t236 = new_node_
+ntb_ = 0
+t237 = ntb_
+cont_ = 0
+t238 = cont_
+key_aux_ = 0
+t239 = key_aux_
+current_node_ = 0
+t240 = current_node_
+t243 = 28
+t244 = alloc(t243)
+t245 = 80
+vmt_Tree = alloc(t245)
+t246 = @Tree_Init
+[vmt_Tree + 0] = t246
+t247 = @Tree_SetRight
+[vmt_Tree + 4] = t247
+t248 = @Tree_SetLeft
+[vmt_Tree + 8] = t248
+t249 = @Tree_GetRight
+[vmt_Tree + 12] = t249
+t250 = @Tree_GetLeft
+[vmt_Tree + 16] = t250
+t251 = @Tree_GetKey
+[vmt_Tree + 20] = t251
+t252 = @Tree_SetKey
+[vmt_Tree + 24] = t252
+t253 = @Tree_GetHas_Right
+[vmt_Tree + 28] = t253
+t254 = @Tree_GetHas_Left
+[vmt_Tree + 32] = t254
+t255 = @Tree_SetHas_Left
+[vmt_Tree + 36] = t255
+t256 = @Tree_SetHas_Right
+[vmt_Tree + 40] = t256
+t257 = @Tree_Compare
+[vmt_Tree + 44] = t257
+t258 = @Tree_Insert
+[vmt_Tree + 48] = t258
+t259 = @Tree_Delete
+[vmt_Tree + 52] = t259
+t260 = @Tree_Remove
+[vmt_Tree + 56] = t260
+t261 = @Tree_RemoveRight
+[vmt_Tree + 60] = t261
+t262 = @Tree_RemoveLeft
+[vmt_Tree + 64] = t262
+t263 = @Tree_Search
+[vmt_Tree + 68] = t263
+t264 = @Tree_Print
+[vmt_Tree + 72] = t264
+t265 = @Tree_RecPrint
+[vmt_Tree + 76] = t265
+[t244 + 0] = vmt_Tree
+t242 = t244
+t236 = t242
+if0 t236 goto null
+t269 = [t236 + 0]
+t270 = [t269 + 0]
+t267 = call t270(t236 v_key_)
+t237 = t267
+t240 = self
+t275 = 1
+t238 = t275
+l349:
+if0 t238 goto l350
+if0 t240 goto null
+t279 = [t240 + 0]
+t280 = [t279 + 20]
+t277 = call t280(t240)
+t239 = t277
+t283 = v_key_ < t239
+if0 t283 goto l347
+if0 t240 goto null
+t287 = [t240 + 0]
+t288 = [t287 + 32]
+t285 = call t288(t240)
+if0 t285 goto l314
+if0 t240 goto null
+t294 = [t240 + 0]
+t295 = [t294 + 16]
+t292 = call t295(t240)
+t240 = t292
+goto l315
+l314:
+t299 = 0
+t238 = t299
+t303 = 1
+if0 t240 goto null
+t304 = [t240 + 0]
+t305 = [t304 + 36]
+t301 = call t305(t240 t303)
+t237 = t301
+if0 t240 goto null
+t310 = [t240 + 0]
+t311 = [t310 + 8]
+t308 = call t311(t240 t236)
+t237 = t308
+l315:
+goto l348
+l347:
+if0 t240 goto null
+t318 = [t240 + 0]
+t319 = [t318 + 28]
+t316 = call t319(t240)
+if0 t316 goto l345
+if0 t240 goto null
+t325 = [t240 + 0]
+t326 = [t325 + 12]
+t323 = call t326(t240)
+t240 = t323
+goto l346
+l345:
+t330 = 0
+t238 = t330
+t334 = 1
+if0 t240 goto null
+t335 = [t240 + 0]
+t336 = [t335 + 40]
+t332 = call t336(t240 t334)
+t237 = t332
+if0 t240 goto null
+t341 = [t240 + 0]
+t342 = [t341 + 4]
+t339 = call t342(t240 t236)
+t237 = t339
+l346:
+l348:
+goto l349
+l350:
+t351 = 1
+goto Tree_Insert_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_Insert_end:
+      return t351
+
+func Tree_Delete(self v_key_)
+current_node_ = 0
+t352 = current_node_
+parent_node_ = 0
+t353 = parent_node_
+cont_ = 0
+t354 = cont_
+found_ = 0
+t355 = found_
+is_root_ = 0
+t356 = is_root_
+key_aux_ = 0
+t357 = key_aux_
+ntb_ = 0
+t358 = ntb_
+t352 = self
+t353 = self
+t362 = 1
+t354 = t362
+t364 = 0
+t355 = t364
+t366 = 1
+t356 = t366
+l461:
+if0 t354 goto l462
+if0 t352 goto null
+t370 = [t352 + 0]
+t371 = [t370 + 20]
+t368 = call t371(t352)
+t357 = t368
+t374 = v_key_ < t357
+if0 t374 goto l457
+if0 t352 goto null
+t378 = [t352 + 0]
+t379 = [t378 + 32]
+t376 = call t379(t352)
+if0 t376 goto l392
+t353 = t352
+if0 t352 goto null
+t386 = [t352 + 0]
+t387 = [t386 + 16]
+t384 = call t387(t352)
+t352 = t384
+goto l393
+l392:
+t391 = 0
+t354 = t391
+l393:
+goto l458
+l457:
+t394 = t357 < v_key_
+if0 t394 goto l455
+if0 t352 goto null
+t398 = [t352 + 0]
+t399 = [t398 + 28]
+t396 = call t399(t352)
+if0 t396 goto l412
+t353 = t352
+if0 t352 goto null
+t406 = [t352 + 0]
+t407 = [t406 + 12]
+t404 = call t407(t352)
+t352 = t404
+goto l413
+l412:
+t411 = 0
+t354 = t411
+l413:
+goto l456
+l455:
+if0 t356 goto l449
+if0 t352 goto null
+t418 = [t352 + 0]
+t419 = [t418 + 28]
+t416 = call t419(t352)
+t422 = 1
+t415 = t422 - t416
+if0 t415 goto l422
+if0 t352 goto null
+t426 = [t352 + 0]
+t427 = [t426 + 32]
+t424 = call t427(t352)
+t430 = 1
+t423 = t430 - t424
+t414 = t423
+goto l430
+l422:
+t414 = t415
+l430:
+if0 t414 goto l440
+t432 = 1
+t358 = t432
+goto l441
+l440:
+if0 self goto null
+t436 = [self + 0]
+t437 = [t436 + 56]
+t434 = call t437(self t353 t352)
+t358 = t434
+l441:
+goto l450
+l449:
+if0 self goto null
+t445 = [self + 0]
+t446 = [t445 + 56]
+t443 = call t446(self t353 t352)
+t358 = t443
+l450:
+t452 = 1
+t355 = t452
+t454 = 0
+t354 = t454
+l456:
+l458:
+t460 = 0
+t356 = t460
+goto l461
+l462:
+goto Tree_Delete_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_Delete_end:
+      return t355
+
+func Tree_Remove(self p_node_ c_node_)
+ntb_ = 0
+t464 = ntb_
+auxkey1_ = 0
+t465 = auxkey1_
+auxkey2_ = 0
+t466 = auxkey2_
+if0 c_node_ goto null
+t469 = [c_node_ + 0]
+t470 = [t469 + 32]
+t467 = call t470(c_node_)
+if0 t467 goto l551
+if0 self goto null
+t476 = [self + 0]
+t477 = [t476 + 64]
+t474 = call t477(self p_node_ c_node_)
+t464 = t474
+goto l552
+l551:
+if0 c_node_ goto null
+t482 = [c_node_ + 0]
+t483 = [t482 + 28]
+t480 = call t483(c_node_)
+if0 t480 goto l549
+if0 self goto null
+t489 = [self + 0]
+t490 = [t489 + 60]
+t487 = call t490(self p_node_ c_node_)
+t464 = t487
+goto l550
+l549:
+if0 c_node_ goto null
+t496 = [c_node_ + 0]
+t497 = [t496 + 20]
+t494 = call t497(c_node_)
+t465 = t494
+if0 p_node_ goto null
+t504 = [p_node_ + 0]
+t505 = [t504 + 16]
+t502 = call t505(p_node_)
+if0 t502 goto null
+t509 = [t502 + 0]
+t510 = [t509 + 20]
+t501 = call t510(t502)
+t466 = t501
+if0 self goto null
+t515 = [self + 0]
+t516 = [t515 + 44]
+t513 = call t516(self t465 t466)
+if0 t513 goto l547
+t522 = [self + 24]
+if0 p_node_ goto null
+t523 = [p_node_ + 0]
+t524 = [t523 + 8]
+t520 = call t524(p_node_ t522)
+t464 = t520
+t529 = 0
+if0 p_node_ goto null
+t530 = [p_node_ + 0]
+t531 = [t530 + 36]
+t527 = call t531(p_node_ t529)
+t464 = t527
+goto l548
+l547:
+t536 = [self + 24]
+if0 p_node_ goto null
+t537 = [p_node_ + 0]
+t538 = [t537 + 4]
+t534 = call t538(p_node_ t536)
+t464 = t534
+t543 = 0
+if0 p_node_ goto null
+t544 = [p_node_ + 0]
+t545 = [t544 + 40]
+t541 = call t545(p_node_ t543)
+t464 = t541
+l548:
+l550:
+l552:
+t553 = 1
+goto Tree_Remove_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_Remove_end:
+      return t553
+
+func Tree_RemoveRight(self p_node_ c_node_)
+ntb_ = 0
+t554 = ntb_
+l576:
+if0 c_node_ goto null
+t557 = [c_node_ + 0]
+t558 = [t557 + 28]
+t555 = call t558(c_node_)
+if0 t555 goto l577
+if0 c_node_ goto null
+t567 = [c_node_ + 0]
+t568 = [t567 + 12]
+t565 = call t568(c_node_)
+if0 t565 goto null
+t572 = [t565 + 0]
+t573 = [t572 + 20]
+t564 = call t573(t565)
+if0 c_node_ goto null
+t576 = [c_node_ + 0]
+t577 = [t576 + 24]
+t562 = call t577(c_node_ t564)
+t554 = t562
+p_node_ = c_node_
+if0 c_node_ goto null
+t572 = [c_node_ + 0]
+t573 = [t572 + 12]
+t570 = call t573(c_node_)
+c_node_ = t570
+goto l576
+l577:
+t581 = [self + 24]
+if0 p_node_ goto null
+t582 = [p_node_ + 0]
+t583 = [t582 + 4]
+t579 = call t583(p_node_ t581)
+t554 = t579
+t588 = 0
+if0 p_node_ goto null
+t589 = [p_node_ + 0]
+t590 = [t589 + 40]
+t586 = call t590(p_node_ t588)
+t554 = t586
+t592 = 1
+goto Tree_RemoveRight_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_RemoveRight_end:
+      return t592
+
+func Tree_RemoveLeft(self p_node_ c_node_)
+ntb_ = 0
+t593 = ntb_
+l615:
+if0 c_node_ goto null
+t596 = [c_node_ + 0]
+t597 = [t596 + 32]
+t594 = call t597(c_node_)
+if0 t594 goto l616
+if0 c_node_ goto null
+t606 = [c_node_ + 0]
+t607 = [t606 + 16]
+t604 = call t607(c_node_)
+if0 t604 goto null
+t611 = [t604 + 0]
+t612 = [t611 + 20]
+t603 = call t612(t604)
+if0 c_node_ goto null
+t615 = [c_node_ + 0]
+t616 = [t615 + 24]
+t601 = call t616(c_node_ t603)
+t593 = t601
+p_node_ = c_node_
+if0 c_node_ goto null
+t611 = [c_node_ + 0]
+t612 = [t611 + 16]
+t609 = call t612(c_node_)
+c_node_ = t609
+goto l615
+l616:
+t620 = [self + 24]
+if0 p_node_ goto null
+t621 = [p_node_ + 0]
+t622 = [t621 + 8]
+t618 = call t622(p_node_ t620)
+t593 = t618
+t627 = 0
+if0 p_node_ goto null
+t628 = [p_node_ + 0]
+t629 = [t628 + 36]
+t625 = call t629(p_node_ t627)
+t593 = t625
+t631 = 1
+goto Tree_RemoveLeft_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_RemoveLeft_end:
+      return t631
+
+func Tree_Search(self v_key_)
+cont_ = 0
+t632 = cont_
+ifound_ = 0
+t633 = ifound_
+current_node_ = 0
+t634 = current_node_
+key_aux_ = 0
+t635 = key_aux_
+t634 = self
+t638 = 1
+t632 = t638
+t640 = 0
+t633 = t640
+l694:
+if0 t632 goto l695
+if0 t634 goto null
+t644 = [t634 + 0]
+t645 = [t644 + 20]
+t642 = call t645(t634)
+t635 = t642
+t648 = v_key_ < t635
+if0 t648 goto l692
+if0 t634 goto null
+t652 = [t634 + 0]
+t653 = [t652 + 32]
+t650 = call t653(t634)
+if0 t650 goto l665
+if0 t634 goto null
+t659 = [t634 + 0]
+t660 = [t659 + 16]
+t657 = call t660(t634)
+t634 = t657
+goto l666
+l665:
+t664 = 0
+t632 = t664
+l666:
+goto l693
+l692:
+t667 = t635 < v_key_
+if0 t667 goto l690
+if0 t634 goto null
+t671 = [t634 + 0]
+t672 = [t671 + 28]
+t669 = call t672(t634)
+if0 t669 goto l684
+if0 t634 goto null
+t678 = [t634 + 0]
+t679 = [t678 + 12]
+t676 = call t679(t634)
+t634 = t676
+goto l685
+l684:
+t683 = 0
+t632 = t683
+l685:
+goto l691
+l690:
+t687 = 1
+t633 = t687
+t689 = 0
+t632 = t689
+l691:
+l693:
+goto l694
+l695:
+goto Tree_Search_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_Search_end:
+      return t633
+
+func Tree_Print(self)
+current_node_ = 0
+t697 = current_node_
+ntb_ = 0
+t698 = ntb_
+t697 = self
+if0 self goto null
+t703 = [self + 0]
+t704 = [t703 + 76]
+t701 = call t704(self t697)
+t698 = t701
+t707 = 1
+goto Tree_Print_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_Print_end:
+      return t707
+
+func Tree_RecPrint(self node_)
+ntb_ = 0
+t708 = ntb_
+if0 node_ goto null
+t711 = [node_ + 0]
+t712 = [t711 + 32]
+t709 = call t712(node_)
+if0 t709 goto l724
+if0 node_ goto null
+t720 = [node_ + 0]
+t721 = [t720 + 16]
+t718 = call t721(node_)
+if0 self goto null
+t724 = [self + 0]
+t725 = [t724 + 76]
+t716 = call t725(self t718)
+t708 = t716
+goto l725
+l724:
+t723 = 1
+t708 = t723
+l725:
+if0 node_ goto null
+t728 = [node_ + 0]
+t729 = [t728 + 20]
+t726 = call t729(node_)
+print(t726)
+if0 node_ goto null
+t735 = [node_ + 0]
+t736 = [t735 + 28]
+t733 = call t736(node_)
+if0 t733 goto l748
+if0 node_ goto null
+t744 = [node_ + 0]
+t745 = [t744 + 12]
+t742 = call t745(node_)
+if0 self goto null
+t748 = [self + 0]
+t749 = [t748 + 76]
+t740 = call t749(self t742)
+t708 = t740
+goto l749
+l748:
+t747 = 1
+t708 = t747
+l749:
+t750 = 1
+goto Tree_RecPrint_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+Tree_RecPrint_end:
+      return t750

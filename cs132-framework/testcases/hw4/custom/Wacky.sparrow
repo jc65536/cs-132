@@ -1,0 +1,196 @@
+func Main()
+a_ = 0
+t6 = a_
+b_ = 0
+t7 = b_
+x_ = 0
+t8 = x_
+t11 = 20
+t12 = alloc(t11)
+t13 = 8
+vmt_B = alloc(t13)
+t14 = @B_set
+[vmt_B + 0] = t14
+t15 = @B_getNum
+[vmt_B + 4] = t15
+[t12 + 0] = vmt_B
+t10 = t12
+t6 = t10
+t18 = 24
+t19 = alloc(t18)
+t20 = 8
+vmt_C = alloc(t20)
+t21 = @B_set
+[vmt_C + 0] = t21
+t22 = @C_getNum
+[vmt_C + 4] = t22
+[t19 + 0] = vmt_C
+t17 = t19
+t7 = t17
+t26 = 3321
+t27 = 21231
+t28 = 1321
+if0 t6 goto null
+t29 = [t6 + 0]
+t30 = [t29 + 0]
+t24 = call t30(t6 t26 t27 t28)
+t8 = t24
+print(t8)
+t36 = 14321
+t37 = 24310
+t38 = 3519
+if0 t7 goto null
+t39 = [t7 + 0]
+t40 = [t39 + 0]
+t34 = call t40(t7 t36 t37 t38)
+if0 t6 goto null
+t44 = [t6 + 0]
+t45 = [t44 + 4]
+t42 = call t45(t6)
+if0 t7 goto null
+t50 = [t7 + 0]
+t51 = [t50 + 4]
+t48 = call t51(t7)
+if0 t6 goto null
+t56 = [t6 + 0]
+t57 = [t56 + 4]
+t54 = call t57(t6)
+if0 t7 goto null
+t60 = [t7 + 0]
+t61 = [t60 + 0]
+t40 = call t61(t7 t42 t48 t54)
+if0 t6 goto null
+t48 = [t6 + 0]
+t49 = [t48 + 4]
+t46 = call t49(t6)
+if0 t7 goto null
+t52 = [t7 + 0]
+t53 = [t52 + 0]
+t32 = call t53(t7 t34 t40 t46)
+t8 = t32
+if0 t6 goto null
+t40 = [t6 + 0]
+t41 = [t40 + 4]
+t38 = call t41(t6)
+print(t38)
+if0 t7 goto null
+t47 = [t7 + 0]
+t48 = [t47 + 4]
+t45 = call t48(t7)
+print(t45)
+print(t8)
+goto main_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+main_end:
+t53 = 0
+      return t53
+
+func A_set(self x_ y_ z_)
+t55 = [self + 4]
+[self + 4] = x_
+t57 = [self + 8]
+[self + 8] = y_
+t59 = [self + 12]
+[self + 12] = z_
+t60 = 0
+goto A_set_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_set_end:
+      return t60
+
+func A_getNum(self)
+t62 = [self + 4]
+t64 = [self + 4]
+t66 = [self + 8]
+t67 = [self + 12]
+t65 = t66 + t67
+t63 = t64 + t65
+[self + 4] = t63
+t70 = [self + 4]
+goto A_getNum_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_getNum_end:
+      return t70
+
+func B_set(self a0_ s0_ t0_)
+t89 = [self + 16]
+[self + 16] = a0_
+t91 = [self + 8]
+[self + 8] = s0_
+t93 = [self + 12]
+[self + 12] = t0_
+t94 = [self + 12]
+goto B_set_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+B_set_end:
+      return t94
+
+func B_getNum(self)
+t96 = [self + 16]
+t98 = [self + 8]
+t99 = [self + 12]
+t97 = t98 - t99
+[self + 16] = t97
+t102 = [self + 12]
+t104 = [self + 16]
+t105 = [self + 12]
+t103 = t104 * t105
+[self + 12] = t103
+t108 = [self + 8]
+t110 = [self + 16]
+t111 = 2
+t109 = t110 + t111
+[self + 8] = t109
+t113 = [self + 8]
+goto B_getNum_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+B_getNum_end:
+      return t113
+
+func C_getNum(self)
+t114 = [self + 20]
+print(t114)
+t117 = [self + 16]
+t119 = [self + 20]
+t120 = [self + 12]
+t118 = t119 - t120
+[self + 16] = t118
+t122 = [self + 16]
+print(t122)
+t125 = [self + 12]
+t127 = [self + 16]
+t128 = [self + 12]
+t126 = t127 * t128
+[self + 12] = t126
+t130 = [self + 12]
+print(t130)
+t133 = [self + 20]
+t135 = [self + 16]
+t136 = 3333
+t134 = t135 + t136
+[self + 20] = t134
+t138 = [self + 20]
+print(t138)
+t140 = [self + 20]
+goto C_getNum_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+C_getNum_end:
+      return t140

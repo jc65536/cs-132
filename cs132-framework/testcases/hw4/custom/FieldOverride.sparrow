@@ -1,0 +1,119 @@
+func Main()
+a_ = 0
+t6 = a_
+t9 = 12
+t10 = alloc(t9)
+t11 = 20
+vmt_A = alloc(t11)
+t12 = @B_setFoo_B
+[vmt_A + 0] = t12
+t13 = @B_getFoo_B
+[vmt_A + 4] = t13
+t14 = @A_getFoo
+[vmt_A + 8] = t14
+t15 = @A_setFoo_A
+[vmt_A + 12] = t15
+t16 = @A_getFoo_A
+[vmt_A + 16] = t16
+[t10 + 0] = vmt_A
+t8 = t10
+t6 = t8
+t19 = 10
+if0 t6 goto null
+t20 = [t6 + 0]
+t21 = [t20 + 12]
+t17 = call t21(t6 t19)
+print(t17)
+t26 = 25
+if0 t6 goto null
+t27 = [t6 + 0]
+t28 = [t27 + 0]
+t24 = call t28(t6 t26)
+print(t24)
+if0 t6 goto null
+t33 = [t6 + 0]
+t34 = [t33 + 16]
+t31 = call t34(t6)
+print(t31)
+if0 t6 goto null
+t40 = [t6 + 0]
+t41 = [t40 + 4]
+t38 = call t41(t6)
+print(t38)
+if0 t6 goto null
+t47 = [t6 + 0]
+t48 = [t47 + 8]
+t45 = call t48(t6)
+print(t45)
+goto main_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+main_end:
+t52 = 0
+      return t52
+
+func A_setFoo_A(self x_)
+t59 = [self + 8]
+[self + 8] = x_
+t60 = 1
+goto A_setFoo_A_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_setFoo_A_end:
+      return t60
+
+func A_getFoo_A(self)
+t61 = [self + 8]
+goto A_getFoo_A_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_getFoo_A_end:
+      return t61
+
+func A_getFoo(self)
+t62 = [self + 8]
+goto A_getFoo_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_getFoo_end:
+      return t62
+
+func B_setFoo_B(self x_)
+t64 = [self + 4]
+[self + 4] = x_
+t65 = 2
+goto B_setFoo_B_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+B_setFoo_B_end:
+      return t65
+
+func B_getFoo_B(self)
+t66 = [self + 4]
+goto B_getFoo_B_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+B_getFoo_B_end:
+      return t66
+
+func B_getFoo(self)
+t67 = [self + 4]
+goto B_getFoo_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+B_getFoo_end:
+      return t67

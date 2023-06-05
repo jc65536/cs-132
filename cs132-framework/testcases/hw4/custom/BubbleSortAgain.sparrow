@@ -1,0 +1,435 @@
+func Main()
+aux01_ = 0
+t6 = aux01_
+sz_ = 0
+t7 = sz_
+number_ = 0
+t8 = number_
+t10 = 10
+t7 = t10
+t13 = 0
+t12 = 1
+t12 = t13 - t12
+t12 = t12 < t7
+if0 t12 goto array_index_out_of_bounds
+t13 = 1
+t13 = t7 + t13
+t12 = 4
+t13 = t13 * t12
+t12 = alloc(t13)
+[t12 + 0] = t7
+t8 = t12
+t15 = 0
+t16 = 20
+if0 t8 goto null
+t14 = [t8 + 0]
+t18 = t15 < t14
+if0 t18 goto array_index_out_of_bounds
+t14 = 0
+t18 = 1
+t18 = t14 - t18
+t18 = t18 < t15
+if0 t18 goto array_index_out_of_bounds
+t14 = 1
+t18 = t15 + t14
+t14 = 4
+t18 = t18 * t14
+t18 = t8 + t18
+[t18 + 0] = t16
+t20 = 1
+t21 = 7
+if0 t8 goto null
+t19 = [t8 + 0]
+t23 = t20 < t19
+if0 t23 goto array_index_out_of_bounds
+t19 = 0
+t23 = 1
+t23 = t19 - t23
+t23 = t23 < t20
+if0 t23 goto array_index_out_of_bounds
+t19 = 1
+t23 = t20 + t19
+t19 = 4
+t23 = t23 * t19
+t23 = t8 + t23
+[t23 + 0] = t21
+t25 = 2
+t26 = 12
+if0 t8 goto null
+t24 = [t8 + 0]
+t28 = t25 < t24
+if0 t28 goto array_index_out_of_bounds
+t24 = 0
+t28 = 1
+t28 = t24 - t28
+t28 = t28 < t25
+if0 t28 goto array_index_out_of_bounds
+t24 = 1
+t28 = t25 + t24
+t24 = 4
+t28 = t28 * t24
+t28 = t8 + t28
+[t28 + 0] = t26
+t30 = 3
+t31 = 18
+if0 t8 goto null
+t29 = [t8 + 0]
+t33 = t30 < t29
+if0 t33 goto array_index_out_of_bounds
+t29 = 0
+t33 = 1
+t33 = t29 - t33
+t33 = t33 < t30
+if0 t33 goto array_index_out_of_bounds
+t29 = 1
+t33 = t30 + t29
+t29 = 4
+t33 = t33 * t29
+t33 = t8 + t33
+[t33 + 0] = t31
+t35 = 4
+t36 = 2
+if0 t8 goto null
+t34 = [t8 + 0]
+t38 = t35 < t34
+if0 t38 goto array_index_out_of_bounds
+t34 = 0
+t38 = 1
+t38 = t34 - t38
+t38 = t38 < t35
+if0 t38 goto array_index_out_of_bounds
+t34 = 1
+t38 = t35 + t34
+t34 = 4
+t38 = t38 * t34
+t38 = t8 + t38
+[t38 + 0] = t36
+t40 = 5
+t41 = 11
+if0 t8 goto null
+t39 = [t8 + 0]
+t43 = t40 < t39
+if0 t43 goto array_index_out_of_bounds
+t39 = 0
+t43 = 1
+t43 = t39 - t43
+t43 = t43 < t40
+if0 t43 goto array_index_out_of_bounds
+t39 = 1
+t43 = t40 + t39
+t39 = 4
+t43 = t43 * t39
+t43 = t8 + t43
+[t43 + 0] = t41
+t45 = 6
+t46 = 6
+if0 t8 goto null
+t44 = [t8 + 0]
+t48 = t45 < t44
+if0 t48 goto array_index_out_of_bounds
+t44 = 0
+t48 = 1
+t48 = t44 - t48
+t48 = t48 < t45
+if0 t48 goto array_index_out_of_bounds
+t44 = 1
+t48 = t45 + t44
+t44 = 4
+t48 = t48 * t44
+t48 = t8 + t48
+[t48 + 0] = t46
+t50 = 7
+t51 = 9
+if0 t8 goto null
+t49 = [t8 + 0]
+t53 = t50 < t49
+if0 t53 goto array_index_out_of_bounds
+t49 = 0
+t53 = 1
+t53 = t49 - t53
+t53 = t53 < t50
+if0 t53 goto array_index_out_of_bounds
+t49 = 1
+t53 = t50 + t49
+t49 = 4
+t53 = t53 * t49
+t53 = t8 + t53
+[t53 + 0] = t51
+t55 = 8
+t56 = 19
+if0 t8 goto null
+t54 = [t8 + 0]
+t58 = t55 < t54
+if0 t58 goto array_index_out_of_bounds
+t54 = 0
+t58 = 1
+t58 = t54 - t58
+t58 = t58 < t55
+if0 t58 goto array_index_out_of_bounds
+t54 = 1
+t58 = t55 + t54
+t54 = 4
+t58 = t58 * t54
+t58 = t8 + t58
+[t58 + 0] = t56
+t60 = 9
+t61 = 5
+if0 t8 goto null
+t59 = [t8 + 0]
+t63 = t60 < t59
+if0 t63 goto array_index_out_of_bounds
+t59 = 0
+t63 = 1
+t63 = t59 - t63
+t63 = t63 < t60
+if0 t63 goto array_index_out_of_bounds
+t59 = 1
+t63 = t60 + t59
+t59 = 4
+t63 = t63 * t59
+t63 = t8 + t63
+[t63 + 0] = t61
+t66 = 4
+t67 = alloc(t66)
+t68 = 8
+vmt_BBS = alloc(t68)
+t69 = @BBS_Sort
+[vmt_BBS + 0] = t69
+t70 = @BBS_Print
+[vmt_BBS + 4] = t70
+[t67 + 0] = vmt_BBS
+t65 = t67
+if0 t65 goto null
+t72 = [t65 + 0]
+t73 = [t72 + 0]
+t64 = call t73(t65 t8)
+print(t64)
+goto main_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+main_end:
+t77 = 0
+      return t77
+
+func BBS_Sort(self number_)
+nt_ = 0
+t78 = nt_
+i_ = 0
+t79 = i_
+aux02_ = 0
+t80 = aux02_
+aux04_ = 0
+t81 = aux04_
+aux05_ = 0
+t82 = aux05_
+aux06_ = 0
+t83 = aux06_
+aux07_ = 0
+t84 = aux07_
+j_ = 0
+t85 = j_
+t_ = 0
+t86 = t_
+size_ = 0
+t87 = size_
+if0 number_ goto null
+t89 = [number_ + 0]
+t87 = t89
+t92 = 1
+t91 = t87 - t92
+t79 = t91
+t96 = 0
+t97 = 1
+t95 = t96 - t97
+t80 = t95
+if0 self goto null
+t102 = [self + 0]
+t103 = [t102 + 4]
+t100 = call t103(self number_)
+t84 = t100
+t106 = 99999
+print(t106)
+l162:
+t108 = t80 < t79
+if0 t108 goto l163
+t111 = 1
+t85 = t111
+l156:
+t114 = 1
+t113 = t79 + t114
+t112 = t85 < t113
+if0 t112 goto l157
+t119 = 1
+t118 = t85 - t119
+t84 = t118
+if0 number_ goto null
+t122 = [number_ + 0]
+t124 = t84 < t122
+if0 t124 goto array_index_out_of_bounds
+t122 = 0
+t124 = 1
+t124 = t122 - t124
+t124 = t124 < t84
+if0 t124 goto array_index_out_of_bounds
+t122 = 1
+t124 = t84 + t122
+t122 = 4
+t124 = t124 * t122
+t124 = number_ + t124
+t122 = [t124 + 0]
+t81 = t122
+if0 number_ goto null
+t126 = [number_ + 0]
+t128 = t85 < t126
+if0 t128 goto array_index_out_of_bounds
+t126 = 0
+t128 = 1
+t128 = t126 - t128
+t128 = t128 < t85
+if0 t128 goto array_index_out_of_bounds
+t126 = 1
+t128 = t85 + t126
+t126 = 4
+t128 = t128 * t126
+t128 = number_ + t128
+t126 = [t128 + 0]
+t82 = t126
+t129 = t82 < t81
+if0 t129 goto l150
+t133 = 1
+t132 = t85 - t133
+t83 = t132
+if0 number_ goto null
+t136 = [number_ + 0]
+t138 = t83 < t136
+if0 t138 goto array_index_out_of_bounds
+t136 = 0
+t138 = 1
+t138 = t136 - t138
+t138 = t138 < t83
+if0 t138 goto array_index_out_of_bounds
+t136 = 1
+t138 = t83 + t136
+t136 = 4
+t138 = t138 * t136
+t138 = number_ + t138
+t136 = [t138 + 0]
+t86 = t136
+if0 number_ goto null
+t140 = [number_ + 0]
+t142 = t85 < t140
+if0 t142 goto array_index_out_of_bounds
+t140 = 0
+t142 = 1
+t142 = t140 - t142
+t142 = t142 < t85
+if0 t142 goto array_index_out_of_bounds
+t140 = 1
+t142 = t85 + t140
+t140 = 4
+t142 = t142 * t140
+t142 = number_ + t142
+t140 = [t142 + 0]
+if0 number_ goto null
+t139 = [number_ + 0]
+t144 = t83 < t139
+if0 t144 goto array_index_out_of_bounds
+t139 = 0
+t144 = 1
+t144 = t139 - t144
+t144 = t144 < t83
+if0 t144 goto array_index_out_of_bounds
+t139 = 1
+t144 = t83 + t139
+t139 = 4
+t144 = t144 * t139
+t144 = number_ + t144
+[t144 + 0] = t140
+if0 number_ goto null
+t145 = [number_ + 0]
+t147 = t85 < t145
+if0 t147 goto array_index_out_of_bounds
+t145 = 0
+t147 = 1
+t147 = t145 - t147
+t147 = t147 < t85
+if0 t147 goto array_index_out_of_bounds
+t145 = 1
+t147 = t85 + t145
+t145 = 4
+t147 = t147 * t145
+t147 = number_ + t147
+[t147 + 0] = t86
+goto l151
+l150:
+t149 = 0
+t78 = t149
+l151:
+t154 = 1
+t153 = t85 + t154
+t85 = t153
+goto l156
+l157:
+t160 = 1
+t159 = t79 - t160
+t79 = t159
+goto l162
+l163:
+if0 self goto null
+t167 = [self + 0]
+t168 = [t167 + 4]
+t165 = call t168(self number_)
+t84 = t165
+t171 = 0
+goto BBS_Sort_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+BBS_Sort_end:
+      return t171
+
+func BBS_Print(self nums_)
+j_ = 0
+t172 = j_
+size_ = 0
+t173 = size_
+t175 = 0
+t172 = t175
+if0 nums_ goto null
+t177 = [nums_ + 0]
+t173 = t177
+l188:
+t178 = t172 < t173
+if0 t178 goto l189
+if0 nums_ goto null
+t180 = [nums_ + 0]
+t182 = t172 < t180
+if0 t182 goto array_index_out_of_bounds
+t180 = 0
+t182 = 1
+t182 = t180 - t182
+t182 = t182 < t172
+if0 t182 goto array_index_out_of_bounds
+t180 = 1
+t182 = t172 + t180
+t180 = 4
+t182 = t182 * t180
+t182 = nums_ + t182
+t180 = [t182 + 0]
+print(t180)
+t186 = 1
+t185 = t172 + t186
+t172 = t185
+goto l188
+l189:
+t190 = 0
+goto BBS_Print_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+BBS_Print_end:
+      return t190

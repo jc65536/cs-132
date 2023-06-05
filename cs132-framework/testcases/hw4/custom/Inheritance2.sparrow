@@ -1,0 +1,92 @@
+func Main()
+a_ = 0
+t6 = a_
+t9 = 12
+t10 = alloc(t9)
+t11 = 16
+vmt_A = alloc(t11)
+t12 = @B_set
+[vmt_A + 0] = t12
+t13 = @B_run
+[vmt_A + 4] = t13
+t14 = @A_test
+[vmt_A + 8] = t14
+t15 = @A_get
+[vmt_A + 12] = t15
+[t10 + 0] = vmt_A
+t8 = t10
+t6 = t8
+if0 t6 goto null
+t18 = [t6 + 0]
+t19 = [t18 + 8]
+t16 = call t19(t6)
+print(t16)
+if0 t6 goto null
+t25 = [t6 + 0]
+t26 = [t25 + 12]
+t23 = call t26(t6)
+print(t23)
+if0 t6 goto null
+t32 = [t6 + 0]
+t33 = [t32 + 0]
+t30 = call t33(t6)
+print(t30)
+if0 t6 goto null
+t39 = [t6 + 0]
+t40 = [t39 + 4]
+t37 = call t40(t6)
+print(t37)
+goto main_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+main_end:
+t44 = 0
+      return t44
+
+func A_test(self)
+t51 = [self + 8]
+t52 = 12
+[self + 8] = t52
+t53 = 0
+goto A_test_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_test_end:
+      return t53
+
+func A_get(self)
+t54 = [self + 8]
+goto A_get_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+A_get_end:
+      return t54
+
+func B_set(self)
+t56 = [self + 4]
+t57 = 5
+[self + 4] = t57
+t58 = 0
+goto B_set_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+B_set_end:
+      return t58
+
+func B_run(self)
+t59 = [self + 4]
+goto B_run_end
+null:
+error("null pointer")
+array_index_out_of_bounds:
+error("array index out of bounds")
+B_run_end:
+      return t59
