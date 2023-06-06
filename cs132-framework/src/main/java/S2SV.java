@@ -55,7 +55,9 @@ public class S2SV {
     }
 
     static RegAlloc spillAtInt(LiveRange i, RegAlloc state) {
-        final var spill = state.active.max((r1, r2) -> r1.end - r2.end).get();
+        final var spill = state.active.max((r1, r2) -> {
+            return (double) r1.end - r2.end;
+        }).get();
         if (spill.end > i.end) {
             final var newRegs = state.regs.map(t -> t.a == spill.id ? new T2<>(i.id, t.b) : t);
             final var newMems = state.mems.cons(spill.id);

@@ -24,7 +24,7 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
 
     @Override
     public Function<List<Instruction>, List<Instruction>> visit(Move_Id_Integer arg0, FunctionInfo arg1) {
-        if (arg1.isDead(arg0.lhs))
+        if (nio.out.count() == 0)
             return x -> x;
 
         return arg1.regLookup(arg0.lhs)
@@ -36,7 +36,7 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
 
     @Override
     public Function<List<Instruction>, List<Instruction>> visit(Move_Id_FuncName arg0, FunctionInfo arg1) {
-        if (arg1.isDead(arg0.lhs))
+        if (nio.out.count() == 0)
             return x -> x;
 
         return arg1.regLookup(arg0.lhs)
@@ -72,7 +72,7 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
 
     @Override
     public Function<List<Instruction>, List<Instruction>> visit(Load arg0, FunctionInfo arg1) {
-        if (arg1.isDead(arg0.lhs))
+        if (nio.out.count() == 0)
             return x -> x;
 
         final var lhs = arg1.regLookup(arg0.lhs);
@@ -123,7 +123,7 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
 
     @Override
     public Function<List<Instruction>, List<Instruction>> visit(Alloc arg0, FunctionInfo arg1) {
-        if (arg1.isDead(arg0.lhs))
+        if (nio.out.count() == 0)
             return x -> x;
 
         final var lhs = arg1.regLookup(arg0.lhs);
@@ -235,9 +235,9 @@ public class TransVisitor extends ARVisitor<FunctionInfo, Function<List<Instruct
                         .orElseGet(() -> tr.cons(new Move_Id_Reg(arg0.lhs, lhsReg))));
     }
 
-    static Function<List<Instruction>, List<Instruction>> binop(Identifier lhsId, Identifier op1Id, Identifier op2Id,
+    Function<List<Instruction>, List<Instruction>> binop(Identifier lhsId, Identifier op1Id, Identifier op2Id,
             F3<Register, Register, Register, Instruction> mkIns, FunctionInfo arg1) {
-        if (arg1.isDead(lhsId))
+        if (nio.out.count() == 0)
             return x -> x;
 
         final var lhs = arg1.regLookup(lhsId);

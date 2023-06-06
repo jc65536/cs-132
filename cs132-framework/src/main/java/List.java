@@ -179,7 +179,7 @@ public class List<T> extends Lazy<Optional<Pair<T>>> implements ListInt<T> {
         return get().map(n -> n.val);
     }
 
-    Optional<T> max(BiFunction<T, T, Integer> cmp) {
+    Optional<T> max(BiFunction<T, T, Double> cmp) {
         return fold(Optional.empty(), (acc, val) -> acc
                 .filter(m -> cmp.apply(m, val) > 0)
                 .or(() -> Optional.of(val)));
@@ -247,6 +247,16 @@ public class List<T> extends Lazy<Optional<Pair<T>>> implements ListInt<T> {
             final var frags = this.split(new T2<>(List.nul(), List.nul()), true);
             return merge(frags.a.sort(cmp), frags.b.sort(cmp), cmp);
         }
+    }
+
+    private <U> U foldI(U acc, F3<U, T, Integer, U> f, int i) {
+        return get()
+                .map(p -> p.next.foldI(f.apply(acc, p.val, i), f, i + 1))
+                .orElse(acc);
+    }
+
+    <U> U foldI(U acc, F3<U, T, Integer, U> f) {
+        return foldI(acc, f, 0);
     }
 }
 

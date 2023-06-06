@@ -6,6 +6,10 @@ public class LiveRange {
     final int begin;
     final int end;
 
+    final List<NodeInOut> stretch;
+
+    final double useDensity;
+
     LiveRange(Identifier var, List<NodeInOut> cfGraph) {
         this.id = var;
         this.begin = cfGraph.firstIndex(n -> n.out
@@ -13,8 +17,20 @@ public class LiveRange {
         
         final var count = cfGraph.count();
 
-        this.end = count - cfGraph.reverse().firstIndex(n -> n.in
+        this.end = count - 1 - cfGraph.reverse().firstIndex(n -> n.in
                 .exists(v -> Util.nameEq(id, v))).orElse(count + 1);
+        
+        stretch = cfGraph.foldI(List.<NodeInOut>nul(), (acc, nio, i) -> {
+            if (begin <= i && i < end) {
+                return acc.cons(nio);
+            } else {
+                return acc;
+            }
+        }).reverse();
+
+        useDensity = stretch.fold(0, (acc, nio) -> {
+            return acc + nio.node.use.filter(i -> Util.nameEq(i, id)).count();
+        }) / ((double) this.end - this.begin);
     }
 
     @Override
