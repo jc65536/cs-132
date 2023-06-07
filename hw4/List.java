@@ -61,21 +61,44 @@ class Lazy<T> implements Supplier<T> {
     }
 }
 
-// Lazy linked list implementation
+interface ListInt<T> {
+    Optional<T> find(Predicate<? super T> p);
 
-class Pair<T> {
-    final T val;
-    final List<T> next;
+    List<T> filter(Predicate<? super T> p);
 
-    Pair(T val, Supplier<Optional<Pair<T>>> next) {
-        this.val = val;
-        this.next = new List<>(next);
-    }
+    <U> U fold(U acc, BiFunction<U, T, U> f);
+
+    <U> List<U> map(Function<T, U> f);
+
+    <U> List<U> flatMap(Function<T, List<U>> f);
+
+    List<T> join(List<? extends T> other);
+
+    int count();
+
+    Optional<Integer> firstIndex(int i, Predicate<? super T> p);
+
+    List<T> unique(List<T> hist, BiPredicate<? super T, ? super T> eq);
 }
 
-public class List<T> extends Lazy<Optional<Pair<T>>> {
+// Lazy linked list implementation
+
+public class List<T> extends Lazy<Optional<Pair<T>>> implements ListInt<T> {
     List(Supplier<Optional<Pair<T>>> s) {
         super(s);
+    }
+
+    @Override
+    public Optional<T> find(Predicate<? super T> p) {
+        return get().flatMap(n -> n.find(p));
+    }
+
+    boolean exists(Predicate<? super T> p) {
+        return find(p).isPresent();
+    }
+
+    boolean forAll(Predicate<? super T> p) {
+        return !exists(p.negate());
     }
 
     static <T> List<T> nul() {
@@ -90,13 +113,14 @@ public class List<T> extends Lazy<Optional<Pair<T>>> {
         return List.<T>nul().cons(val);
     }
 
-    Optional<T> head() {
-        return get().map(n -> n.val);
+    @Override
+    public <U> List<U> map(Function<T, U> f) {
+        return new List<>(bind(opt -> opt.map(n -> n.map(f)).orElse(List.nul())));
     }
 
-    <U> U decons(BiFunction<Optional<T>, List<T>, U> k) {
-        return get().map(n -> k.apply(Optional.of(n.val), n.next))
-                .orElseGet(() -> k.apply(Optional.empty(), List.nul()));
+    @Override
+    public <U> U fold(U acc, BiFunction<U, T, U> f) {
+        return get().map(n -> n.fold(acc, f)).orElse(acc);
     }
 
     java.util.List<T> toJavaList() {
@@ -116,63 +140,43 @@ public class List<T> extends Lazy<Optional<Pair<T>>> {
                 .map(u -> new Pair<T>(it.next(), fromIterator(it))));
     }
 
-    Optional<T> find(Predicate<? super T> p) {
-        return get().flatMap(n -> Optional.of(n.val).filter(p)
-                .or(() -> n.next.find(p)));
+    @Override
+    public <U> List<U> flatMap(Function<T, List<U>> f) {
+        return new List<>(bind(opt -> opt.map(n -> n.flatMap(f)).orElse(List.nul())));
     }
 
-    boolean exists(Predicate<? super T> p) {
-        return find(p).isPresent();
+    @Override
+    public List<T> join(List<? extends T> other) {
+        return new List<>(bind(opt -> opt.map(n -> n.join(other)).orElse(other.map(x -> x))));
     }
 
-    boolean forAll(Predicate<? super T> p) {
-        return !exists(p.negate());
+    @Override
+    public List<T> filter(Predicate<? super T> p) {
+        return new List<>(bind(opt -> opt.map(n -> n.filter(p)).orElse(List.nul())));
     }
 
-    <U> List<U> map(Function<T, U> f) {
-        return new List<>(bind(opt -> opt
-                .map(n -> n.next.map(f).cons(f.apply(n.val)))
-                .orElse(List.nul())));
-    }
+    private final Lazy<Integer> count = then(opt -> opt.map(Pair::count).orElse(0));
 
-    <U> U fold(U acc, BiFunction<U, T, U> f) {
-        return get().map(n -> n.next.fold(f.apply(acc, n.val), f))
-                .orElse(acc);
-    }
-
-    List<T> join(List<? extends T> other) {
-        return new List<>(bind(opt -> opt
-                .map(n -> n.next.join(other).cons(n.val))
-                .orElse(other.map(x -> x))));
-    }
-
-    <U> List<U> flatMap(Function<T, List<U>> f) {
-        return new List<>(bind(opt -> opt
-                .map(n -> f.apply(n.val).join(n.next.flatMap(f)))
-                .orElse(List.nul())));
-    }
-
-    List<T> filter(Predicate<? super T> p) {
-        return new List<>(bind(opt -> opt
-                .map(n -> {
-                    final var nextFilter = n.next.filter(p);
-                    return Optional.of(n.val)
-                            .filter(p)
-                            .map(nextFilter::cons)
-                            .orElse(nextFilter);
-                })
-                .orElse(List.nul())));
-    }
-
-    private final Lazy<Integer> count = then(opt -> opt
-            .map(n -> n.next.count() + 1).orElse(0));
-
-    int count() {
+    @Override
+    public int count() {
         return count.get();
     }
 
     List<T> reverse() {
         return fold(List.nul(), List::cons);
+    }
+
+    @Override
+    public Optional<Integer> firstIndex(int i, Predicate<? super T> p) {
+        return get().flatMap(n -> n.firstIndex(i, p));
+    }
+
+    Optional<Integer> firstIndex(Predicate<? super T> p) {
+        return firstIndex(0, p);
+    }
+
+    Optional<T> head() {
+        return get().map(n -> n.val);
     }
 
     Optional<T> max(BiFunction<T, T, Double> cmp) {
@@ -181,32 +185,13 @@ public class List<T> extends Lazy<Optional<Pair<T>>> {
                 .or(() -> Optional.of(val)));
     }
 
-    private List<T> unique(List<T> hist, BiPredicate<? super T, ? super T> eq) {
-        return new List<>(bind(opt -> opt
-                .map(n -> hist
-                        .find(v -> eq.test(v, n.val))
-                        .map(u -> n.next.unique(hist, eq))
-                        .orElseGet(() -> n.next.unique(hist.cons(n.val), eq)
-                                .cons(n.val)))
-                .orElse(List.nul())));
+    @Override
+    public List<T> unique(List<T> hist, BiPredicate<? super T, ? super T> eq) {
+        return new List<>(bind(opt -> opt.map(n -> n.unique(hist, eq)).orElse(List.nul())));
     }
 
     List<T> unique(BiPredicate<? super T, ? super T> eq) {
         return unique(List.nul(), eq);
-    }
-
-    private <U> List<U> mapi(BiFunction<T, Integer, U> f, int i) {
-        return new List<>(bind(opt -> opt
-                .map(n -> n.next.mapi(f, i + 1).cons(f.apply(n.val, i)))
-                .orElse(List.nul())));
-    }
-
-    <U> List<U> mapi(BiFunction<T, Integer, U> f) {
-        return mapi(f, 0);
-    }
-
-    List<T2<T, Integer>> enumerate() {
-        return mapi(T2::new);
     }
 
     T2<List<T>, List<T>> partition(Predicate<? super T> p) {
@@ -228,6 +213,12 @@ public class List<T> extends Lazy<Optional<Pair<T>>> {
 
     static <U, V> T3<List<T2<U, V>>, List<U>, List<V>> zip(List<U> l1, List<V> l2) {
         return zip(new T3<>(List.nul(), List.nul(), List.nul()), l1, l2);
+    }
+
+    String strJoin(String delim) {
+        return get().map(n -> n.next.fold(n.val.toString(),
+                (acc, v) -> acc + delim + v))
+                .orElse("");
     }
 
     private T2<List<T>, List<T>> split(T2<List<T>, List<T>> acc, boolean flag) {
@@ -259,17 +250,72 @@ public class List<T> extends Lazy<Optional<Pair<T>>> {
     }
 
     private <U> U foldI(U acc, F3<U, T, Integer, U> f, int i) {
-        return get().map(p -> p.next.foldI(f.apply(acc, p.val, i), f, i + 1))
+        return get()
+                .map(p -> p.next.foldI(f.apply(acc, p.val, i), f, i + 1))
                 .orElse(acc);
     }
 
     <U> U foldI(U acc, F3<U, T, Integer, U> f) {
         return foldI(acc, f, 0);
     }
+}
 
-    String strJoin(String delim) {
-        return get().map(n -> n.next.fold(n.val.toString(),
-                (acc, v) -> acc + delim + v))
-                .orElse("");
+class Pair<T> implements ListInt<T> {
+    final T val;
+    final List<T> next;
+
+    Pair(T val, Supplier<Optional<Pair<T>>> next) {
+        this.val = val;
+        this.next = new List<>(next);
+    }
+
+    @Override
+    public Optional<T> find(Predicate<? super T> p) {
+        return Optional.of(val).filter(p).or(() -> next.find(p));
+    }
+
+    @Override
+    public <U> List<U> map(Function<T, U> f) {
+        return next.map(f).cons(f.apply(val));
+    }
+
+    @Override
+    public <U> U fold(U acc, BiFunction<U, T, U> f) {
+        return next.fold(f.apply(acc, val), f);
+    }
+
+    @Override
+    public <U> List<U> flatMap(Function<T, List<U>> f) {
+        return f.apply(val).join(next.flatMap(f));
+    }
+
+    @Override
+    public List<T> join(List<? extends T> other) {
+        return next.join(other).cons(val);
+    }
+
+    @Override
+    public List<T> filter(Predicate<? super T> p) {
+        if (p.test(val))
+            return next.filter(p).cons(val);
+        else
+            return next.filter(p);
+    }
+
+    @Override
+    public int count() {
+        return 1 + next.count();
+    }
+
+    @Override
+    public Optional<Integer> firstIndex(int i, Predicate<? super T> p) {
+        return Optional.of(i).filter(u -> p.test(val)).or(() -> next.firstIndex(i + 1, p));
+    }
+
+    @Override
+    public List<T> unique(List<T> hist, BiPredicate<? super T, ? super T> eq) {
+        return hist.find(v -> eq.test(v, val))
+                .map(u -> next.unique(hist, eq))
+                .orElseGet(() -> next.unique(hist.cons(val), eq).cons(val));
     }
 }
