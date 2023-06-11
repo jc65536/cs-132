@@ -1,5 +1,5 @@
-import cs132.IR.sparrow.*;
-import cs132.IR.sparrow.visitor.*;
+import cs132.IR.sparrowv.*;
+import cs132.IR.sparrowv.visitor.*;
 
 public abstract class ARVisitor<A, R> implements ArgRetVisitor<A, R> {
     @Override
@@ -19,16 +19,6 @@ public abstract class ARVisitor<A, R> implements ArgRetVisitor<A, R> {
 
     @Override
     public R visit(LabelInstr arg0, A arg1) {
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
-    }
-
-    @Override
-    public R visit(Move_Id_Integer arg0, A arg1) {
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
-    }
-
-    @Override
-    public R visit(Move_Id_FuncName arg0, A arg1) {
         throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 
@@ -63,11 +53,6 @@ public abstract class ARVisitor<A, R> implements ArgRetVisitor<A, R> {
     }
 
     @Override
-    public R visit(Move_Id_Id arg0, A arg1) {
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
-    }
-
-    @Override
     public R visit(Alloc arg0, A arg1) {
         throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
@@ -94,6 +79,36 @@ public abstract class ARVisitor<A, R> implements ArgRetVisitor<A, R> {
 
     @Override
     public R visit(Call arg0, A arg1) {
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
+
+    @Override
+    public R visit(Move_Reg_Integer arg0, A arg1) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
+
+    @Override
+    public R visit(Move_Reg_FuncName arg0, A arg1) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
+
+    @Override
+    public R visit(Move_Reg_Reg arg0, A arg1) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
+
+    @Override
+    public R visit(Move_Id_Reg arg0, A arg1) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
+
+    @Override
+    public R visit(Move_Reg_Id arg0, A arg1) {
+        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 }
