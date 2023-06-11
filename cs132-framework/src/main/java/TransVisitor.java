@@ -152,8 +152,12 @@ public class TransVisitor implements ArgRetVisitor<SVEnv, Function<List<RVInstr>
 
     @Override
     public Function<List<RVInstr>, List<RVInstr>> visit(IfGoto arg0, SVEnv arg1) {
-        return tr -> tr.cons(new RVBranchZero(Reg.from(arg0.condition),
-                arg1.mkLabel(arg0.label.toString())));
+        final var actualLabel = arg1.mkLabel(arg0.label.toString());
+        final var tempLabel = arg1.mkTempLabel();
+        return tr -> tr
+                .cons(new RVBranchNonZero(Reg.from(arg0.condition), tempLabel))
+                .cons(new RVJump(actualLabel))
+                .cons(tempLabel);
     }
 
     @Override

@@ -213,18 +213,18 @@ class RVJump extends RVInstr {
     }
 }
 
-class RVBranchZero extends RVInstr {
+class RVBranchNonZero extends RVInstr {
     final Reg cond;
     final RVLabel label;
 
-    RVBranchZero(Reg cond, RVLabel label) {
+    RVBranchNonZero(Reg cond, RVLabel label) {
         this.cond = cond;
         this.label = label;
     }
 
     @Override
     public String toString() {
-        return String.format("beqz %s, %s", cond.name(), label.name());
+        return String.format("bnez %s, %s", cond.name(), label.name());
     }
 }
 

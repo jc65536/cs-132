@@ -29,7 +29,7 @@ public class SVEnv {
         return new RVLabel(String.format("%s_%s", currFun, name));
     }
 
-    RVLabel mkTempLabel(String name) {
+    RVLabel mkTempLabel() {
         return new RVLabel(String.format("%s_tmp_%d", currFun, insCount));
     }
 
