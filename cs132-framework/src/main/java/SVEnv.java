@@ -4,15 +4,25 @@ public class SVEnv {
     final String currFun;
     final int insCount;
     final List<T2<String, Integer>> idOffsets;
+    final boolean firstFun;
 
-    SVEnv(String currFun, int insCount, List<T2<String, Integer>> idOffsets) {
+    SVEnv(String currFun, int insCount, List<T2<String, Integer>> idOffsets, boolean firstFun) {
         this.currFun = currFun;
         this.insCount = insCount;
         this.idOffsets = idOffsets;
+        this.firstFun = firstFun;
+    }
+
+    SVEnv() {
+        this("", 0, List.nul(), false);
     }
 
     SVEnv inc() {
-        return new SVEnv(currFun, insCount + 1, idOffsets);
+        return new SVEnv(currFun, insCount + 1, idOffsets, firstFun);
+    }
+
+    SVEnv setFirstFun(boolean ff) {
+        return new SVEnv(currFun, insCount, idOffsets, ff);
     }
 
     RVLabel mkLabel(String name) {

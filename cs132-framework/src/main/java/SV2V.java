@@ -18,7 +18,7 @@ public class SV2V {
 
         final var prgm = ctor.getProgram();
 
-        final var rvprgm = prgm.accept(new TransVisitor(), new SVEnv("", 0, List.nul()))
+        final var rvprgm = prgm.accept(new TransVisitor(), new SVEnv())
                 .andThen(Subroutine.ALLOC::toCode)
                 .andThen(Subroutine.ERROR::toCode)
                 .andThen(Subroutine.PRINT::toCode)

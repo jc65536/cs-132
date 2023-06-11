@@ -9,33 +9,40 @@ public class TransVisitor implements ArgRetVisitor<SVEnv, Function<List<RVInstr>
     @Override
     public Function<List<RVInstr>, List<RVInstr>> visit(Program arg0, SVEnv arg1) {
         return List.fromJavaList(arg0.funDecls)
-                .fold(ident, (acc, fun) -> acc.andThen(fun.accept(this, arg1)));
+                .mapi((fun, i) -> fun.accept(this, arg1.setFirstFun(i == 0)))
+                .fold(ident, Function::andThen);
     }
 
     @Override
     public Function<List<RVInstr>, List<RVInstr>> visit(FunctionDecl arg0, SVEnv arg1) {
         final var ids = arg0.accept(new IdVisitor(), List.nul());
         final var idOffsets = ids.mapi((name, i) -> new T2<>(name, (i + 1) * 4));
-        final var env = new SVEnv(arg0.functionName.toString(), 0, idOffsets);
+        final var env = new SVEnv(arg0.functionName.toString(), 0, idOffsets, arg1.firstFun);
 
         final var funLabel = new RVLabel(arg0.functionName.toString());
 
         // Push locals (excluding params) + return addr
         final var frameGrowSize = (ids.count() - arg0.formalParameters.size() + 1) * 4;
-        final var frameResetSize = frameGrowSize + arg0.formalParameters.size();
+        final var frameResetSize = frameGrowSize + arg0.formalParameters.size() * 4;
 
         return ident
                 .andThen(tr -> tr
                         .cons(new Global(funLabel))
-                        .cons(funLabel)
-                        .cons(new RVAddImm(Reg.sp, Reg.sp, -frameGrowSize))
-                        .cons(new RVStore(Reg.ra, Reg.sp, 0)))
-                .andThen(ident)
+                        .cons(funLabel))
+                .andThen(arg1.firstFun
+                        ? ident
+                        : tr -> tr
+                                .cons(new RVAddImm(Reg.sp, Reg.sp, -frameGrowSize))
+                                .cons(new RVStore(Reg.ra, Reg.sp, 0)))
                 .andThen(arg0.block.accept(this, env))
-                .andThen(tr -> tr
-                        .cons(new RVLoad(Reg.ra, Reg.sp, 0))
-                        .cons(new RVAddImm(Reg.sp, Reg.sp, frameResetSize))
-                        .cons(new RVRet()));
+                .andThen(arg1.firstFun
+                        ? tr -> tr
+                                .cons(new RVLoadImm(Reg.a0, Ecalls.EXIT))
+                                .cons(new RVEcall())
+                        : tr -> tr
+                                .cons(new RVLoad(Reg.ra, Reg.sp, 0))
+                                .cons(new RVAddImm(Reg.sp, Reg.sp, frameResetSize))
+                                .cons(new RVRet()));
     }
 
     @Override
@@ -151,8 +158,24 @@ public class TransVisitor implements ArgRetVisitor<SVEnv, Function<List<RVInstr>
 
     @Override
     public Function<List<RVInstr>, List<RVInstr>> visit(Call arg0, SVEnv arg1) {
-        return tr -> tr
-                .cons(new RVJumpLinkReg(Reg.from(arg0.callee)))
-                .cons(new RVMove(Reg.from(arg0.lhs), Reg.a0));
+        final var argOffsets = List.fromJavaList(arg0.args)
+                .mapi((id, i) -> new T2<>(id.toString(), i * 4));
+
+        final var stackGrowSize = argOffsets.count() * 4;
+
+        final var pushArgs = argOffsets.fold(ident, (acc, t) -> {
+            final var idOffset = arg1.offsetLookup(t.a) + stackGrowSize;
+            return acc.andThen(tr -> tr
+                    .cons(new RVLoad(Reg.a1, Reg.sp, idOffset))
+                    .cons(new RVStore(Reg.a1, Reg.sp, t.b)));
+        });
+
+        return ident
+                .andThen(tr -> tr
+                        .cons(new RVAddImm(Reg.sp, Reg.sp, -stackGrowSize)))
+                .andThen(pushArgs)
+                .andThen(tr -> tr
+                        .cons(new RVJumpLinkReg(Reg.from(arg0.callee)))
+                        .cons(new RVMove(Reg.from(arg0.lhs), Reg.a0)));
     }
 }
