@@ -208,7 +208,7 @@ class RVBranchNonZero extends RVInstr {
 
 // Directives
 
-class DataSec extends RVInstr {
+class Data extends RVInstr {
     @Override
     public String toString() {
         return ".data";
