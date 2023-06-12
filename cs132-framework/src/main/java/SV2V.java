@@ -1,32 +1,26 @@
-import java.util.Optional;
-
-import cs132.IR.SparrowParser;
-import cs132.IR.registers.Registers;
-import cs132.IR.syntaxtree.Node;
-import cs132.IR.visitor.SparrowVConstructor;
+import cs132.IR.*;
+import cs132.IR.registers.*;
+import cs132.IR.visitor.*;
 
 public class SV2V {
     public static void main(String[] args) throws Exception {
         Registers.SetRiscVregs();
         new SparrowParser(System.in);
 
-        final Node root = SparrowParser.Program();
-
-        final SparrowVConstructor ctor = new SparrowVConstructor();
-
+        final var root = SparrowParser.Program();
+        final var ctor = new SparrowVConstructor();
         root.accept(ctor);
-
         final var prgm = ctor.getProgram();
 
-        final var rvprgm = prgm.accept(new TransVisitor(), new SVEnv())
+        final var rvPrgm = prgm.accept(new TransVisitor(), new SVEnv())
                 .andThen(Subroutine.ALLOC::toCode)
                 .andThen(Subroutine.ERROR::toCode)
                 .andThen(Subroutine.PRINT::toCode)
-                .andThen(tr -> tr.cons(new DataSec()))
+                .andThen(tr -> tr.cons(new Data()))
                 .andThen(ErrMsg.NULL::toCode)
                 .andThen(ErrMsg.OOB::toCode)
                 .apply(List.nul());
-        
-        System.out.println(rvprgm.reverse().strJoin("\n"));
+
+        System.out.println(rvPrgm.reverse().strJoin("\n"));
     }
 }

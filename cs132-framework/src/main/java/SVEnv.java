@@ -1,16 +1,16 @@
-import java.util.*;
+import cs132.IR.token.*;
 
 public class SVEnv {
     final String currFun;
     final int insCount;
-    final List<T2<String, Integer>> idOffsets;
-    final boolean firstFun;
+    final List<T2<Identifier, Integer>> idOffsets;
+    final boolean mainFun;
 
-    SVEnv(String currFun, int insCount, List<T2<String, Integer>> idOffsets, boolean firstFun) {
+    SVEnv(String currFun, int insCount, List<T2<Identifier, Integer>> idOffsets, boolean firstFun) {
         this.currFun = currFun;
         this.insCount = insCount;
         this.idOffsets = idOffsets;
-        this.firstFun = firstFun;
+        this.mainFun = firstFun;
     }
 
     SVEnv() {
@@ -18,22 +18,22 @@ public class SVEnv {
     }
 
     SVEnv inc() {
-        return new SVEnv(currFun, insCount + 1, idOffsets, firstFun);
+        return new SVEnv(currFun, insCount + 1, idOffsets, mainFun);
     }
 
-    SVEnv setFirstFun(boolean ff) {
+    SVEnv setMainFun(boolean ff) {
         return new SVEnv(currFun, insCount, idOffsets, ff);
     }
 
-    RVLabel mkLabel(String name) {
-        return new RVLabel(String.format("%s_%s", currFun, name));
+    RVLabel mkLabel(Label label) {
+        return new RVLabel(String.format("%s_%s", currFun, label.toString()));
     }
 
     RVLabel mkTempLabel() {
         return new RVLabel(String.format("%s_tmp_%d", currFun, insCount));
     }
 
-    int offsetLookup(String id) {
-        return idOffsets.find(t -> t.a.equals(id)).get().b;
+    int offsetLookup(Identifier id) {
+        return idOffsets.find(t -> t.a.toString().equals(id.toString())).get().b;
     }
 }

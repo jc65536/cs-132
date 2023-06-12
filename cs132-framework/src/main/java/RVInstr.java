@@ -3,24 +3,6 @@ public abstract class RVInstr {
     public abstract String toString();
 }
 
-class RVLabel extends RVInstr implements Named {
-    private final String name;
-
-    RVLabel(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%s:", name);
-    }
-
-    @Override
-    public String name() {
-        return name;
-    }
-}
-
 abstract class RVBinop extends RVInstr {
     private final String ins;
     final Reg dest;
@@ -36,7 +18,7 @@ abstract class RVBinop extends RVInstr {
 
     @Override
     public String toString() {
-        return String.format("%s %s, %s, %s", ins, dest.name(), src1.name(), src2.name());
+        return String.format("%s %s, %s, %s", ins, dest.use(), src1.use(), src2.use());
     }
 }
 
@@ -46,20 +28,16 @@ class RVAdd extends RVBinop {
     }
 }
 
-class RVAddImm extends RVInstr {
-    final Reg dest;
-    final Reg src;
-    final int imm;
+class RVAdjStack extends RVInstr {
+    final int size;
 
-    RVAddImm(Reg dest, Reg src, int imm) {
-        this.dest = dest;
-        this.src = src;
-        this.imm = imm;
+    RVAdjStack(int size) {
+        this.size = size;
     }
 
     @Override
     public String toString() {
-        return String.format("addi %s, %s, %d", dest.name(), src.name(), imm);
+        return String.format("addi %s, %s, %d", Reg.sp.use(), Reg.sp.use(), size);
     }
 }
 
@@ -94,7 +72,7 @@ class RVLoad extends RVInstr {
 
     @Override
     public String toString() {
-        return String.format("lw %s, %d(%s)", dest.name(), offset, base.name());
+        return String.format("lw %s, %d(%s)", dest.use(), offset, base.use());
     }
 }
 
@@ -111,7 +89,7 @@ class RVStore extends RVInstr {
 
     @Override
     public String toString() {
-        return String.format("sw %s, %d(%s)", src.name(), offset, base.name());
+        return String.format("sw %s, %d(%s)", src.use(), offset, base.use());
     }
 }
 
@@ -126,7 +104,7 @@ class RVMove extends RVInstr {
 
     @Override
     public String toString() {
-        return String.format("mv %s, %s", dest.name(), src.name());
+        return String.format("mv %s, %s", dest.use(), src.use());
     }
 }
 
@@ -141,22 +119,22 @@ class RVLoadImm extends RVInstr {
 
     @Override
     public String toString() {
-        return String.format("li %s, %d", dest.name(), imm);
+        return String.format("li %s, %d", dest.use(), imm);
     }
 }
 
 class RVLoadAddr extends RVInstr {
     final Reg dest;
-    final RVLabel label;
+    final Usable label;
 
-    RVLoadAddr(Reg dest, RVLabel label) {
+    RVLoadAddr(Reg dest, Usable label) {
         this.dest = dest;
         this.label = label;
     }
 
     @Override
     public String toString() {
-        return String.format("la %s, %s", dest.name(), label.name());
+        return String.format("la %s, %s", dest.use(), label.use());
     }
 }
 
@@ -168,15 +146,15 @@ class RVEcall extends RVInstr {
 }
 
 class RVJumpLink extends RVInstr {
-    final RVLabel label;
+    final Usable label;
 
-    RVJumpLink(RVLabel label) {
+    RVJumpLink(Usable label) {
         this.label = label;
     }
 
     @Override
     public String toString() {
-        return String.format("jal %s", label.name());
+        return String.format("jal %s", label.use());
     }
 }
 
@@ -189,7 +167,7 @@ class RVJumpLinkReg extends RVInstr {
 
     @Override
     public String toString() {
-        return String.format("jalr %s", addr.name());
+        return String.format("jalr %s", addr.use());
     }
 }
 
@@ -201,30 +179,30 @@ class RVRet extends RVInstr {
 }
 
 class RVJump extends RVInstr {
-    final RVLabel label;
+    final Usable label;
 
-    RVJump(RVLabel label) {
+    RVJump(Usable label) {
         this.label = label;
     }
 
     @Override
     public String toString() {
-        return String.format("j %s", label.name());
+        return String.format("j %s", label.use());
     }
 }
 
 class RVBranchNonZero extends RVInstr {
     final Reg cond;
-    final RVLabel label;
+    final Usable label;
 
-    RVBranchNonZero(Reg cond, RVLabel label) {
+    RVBranchNonZero(Reg cond, Usable label) {
         this.cond = cond;
         this.label = label;
     }
 
     @Override
     public String toString() {
-        return String.format("bnez %s, %s", cond.name(), label.name());
+        return String.format("bnez %s, %s", cond.use(), label.use());
     }
 }
 
@@ -238,15 +216,15 @@ class DataSec extends RVInstr {
 }
 
 class Global extends RVInstr {
-    final RVLabel label;
+    final Usable label;
 
-    Global(RVLabel label) {
+    Global(Usable label) {
         this.label = label;
     }
 
     @Override
     public String toString() {
-        return String.format(".globl %s", label.name());
+        return String.format(".globl %s", label.use());
     }
 }
 

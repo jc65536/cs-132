@@ -9,7 +9,7 @@ public class TransVisitor implements ArgRetVisitor<SVEnv, Function<List<RVInstr>
     @Override
     public Function<List<RVInstr>, List<RVInstr>> visit(Program arg0, SVEnv arg1) {
         return List.fromJavaList(arg0.funDecls)
-                .mapi((fun, i) -> fun.accept(this, arg1.setFirstFun(i == 0)))
+                .mapi((fun, i) -> fun.accept(this, arg1.setMainFun(i == 0)))
                 .fold(ident, Function::andThen);
     }
 
@@ -17,37 +17,35 @@ public class TransVisitor implements ArgRetVisitor<SVEnv, Function<List<RVInstr>
     public Function<List<RVInstr>, List<RVInstr>> visit(FunctionDecl arg0, SVEnv arg1) {
         final var ids = arg0.accept(new IdVisitor(), List.nul());
         final var idOffsets = ids.mapi((name, i) -> new T2<>(name, (i + 1) * 4));
-        final var env = new SVEnv(arg0.functionName.toString(), 0, idOffsets, arg1.firstFun);
+        final var env = new SVEnv(arg0.functionName.toString(), 0, idOffsets, arg1.mainFun);
 
         final var funLabel = new RVLabel(arg0.functionName.toString());
 
-        // Push locals (excluding params) + return addr
-        final var frameGrowSize = (ids.count() - arg0.formalParameters.size() + 1) * 4;
-        final var frameResetSize = frameGrowSize + arg0.formalParameters.size() * 4;
+        // Push locals excluding params + return addr
+        final var numParams = arg0.formalParameters.size();
+        final var growSize = (ids.count() - numParams + 1) * 4;
+        final var resetSize = growSize + numParams * 4;
 
         return ident
                 .andThen(tr -> tr
                         .cons(new Global(funLabel))
-                        .cons(funLabel))
-                .andThen(arg1.firstFun
-                        ? ident
-                        : tr -> tr
-                                .cons(new RVAddImm(Reg.sp, Reg.sp, -frameGrowSize))
-                                .cons(new RVStore(Reg.ra, Reg.sp, 0)))
+                        .cons(funLabel)
+                        .cons(new RVAdjStack(-growSize))
+                        .cons(new RVStore(Reg.ra, Reg.sp, 0)))
                 .andThen(arg0.block.accept(this, env))
-                .andThen(arg1.firstFun
-                        ? tr -> tr
+                .andThen(tr -> arg1.mainFun
+                        ? tr
                                 .cons(new RVLoadImm(Reg.a0, Ecalls.EXIT))
                                 .cons(new RVEcall())
-                        : tr -> tr
+                        : tr
                                 .cons(new RVLoad(Reg.ra, Reg.sp, 0))
-                                .cons(new RVAddImm(Reg.sp, Reg.sp, frameResetSize))
+                                .cons(new RVAdjStack(resetSize))
                                 .cons(new RVRet()));
     }
 
     @Override
     public Function<List<RVInstr>, List<RVInstr>> visit(Block arg0, SVEnv arg1) {
-        final var retOffset = arg1.offsetLookup(arg0.return_id.toString());
+        final var retOffset = arg1.offsetLookup(arg0.return_id);
         return List.fromJavaList(arg0.instructions)
                 .fold(new T2<>(ident, arg1), (acc, ins) -> {
                     final var composed = acc.a.andThen(ins.accept(this, acc.b));
@@ -58,7 +56,7 @@ public class TransVisitor implements ArgRetVisitor<SVEnv, Function<List<RVInstr>
 
     @Override
     public Function<List<RVInstr>, List<RVInstr>> visit(LabelInstr arg0, SVEnv arg1) {
-        return tr -> tr.cons(arg1.mkLabel(arg0.label.toString()));
+        return tr -> tr.cons(arg1.mkLabel(arg0.label));
     }
 
     @Override
@@ -108,13 +106,13 @@ public class TransVisitor implements ArgRetVisitor<SVEnv, Function<List<RVInstr>
 
     @Override
     public Function<List<RVInstr>, List<RVInstr>> visit(Move_Id_Reg arg0, SVEnv arg1) {
-        final var offset = arg1.offsetLookup(arg0.lhs.toString());
+        final var offset = arg1.offsetLookup(arg0.lhs);
         return tr -> tr.cons(new RVStore(Reg.from(arg0.rhs), Reg.sp, offset));
     }
 
     @Override
     public Function<List<RVInstr>, List<RVInstr>> visit(Move_Reg_Id arg0, SVEnv arg1) {
-        final var offset = arg1.offsetLookup(arg0.rhs.toString());
+        final var offset = arg1.offsetLookup(arg0.rhs);
         return tr -> tr.cons(new RVLoad(Reg.from(arg0.lhs), Reg.sp, offset));
     }
 
@@ -122,7 +120,7 @@ public class TransVisitor implements ArgRetVisitor<SVEnv, Function<List<RVInstr>
     public Function<List<RVInstr>, List<RVInstr>> visit(Alloc arg0, SVEnv arg1) {
         return tr -> tr
                 .cons(new RVMove(Reg.a1, Reg.from(arg0.size)))
-                .cons(new RVJumpLink(Subroutine.ALLOC.label))
+                .cons(new RVJumpLink(Subroutine.ALLOC))
                 .cons(new RVMove(Reg.from(arg0.lhs), Reg.a0));
     }
 
@@ -130,29 +128,25 @@ public class TransVisitor implements ArgRetVisitor<SVEnv, Function<List<RVInstr>
     public Function<List<RVInstr>, List<RVInstr>> visit(Print arg0, SVEnv arg1) {
         return tr -> tr
                 .cons(new RVMove(Reg.a1, Reg.from(arg0.content)))
-                .cons(new RVJumpLink(Subroutine.PRINT.label));
+                .cons(new RVJumpLink(Subroutine.PRINT));
     }
 
     @Override
     public Function<List<RVInstr>, List<RVInstr>> visit(ErrorMessage arg0, SVEnv arg1) {
-        if (arg0.msg.equals("null pointer"))
-            return tr -> tr
-                    .cons(new RVLoadAddr(Reg.a1, ErrMsg.NULL.label))
-                    .cons(new RVJump(Subroutine.ERROR.label));
-        else
-            return tr -> tr
-                    .cons(new RVLoadAddr(Reg.a1, ErrMsg.OOB.label))
-                    .cons(new RVJump(Subroutine.ERROR.label));
+        final var isNullError = arg0.msg.equals("null pointer");
+        return tr -> tr
+                .cons(new RVLoadAddr(Reg.a1, isNullError ? ErrMsg.NULL : ErrMsg.OOB))
+                .cons(new RVJump(Subroutine.ERROR));
     }
 
     @Override
     public Function<List<RVInstr>, List<RVInstr>> visit(Goto arg0, SVEnv arg1) {
-        return tr -> tr.cons(new RVJump(arg1.mkLabel(arg0.label.toString())));
+        return tr -> tr.cons(new RVJump(arg1.mkLabel(arg0.label)));
     }
 
     @Override
     public Function<List<RVInstr>, List<RVInstr>> visit(IfGoto arg0, SVEnv arg1) {
-        final var actualLabel = arg1.mkLabel(arg0.label.toString());
+        final var actualLabel = arg1.mkLabel(arg0.label);
         final var tempLabel = arg1.mkTempLabel();
         return tr -> tr
                 .cons(new RVBranchNonZero(Reg.from(arg0.condition), tempLabel))
@@ -162,21 +156,19 @@ public class TransVisitor implements ArgRetVisitor<SVEnv, Function<List<RVInstr>
 
     @Override
     public Function<List<RVInstr>, List<RVInstr>> visit(Call arg0, SVEnv arg1) {
-        final var argOffsets = List.fromJavaList(arg0.args)
-                .mapi((id, i) -> new T2<>(id.toString(), i * 4));
+        final var argOffsets = List.fromJavaList(arg0.args).mapi((id, i) -> new T2<>(id, i * 4));
 
-        final var stackGrowSize = argOffsets.count() * 4;
+        final var growSize = argOffsets.count() * 4;
 
         final var pushArgs = argOffsets.fold(ident, (acc, t) -> {
-            final var idOffset = arg1.offsetLookup(t.a) + stackGrowSize;
+            final var idOffset = arg1.offsetLookup(t.a) + growSize;
             return acc.andThen(tr -> tr
                     .cons(new RVLoad(Reg.a1, Reg.sp, idOffset))
                     .cons(new RVStore(Reg.a1, Reg.sp, t.b)));
         });
 
         return ident
-                .andThen(tr -> tr
-                        .cons(new RVAddImm(Reg.sp, Reg.sp, -stackGrowSize)))
+                .andThen(tr -> tr.cons(new RVAdjStack(-growSize)))
                 .andThen(pushArgs)
                 .andThen(tr -> tr
                         .cons(new RVJumpLinkReg(Reg.from(arg0.callee)))
